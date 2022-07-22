@@ -2,9 +2,6 @@ use std::{
     error::Error,
     fs::{create_dir, File},
     io::Read,
-    ops::Index,
-    path::Path,
-    sync::Arc,
 };
 extern crate inflector;
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
@@ -47,6 +44,18 @@ fn main() {
     let re = Regex::new(r"class ([a-zA-Z]+) :").unwrap();
     let entity_name = re.captures(&code).unwrap().get(1).unwrap().as_str();
     println!("entity_name:{}", entity_name);
+
+    let re = Regex::new(
+        r###">
+    {
+        ([a-zA-Z]+) 
+    }
+}"###,
+    )
+    .unwrap();
+    let properties = re.captures(&code).unwrap().get(1).unwrap().as_str();
+    println!("properties:{}", properties);
+
     let src_dir = entity_path.split('\\').collect::<Vec<&str>>();
     let src = src_dir.iter().position(|&i| i.contains("src")).unwrap();
     let application_contracts_dir = src_dir[..(src + 1)].join("\\");
@@ -79,12 +88,13 @@ fn main() {
     context.insert("numbers", &vec![1, 2, 3]);
     context.insert("show_all", &false);
     context.insert("bio", &"<script>alert('pwnd');</script>");
+    context.insert("properties", "");
 
     // A one off template
     Tera::one_off("hello", &Context::new(), true).unwrap();
 
     let mut file = File::create(application_contracts_dir).expect("create failed");
-    match TEMPLATES.render_to("users/profile.html", &context, file) {
+    match TEMPLATES.render_to("Application.Contracts/Dto.cs", &context, file) {
         Ok(()) => println!("write success"),
         Err(e) => {
             println!("Error: {}", e);
