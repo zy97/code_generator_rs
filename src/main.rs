@@ -1,11 +1,11 @@
-use std::{fmt, error::Error, collections::HashMap};
+use std::error::Error;
 
 use tera::{Context, Tera};
 #[macro_use]
 extern crate lazy_static;
 
 lazy_static! {
-     static ref TEMPLATES: Tera = {
+    static ref TEMPLATES: Tera = {
         let mut tera = match Tera::new("templates/**/*") {
             Ok(t) => t,
             Err(e) => {
@@ -15,7 +15,7 @@ lazy_static! {
         };
         tera.autoescape_on(vec![".html", ".sql"]);
         // tera.register_filter("do_nothing", do_nothing_filter);
-        println!("Tera initialized:{:?}",tera);
+        println!("Tera initialized:{:?}", tera);
         tera
     };
 }
