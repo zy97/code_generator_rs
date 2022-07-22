@@ -29,8 +29,9 @@ fn main() {
     // A one off template
     Tera::one_off("hello", &Context::new(), true).unwrap();
 
-    match TEMPLATES.render("users/profile.html", &context) {
-        Ok(s) => println!("{}", s),
+    let mut file = std::fs::File::create(r"C:\1.txt").expect("create failed");
+    match TEMPLATES.render_to("users/profile.html", &context, file) {
+        Ok(()) => println!("写入成功"),
         Err(e) => {
             println!("Error: {}", e);
             let mut cause = e.source();
