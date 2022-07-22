@@ -8,3 +8,8 @@ edition = "2021"
 [dependencies]
 tera = { version = "1.16.0", default-features = false }
 lazy_static = "1.4.0"
+clap = "3.2.14"
+encoding = "0.2.33"
+Inflector = "0.11.4"
+walkdir = "2.3.2"
+regex = "1.6.0"

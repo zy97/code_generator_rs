@@ -1,5 +1,15 @@
-use std::error::Error;
-
+use std::{
+    error::Error,
+    fs::{create_dir, File},
+    io::Read,
+    ops::Index,
+    path::Path,
+    sync::Arc,
+};
+extern crate inflector;
+use encoding::{all::UTF_8, DecoderTrap, Encoding};
+use inflector::Inflector;
+use regex::Regex;
 use tera::{Context, Tera};
 #[macro_use]
 extern crate lazy_static;
@@ -20,7 +30,51 @@ lazy_static! {
     };
 }
 fn main() {
+    println!("abp entity path:");
+    let mut entity_path =
+        String::from(r"C:\Users\Administrator\Desktop\Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs");
+    // stdin().read_line(&mut entity_path).unwrap();
+    //如果从控制台接受输入，如果没有这句，会提示路径不对等信息，可能是有其他特殊字符
+    let mut entity_path = entity_path.trim().to_string();
+    let entity_path = entity_path.to_string();
+
+    let mut file = File::open(&entity_path).unwrap();
+    let mut code = vec![];
+    file.read_to_end(&mut code).unwrap();
+    let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
+    println!("code:{}", code);
+    // let entity_name = code.
+    let re = Regex::new(r"class ([a-zA-Z]+) :").unwrap();
+    let entity_name = re.captures(&code).unwrap().get(1).unwrap().as_str();
+    println!("entity_name:{}", entity_name);
+    let src_dir = entity_path.split('\\').collect::<Vec<&str>>();
+    let src = src_dir.iter().position(|&i| i.contains("src")).unwrap();
+    let application_contracts_dir = src_dir[..(src + 1)].join("\\");
+    println!("path:{:?}", application_contracts_dir);
+    let application_contracts_dir = walkdir::WalkDir::new(application_contracts_dir)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_type().is_dir()
+                && e.file_name()
+                    .to_str()
+                    .unwrap()
+                    .contains(".Application.Contracts")
+        })
+        .nth(0)
+        .unwrap();
+    println!("path:{:?}", application_contracts_dir);
+    let application_contracts_dir = vec![
+        application_contracts_dir.path().to_str().unwrap(),
+        entity_name.to_plural().as_str(),
+    ]
+    .join("\\");
+    create_dir(&application_contracts_dir);
+    let application_contracts_dir =
+        vec![application_contracts_dir, format!("{}Dto.cs", entity_name)].join("\\");
+    println!("{}", application_contracts_dir);
     let mut context = Context::new();
+
     context.insert("username", &"Bob");
     context.insert("numbers", &vec![1, 2, 3]);
     context.insert("show_all", &false);
@@ -29,9 +83,9 @@ fn main() {
     // A one off template
     Tera::one_off("hello", &Context::new(), true).unwrap();
 
-    let mut file = std::fs::File::create(r"C:\1.txt").expect("create failed");
+    let mut file = File::create(application_contracts_dir).expect("create failed");
     match TEMPLATES.render_to("users/profile.html", &context, file) {
-        Ok(()) => println!("写入成功"),
+        Ok(()) => println!("write success"),
         Err(e) => {
             println!("Error: {}", e);
             let mut cause = e.source();
@@ -42,6 +96,6 @@ fn main() {
         }
     };
 
-    // let result = TEMPLATES.render("hello.html", &context).unwrap();
-    // println!("{}", result);
+    // // let result = TEMPLATES.render("hello.html", &context).unwrap();
+    // // println!("{}", result);
 }
