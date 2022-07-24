@@ -28,33 +28,30 @@ lazy_static! {
 }
 fn main() {
     println!("abp entity path:");
-    let mut entity_path =
-        String::from(r"C:\Users\Administrator\Desktop\Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs");
+    let entity_path = String::from(r"C:\Repos\Abp.Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs");
     // stdin().read_line(&mut entity_path).unwrap();
     //如果从控制台接受输入，如果没有这句，会提示路径不对等信息，可能是有其他特殊字符
-    let mut entity_path = entity_path.trim().to_string();
-    let entity_path = entity_path.to_string();
+    let entity_path = entity_path.trim().to_string();
 
     let mut file = File::open(&entity_path).unwrap();
     let mut code = vec![];
     file.read_to_end(&mut code).unwrap();
     let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
     println!("code:{}", code);
-    // let entity_name = code.
+
     let re = Regex::new(r"class ([a-zA-Z]+) :").unwrap();
     let entity_name = re.captures(&code).unwrap().get(1).unwrap().as_str();
-    println!("entity_name:{}", entity_name);
-
-    let re = Regex::new(
-        r###">
-    {
-        ([a-zA-Z]+) 
-    }
-}"###,
-    )
-    .unwrap();
-    let properties = re.captures(&code).unwrap().get(1).unwrap().as_str();
-    println!("properties:{}", properties);
+    let entity_names = entity_name.to_plural();
+    println!("entity_name:{}, entity_names:{}", entity_name, entity_names);
+    let re = Regex::new(r"<([a-zA-Z]+)>").unwrap();
+    let id_type = re.captures(&code).unwrap().get(1).unwrap().as_str();
+    println!("id_type:{}", id_type);
+    let re = Regex::new(format!(r"namespace ([a-zA-Z.]+).{}", entity_names).as_str()).unwrap();
+    let namespace = re.captures(&code).unwrap().get(1).unwrap().as_str();
+    println!("namespace:{}", namespace);
+    let re = Regex::new(r">([\s]*)\{([a-zA-Z\\ \r\n;{}]+)}([\s]*)}").unwrap();
+    let properties = re.captures(&code).unwrap().get(2).unwrap().as_str();
+    println!("properties:{}", properties.trim());
 
     let src_dir = entity_path.split('\\').collect::<Vec<&str>>();
     let src = src_dir.iter().position(|&i| i.contains("src")).unwrap();
@@ -88,7 +85,12 @@ fn main() {
     context.insert("numbers", &vec![1, 2, 3]);
     context.insert("show_all", &false);
     context.insert("bio", &"<script>alert('pwnd');</script>");
-    context.insert("properties", "");
+    // context.insert("properties", "");
+    context.insert("namespace", namespace);
+    context.insert("folder", &entity_names);
+    context.insert("entity", entity_name);
+    context.insert("id", id_type);
+    context.insert("properties", properties);
 
     // A one off template
     Tera::one_off("hello", &Context::new(), true).unwrap();
