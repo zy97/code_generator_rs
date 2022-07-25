@@ -1,5 +1,4 @@
 use std::{
-    any::Any,
     collections::HashMap,
     error::Error,
     fs::{create_dir, File},
@@ -78,14 +77,25 @@ fn main() {
         entity_name,
         &entity_names,
     );
+    let custom = false;
+
     create_iservice(
-        false,
+        custom,
         &src_dir,
         namespace,
         entity_name,
         id_type,
         &entity_names,
-    )
+    );
+    create_service(
+        custom,
+        &src_dir,
+        namespace,
+        entity_name,
+        id_type,
+        &entity_names,
+        properties,
+    );
 }
 
 fn create_dto(
@@ -246,6 +256,51 @@ fn create_iservice(
     ]
     .join("\\");
     generate_template(kv, "Application.Contracts/IService.cs", &file_path)
+}
+
+fn create_service(
+    custom: bool,
+    src_path: &str,
+    namespace: &str,
+    entity_name: &str,
+    id_type: &str,
+    folder: &str,
+    properties: &str,
+) {
+    let re = Regex::new(r"public ([a-zA-Z\\ ]+)").unwrap();
+    let properties:Vec::<(_,_)> = re
+        .captures_iter(properties)
+        .map(|m| {
+            println!("tttt:{:?}", m);
+            let mut splited = m.get(1).unwrap().as_str().trim().split(' ');
+            let t = splited.next().unwrap();
+            let p = splited.next().unwrap();
+            (p, t)
+        })
+        .collect();
+    let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+    kv.insert("namespace", Box::new(namespace));
+    kv.insert("entity", Box::new(entity_name));
+    kv.insert("folder", Box::new(folder));
+    kv.insert("id", Box::new(id_type));
+    kv.insert("properties", Box::new(properties));
+    kv.insert("custom", Box::new(custom));
+    let application_dir = walkdir::WalkDir::new(src_path)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_type().is_dir() && e.file_name().to_str().unwrap().contains(".Application")
+        })
+        .nth(0)
+        .unwrap();
+    let application_dir = vec![
+        application_dir.path().to_str().unwrap(),
+        entity_name.to_plural().as_str(),
+    ]
+    .join("\\");
+    create_dir(&application_dir);
+    let file_path = vec![application_dir, format!("{}Service.cs", entity_name)].join("\\");
+    generate_template(kv, "Application/Service.cs", &file_path)
 }
 
 fn generate_template<T>(kv: HashMap<&str, Box<T>>, template_name: &str, file_path: &str)
