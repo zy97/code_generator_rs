@@ -1,8 +1,9 @@
 use std::{
     collections::HashMap,
     error::Error,
-    fs::{create_dir, File},
-    io::Read,
+    fs::{create_dir, File, OpenOptions},
+    io::{Read, Write},
+    os::windows::prelude::FileExt,
 };
 extern crate inflector;
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
@@ -60,6 +61,8 @@ fn main() {
     let src_dir = entity_path.split('\\').collect::<Vec<&str>>();
     let src_index = src_dir.iter().position(|&i| i.contains("src")).unwrap();
     let src_dir = src_dir[..(src_index + 1)].join("\\");
+    insert_mapper(&src_dir, entity_name, namespace, &entity_names);
+    panic!();
 
     create_dto(
         &src_dir,
@@ -69,7 +72,9 @@ fn main() {
         entity_name,
         &entity_names,
     );
+
     create_createorupdatedto(&src_dir, namespace, properties, entity_name, &entity_names);
+
     create_pagedandsortedandfilterresultdto(
         &src_dir,
         namespace,
@@ -77,6 +82,7 @@ fn main() {
         entity_name,
         &entity_names,
     );
+
     let custom = false;
 
     create_iservice(
@@ -268,7 +274,7 @@ fn create_service(
     properties: &str,
 ) {
     let re = Regex::new(r"public ([a-zA-Z\\ ]+)").unwrap();
-    let properties:Vec::<(_,_)> = re
+    let properties: Vec<(_, _)> = re
         .captures_iter(properties)
         .map(|m| {
             println!("tttt:{:?}", m);
@@ -301,6 +307,63 @@ fn create_service(
     create_dir(&application_dir);
     let file_path = vec![application_dir, format!("{}Service.cs", entity_name)].join("\\");
     generate_template(kv, "Application/Service.cs", &file_path)
+}
+
+fn insert_mapper(src_path: &str, entity_name: &str, namespace: &str, entity_names: &str) {
+    let mapper_file_path = walkdir::WalkDir::new(src_path)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_type().is_file()
+                && e.file_name()
+                    .to_str()
+                    .unwrap()
+                    .contains("ApplicationAutoMapperProfile")
+        })
+        .nth(0)
+        .unwrap();
+    println!("mapper:{}", mapper_file_path.path().to_str().unwrap());
+    let mapper_file_path = mapper_file_path.path().to_str().unwrap();
+    let mut options = OpenOptions::new();
+    let mut file = options
+        .write(true)
+        .read(true)
+        .open(&mapper_file_path)
+        .expect("create failed");
+    let mut code = String::new();
+
+    file.read_to_string(&mut code).unwrap();
+    let index = code.rfind(';').unwrap();
+    code.insert_str(
+        index + 1,
+        format!(
+            "\r\n\t\tCreateMap<{0}, {0}Dto>();\r\n\t\tCreateMap<CreateOrUpdate{0}Dto, {0}>();",
+            entity_name
+        )
+        .as_str(),
+    );
+    code.insert_str(
+        0,
+        format!("using {}.{};\r\n", namespace, entity_names).as_str(),
+    );
+    file.seek_write(code.as_bytes(), 0).unwrap();
+    // file.seek_write(
+    //     (format!(
+    //         "\r\n\t\tCreateMap<{0}, {0}Dto>();\r\n\t\tCreateMap<CreateOrUpdate{0}Dto, {0}>();",
+    //         namespace
+    //     ) + &code[index..])
+    //         .as_bytes(),
+    //     index as u64 + 1,
+    // )
+    // .unwrap();
+
+    // let mut code = String::new();
+    // file.read_to_string(&mut code).unwrap();
+    // file.seek_write(
+    //     (format!("using {}.{};\r\n", namespace, entity_names) + &code).as_bytes(),
+    //     0,
+    // )
+    // .unwrap();
 }
 
 fn generate_template<T>(kv: HashMap<&str, Box<T>>, template_name: &str, file_path: &str)
