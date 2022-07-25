@@ -69,6 +69,7 @@ fn main() {
         &entity_names,
     );
     create_createorupdatedto(&src_dir, namespace, properties, entity_name, &entity_names);
+    create_pagedandsortedandfilterresultdto(&src_dir, namespace, properties, entity_name, &entity_names);
 }
 fn create_dto(
     src_path: &str,
@@ -146,6 +147,46 @@ fn create_createorupdatedto(
     ]
     .join("\\");
     generate_template(kv, "Application.Contracts/CreateOrUpdateDto.cs", &file_path)
+}
+fn create_pagedandsortedandfilterresultdto(
+    src_path: &str,
+    namespace: &str,
+    properties: &str,
+    entity_name: &str,
+    folder: &str,
+) {
+    let mut kv = HashMap::new();
+    kv.insert("namespace", namespace);
+    kv.insert("folder", folder);
+    kv.insert("properties", properties);
+    let application_contracts_dir = walkdir::WalkDir::new(src_path)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_type().is_dir()
+                && e.file_name()
+                    .to_str()
+                    .unwrap()
+                    .contains(".Application.Contracts")
+        })
+        .nth(0)
+        .unwrap();
+    let application_contracts_dir = vec![
+        application_contracts_dir.path().to_str().unwrap(),
+        entity_name.to_plural().as_str(),
+    ]
+    .join("\\");
+    create_dir(&application_contracts_dir);
+    let file_path = vec![
+        application_contracts_dir,
+        String::from("PagedAndSortedAndFilteredResultRequestDto.cs"),
+    ]
+    .join("\\");
+    generate_template(
+        kv,
+        "Application.Contracts/PagedAndSortedAndFilteredResultRequestDto.cs",
+        &file_path,
+    )
 }
 fn generate_template(kv: HashMap<&str, &str>, template_name: &str, file_path: &str) {
     let mut context = Context::new();
