@@ -32,7 +32,7 @@ fn main() {
     let entity_path =
         String::from(r"C:\Users\Administrator\Desktop\Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs");
     // stdin().read_line(&mut entity_path).unwrap();
-    //如果从控制台接受输入，如果没有这句，会提示路径不对等信息，可能是有其他特殊字符
+    //如果从控制台接受输入，在windows下会有\r\n的结束符，在Unix下游\n的结束符
     let entity_path = entity_path.trim().to_string();
 
     let mut file = File::open(&entity_path).unwrap();
@@ -51,6 +51,7 @@ fn main() {
     let re = Regex::new(format!(r"namespace ([a-zA-Z.]+).{}", entity_names).as_str()).unwrap();
     let namespace = re.captures(&code).unwrap().get(1).unwrap().as_str();
     println!("namespace:{}", namespace);
+    //正则表达式可以优化
     let re = Regex::new(r">([\s]*)\{([a-zA-Z\\ \r\n;{}]+)}([\s]*)}").unwrap();
     let properties = re.captures(&code).unwrap().get(2).unwrap().as_str();
     println!("properties:{}", properties.trim());
@@ -67,6 +68,7 @@ fn main() {
         entity_name,
         &entity_names,
     );
+    create_createorupdatedto(&src_dir, namespace, properties, entity_name, &entity_names);
 }
 fn create_dto(
     src_path: &str,
@@ -107,6 +109,43 @@ fn create_dto(
         "Application.Contracts/Dto.cs",
         &application_contracts_dir,
     )
+}
+fn create_createorupdatedto(
+    src_path: &str,
+    namespace: &str,
+    properties: &str,
+    entity_name: &str,
+    folder: &str,
+) {
+    let mut kv = HashMap::new();
+    kv.insert("namespace", namespace);
+    kv.insert("folder", folder);
+    kv.insert("entity", entity_name);
+    kv.insert("properties", properties);
+    let application_contracts_dir = walkdir::WalkDir::new(src_path)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_type().is_dir()
+                && e.file_name()
+                    .to_str()
+                    .unwrap()
+                    .contains(".Application.Contracts")
+        })
+        .nth(0)
+        .unwrap();
+    let application_contracts_dir = vec![
+        application_contracts_dir.path().to_str().unwrap(),
+        entity_name.to_plural().as_str(),
+    ]
+    .join("\\");
+    create_dir(&application_contracts_dir);
+    let file_path = vec![
+        application_contracts_dir,
+        format!("CreateOrUpdate{}Dto.cs", entity_name),
+    ]
+    .join("\\");
+    generate_template(kv, "Application.Contracts/CreateOrUpdateDto.cs", &file_path)
 }
 fn generate_template(kv: HashMap<&str, &str>, template_name: &str, file_path: &str) {
     let mut context = Context::new();
