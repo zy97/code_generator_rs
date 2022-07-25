@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     error::Error,
     fs::{create_dir, File},
     io::Read,
@@ -28,7 +29,8 @@ lazy_static! {
 }
 fn main() {
     println!("abp entity path:");
-    let entity_path = String::from(r"C:\Repos\Abp.Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs");
+    let entity_path =
+        String::from(r"C:\Users\Administrator\Desktop\Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs");
     // stdin().read_line(&mut entity_path).unwrap();
     //如果从控制台接受输入，如果没有这句，会提示路径不对等信息，可能是有其他特殊字符
     let entity_path = entity_path.trim().to_string();
@@ -54,10 +56,33 @@ fn main() {
     println!("properties:{}", properties.trim());
 
     let src_dir = entity_path.split('\\').collect::<Vec<&str>>();
-    let src = src_dir.iter().position(|&i| i.contains("src")).unwrap();
-    let application_contracts_dir = src_dir[..(src + 1)].join("\\");
-    println!("path:{:?}", application_contracts_dir);
-    let application_contracts_dir = walkdir::WalkDir::new(application_contracts_dir)
+    let src_index = src_dir.iter().position(|&i| i.contains("src")).unwrap();
+    let src_dir = src_dir[..(src_index + 1)].join("\\");
+
+    create_dto(
+        &src_dir,
+        namespace,
+        id_type,
+        properties,
+        entity_name,
+        &entity_names,
+    );
+}
+fn create_dto(
+    src_path: &str,
+    namespace: &str,
+    id_type: &str,
+    properties: &str,
+    entity_name: &str,
+    folder: &str,
+) {
+    let mut kv = HashMap::new();
+    kv.insert("namespace", namespace);
+    kv.insert("folder", folder);
+    kv.insert("entity", entity_name);
+    kv.insert("id", id_type);
+    kv.insert("properties", properties);
+    let application_contracts_dir = walkdir::WalkDir::new(src_path)
         .into_iter()
         .filter_map(Result::ok)
         .filter(|e| {
@@ -69,7 +94,6 @@ fn main() {
         })
         .nth(0)
         .unwrap();
-    println!("path:{:?}", application_contracts_dir);
     let application_contracts_dir = vec![
         application_contracts_dir.path().to_str().unwrap(),
         entity_name.to_plural().as_str(),
@@ -78,25 +102,29 @@ fn main() {
     create_dir(&application_contracts_dir);
     let application_contracts_dir =
         vec![application_contracts_dir, format!("{}Dto.cs", entity_name)].join("\\");
-    println!("{}", application_contracts_dir);
+    generate_template(
+        kv,
+        "Application.Contracts/Dto.cs",
+        &application_contracts_dir,
+    )
+}
+fn generate_template(kv: HashMap<&str, &str>, template_name: &str, file_path: &str) {
     let mut context = Context::new();
-
-    context.insert("username", &"Bob");
-    context.insert("numbers", &vec![1, 2, 3]);
-    context.insert("show_all", &false);
-    context.insert("bio", &"<script>alert('pwnd');</script>");
-    // context.insert("properties", "");
-    context.insert("namespace", namespace);
-    context.insert("folder", &entity_names);
-    context.insert("entity", entity_name);
-    context.insert("id", id_type);
-    context.insert("properties", properties);
+    // context.insert("numbers", &vec![1, 2, 3]);
+    for entity in kv {
+        context.insert(entity.0, entity.1);
+    }
+    // context.insert("namespace", namespace);
+    // context.insert("folder", &entity_names);
+    // context.insert("entity", entity_name);
+    // context.insert("id", id_type);
+    // context.insert("properties", properties);
 
     // A one off template
     Tera::one_off("hello", &Context::new(), true).unwrap();
 
-    let mut file = File::create(application_contracts_dir).expect("create failed");
-    match TEMPLATES.render_to("Application.Contracts/Dto.cs", &context, file) {
+    let mut file = File::create(file_path).expect("create failed");
+    match TEMPLATES.render_to(template_name, &context, file) {
         Ok(()) => println!("write success"),
         Err(e) => {
             println!("Error: {}", e);
@@ -107,7 +135,4 @@ fn main() {
             }
         }
     };
-
-    // // let result = TEMPLATES.render("hello.html", &context).unwrap();
-    // // println!("{}", result);
 }
