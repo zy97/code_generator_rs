@@ -1,4 +1,5 @@
 use std::{
+    any::Any,
     collections::HashMap,
     error::Error,
     fs::{create_dir, File},
@@ -8,6 +9,7 @@ extern crate inflector;
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
 use regex::Regex;
+use serde::Serialize;
 use tera::{Context, Tera};
 #[macro_use]
 extern crate lazy_static;
@@ -69,8 +71,23 @@ fn main() {
         &entity_names,
     );
     create_createorupdatedto(&src_dir, namespace, properties, entity_name, &entity_names);
-    create_pagedandsortedandfilterresultdto(&src_dir, namespace, properties, entity_name, &entity_names);
+    create_pagedandsortedandfilterresultdto(
+        &src_dir,
+        namespace,
+        properties,
+        entity_name,
+        &entity_names,
+    );
+    create_iservice(
+        false,
+        &src_dir,
+        namespace,
+        entity_name,
+        id_type,
+        &entity_names,
+    )
 }
+
 fn create_dto(
     src_path: &str,
     namespace: &str,
@@ -80,11 +97,11 @@ fn create_dto(
     folder: &str,
 ) {
     let mut kv = HashMap::new();
-    kv.insert("namespace", namespace);
-    kv.insert("folder", folder);
-    kv.insert("entity", entity_name);
-    kv.insert("id", id_type);
-    kv.insert("properties", properties);
+    kv.insert("namespace", Box::new(namespace));
+    kv.insert("folder", Box::new(folder));
+    kv.insert("entity", Box::new(entity_name));
+    kv.insert("id", Box::new(id_type));
+    kv.insert("properties", Box::new(properties));
     let application_contracts_dir = walkdir::WalkDir::new(src_path)
         .into_iter()
         .filter_map(Result::ok)
@@ -111,6 +128,7 @@ fn create_dto(
         &application_contracts_dir,
     )
 }
+
 fn create_createorupdatedto(
     src_path: &str,
     namespace: &str,
@@ -119,10 +137,10 @@ fn create_createorupdatedto(
     folder: &str,
 ) {
     let mut kv = HashMap::new();
-    kv.insert("namespace", namespace);
-    kv.insert("folder", folder);
-    kv.insert("entity", entity_name);
-    kv.insert("properties", properties);
+    kv.insert("namespace", Box::new(namespace));
+    kv.insert("folder", Box::new(folder));
+    kv.insert("entity", Box::new(entity_name));
+    kv.insert("properties", Box::new(properties));
     let application_contracts_dir = walkdir::WalkDir::new(src_path)
         .into_iter()
         .filter_map(Result::ok)
@@ -148,6 +166,7 @@ fn create_createorupdatedto(
     .join("\\");
     generate_template(kv, "Application.Contracts/CreateOrUpdateDto.cs", &file_path)
 }
+
 fn create_pagedandsortedandfilterresultdto(
     src_path: &str,
     namespace: &str,
@@ -156,9 +175,9 @@ fn create_pagedandsortedandfilterresultdto(
     folder: &str,
 ) {
     let mut kv = HashMap::new();
-    kv.insert("namespace", namespace);
-    kv.insert("folder", folder);
-    kv.insert("properties", properties);
+    kv.insert("namespace", Box::new(namespace));
+    kv.insert("folder", Box::new(folder));
+    kv.insert("properties", Box::new(properties));
     let application_contracts_dir = walkdir::WalkDir::new(src_path)
         .into_iter()
         .filter_map(Result::ok)
@@ -188,24 +207,63 @@ fn create_pagedandsortedandfilterresultdto(
         &file_path,
     )
 }
-fn generate_template(kv: HashMap<&str, &str>, template_name: &str, file_path: &str) {
+
+fn create_iservice(
+    custom: bool,
+    src_path: &str,
+    namespace: &str,
+    entity_name: &str,
+    id_type: &str,
+    folder: &str,
+) {
+    let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+    kv.insert("namespace", Box::new(namespace));
+    kv.insert("entity", Box::new(entity_name));
+    kv.insert("folder", Box::new(folder));
+    kv.insert("id", Box::new(id_type));
+    kv.insert("custom", Box::new(custom));
+    let application_contracts_dir = walkdir::WalkDir::new(src_path)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_type().is_dir()
+                && e.file_name()
+                    .to_str()
+                    .unwrap()
+                    .contains(".Application.Contracts")
+        })
+        .nth(0)
+        .unwrap();
+    let application_contracts_dir = vec![
+        application_contracts_dir.path().to_str().unwrap(),
+        entity_name.to_plural().as_str(),
+    ]
+    .join("\\");
+    create_dir(&application_contracts_dir);
+    let file_path = vec![
+        application_contracts_dir,
+        format!("I{}Service.cs", entity_name),
+    ]
+    .join("\\");
+    generate_template(kv, "Application.Contracts/IService.cs", &file_path)
+}
+
+fn generate_template<T>(kv: HashMap<&str, Box<T>>, template_name: &str, file_path: &str)
+where
+    T: Serialize + ?Sized,
+{
     let mut context = Context::new();
     // context.insert("numbers", &vec![1, 2, 3]);
     for entity in kv {
-        context.insert(entity.0, entity.1);
+        context.insert(entity.0, &entity.1);
     }
-    // context.insert("namespace", namespace);
-    // context.insert("folder", &entity_names);
-    // context.insert("entity", entity_name);
-    // context.insert("id", id_type);
-    // context.insert("properties", properties);
 
     // A one off template
     Tera::one_off("hello", &Context::new(), true).unwrap();
 
     let mut file = File::create(file_path).expect("create failed");
     match TEMPLATES.render_to(template_name, &context, file) {
-        Ok(()) => println!("write success"),
+        Ok(()) => println!("{} write success", file_path),
         Err(e) => {
             println!("Error: {}", e);
             let mut cause = e.source();

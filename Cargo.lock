@@ -123,8 +123,10 @@ dependencies = [
  "Inflector",
  "clap",
  "encoding",
+ "erased-serde",
  "lazy_static",
  "regex",
+ "serde",
  "tera",
  "walkdir",
 ]
@@ -211,6 +213,15 @@ name = "encoding_index_tests"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a246d82be1c9d791c5dfde9a2bd045fc3cbba3fa2b11ad558f27d01712f00569"
+
+[[package]]
+name = "erased-serde"
+version = "0.3.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81d013529d5574a60caeda29e179e695125448e5de52e3874f7b4c1d7360e18e"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "fake-simd"
