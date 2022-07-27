@@ -1,6 +1,7 @@
 mod app;
 mod entities;
 use app::App;
+use egui::vec2;
 use entities::Entity;
 use entities::WebEntity;
 use inflector::Inflector;
@@ -10,6 +11,7 @@ use tera::to_value;
 use tera::try_get_value;
 use tera::Tera;
 use tera::Value;
+
 #[macro_use]
 extern crate lazy_static;
 lazy_static! {
@@ -37,7 +39,12 @@ pub fn plural(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::
     Ok(to_value(&s.to_plural()).unwrap())
 }
 fn main() {
-    let options = eframe::NativeOptions::default();
+    let options = eframe::NativeOptions {
+        decorated: false,
+        transparent: true,
+        min_window_size: Some(vec2(320f32, 100f32)),
+        ..Default::default()
+    };
     eframe::run_native(
         "Confirm exit",
         options,
