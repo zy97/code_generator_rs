@@ -21,8 +21,9 @@ lazy_static! {
                 ::std::process::exit(1);
             }
         };
-        tera.autoescape_on(vec![".html", ".sql"]);
+        tera.autoescape_on(vec![".ts", ".tsx"]);
         tera.register_filter("snake", snake);
+        tera.register_filter("plural", plural);
         println!("Tera initialized:{:?}", tera);
         tera
     };
@@ -31,12 +32,15 @@ pub fn snake(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::E
     let s = try_get_value!("snake", "value", String, value);
     Ok(to_value(&s.to_snake_case()).unwrap())
 }
+pub fn plural(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
+    let s = try_get_value!("plural", "value", String, value);
+    Ok(to_value(&s.to_plural()).unwrap())
+}
 #[derive(Debug)]
 pub struct WebEntity {
     entity_name: String,
     url_prefix: String,
     src_dir: String,
-    plural_name: String,
 }
 
 impl WebEntity {
@@ -93,7 +97,6 @@ impl WebEntity {
             entity_name,
             url_prefix,
             src_dir,
-            plural_name: entity_names,
         }
     }
     fn find(&self, contain_name: &str, is_file: bool) -> DirEntry {
@@ -162,7 +165,6 @@ impl WebEntity {
     pub fn create_store(&self) {
         let mut kv = HashMap::new();
         kv.insert("entity", Box::new(&self.entity_name));
-        kv.insert("entities", Box::new(&self.plural_name));
 
         let stores_dir = self
             .find("stores", false)
@@ -205,6 +207,21 @@ impl WebEntity {
             file.seek_write(code.as_bytes(), 0).unwrap();
         }
     }
+    pub fn create_page(&self) {
+        let mut kv = HashMap::new();
+        kv.insert("entity", Box::new(&self.entity_name));
+
+        let pages = self
+            .find("Pages", false)
+            .path()
+            .to_str()
+            .unwrap()
+            .to_string();
+
+        let page = format!("{}\\{}", pages, self.entity_name);
+        self.create_dir(&page).unwrap();
+        self.generate_template(kv, "Web/page.tsx", &page, String::from("index.tsx"));
+    }
 }
 
 impl WebEntity {
@@ -224,9 +241,6 @@ impl WebEntity {
         for entity in kv {
             context.insert(entity.0, &entity.1);
         }
-
-        // A one off template
-        Tera::one_off("hello", &Context::new(), true).unwrap();
 
         let file = File::create(&file_path).expect("create failed");
         match TEMPLATES.render_to(template_name, &context, file) {

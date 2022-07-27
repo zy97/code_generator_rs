@@ -1,13 +1,17 @@
+{% set dto = entity ~ "Dto" -%}
+{% set snakeName = entity|snake -%}
+{% set entities = entity|plural -%}
+
 import { makeAutoObservable } from "mobx";
-import { {{entity|snake}}Api } from "../apis";
+import { {{snakeName}}Api } from "../apis";
 import { Add{{entity}}Dto } from "../data/models/{{entity}}";
 class {{entity}}Store {
   constructor() {
     makeAutoObservable(this);
   }
-  getTags = async (data: any, form: any) => {
+  get{{entities}} = async (data: any, form: any) => {
     try {
-      const result = await {{entity|snake}}Api.get{{entities}}({
+      const result = await {{snakeName}}Api.get{{entities}}({
         skipCount: data.pageSize * (data.current - 1),
         maxResultCount: data.pageSize,
         ...form,
@@ -22,15 +26,15 @@ class {{entity}}Store {
   };
   async delete{{entity}}(id: string) {
     try {
-      await {{entity|snake}}Api.delete{{entity}}(id);
+      await {{snakeName}}Api.delete{{entity}}(id);
       return true;
     } catch (error) {
       return false;
     }
   }
-  async add{{entity}}({{entity|snake}}: Add{{entity}}Dto) {
+  async add{{entity}}({{snakeName}}: Add{{entity}}Dto) {
     try {
-      const data = await {{entity|snake}}Api.add{{entity}}({{entity|snake}});
+      const data = await {{snakeName}}Api.add{{entity}}({{snakeName}});
       return data.data;
     } catch (error) {
       return false;
@@ -38,15 +42,15 @@ class {{entity}}Store {
   }
   async get{{entity}}ById(id: string) {
     try {
-      const {{entity|snake}} = await {{entity|snake}}Api.get{{entity}}ById(id);
-      return {{entity|snake}}.data;
+      const {{snakeName}} = await {{snakeName}}Api.get{{entity}}ById(id);
+      return {{snakeName}}.data;
     } catch (error) {
       console.log(error);
     }
   }
-  async update{{entity}}(id: string, {{entity|snake}}: Add{{entity}}Dto) {
+  async update{{entity}}(id: string, {{snakeName}}: Add{{entity}}Dto) {
     try {
-      const result = await {{entity|snake}}Api.update{{entity}}(id, {{entity|snake}});
+      const result = await {{snakeName}}Api.update{{entity}}(id, {{snakeName}});
       return result.data;
     } catch (error) {
       console.log(error);

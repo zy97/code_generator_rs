@@ -31,6 +31,7 @@ fn main() {
         let custom = true;
         web_entity.create_api();
         web_entity.create_store();
+        web_entity.create_page();
     } else {
         println!("abp entity path:");
         let mut entity_path = String::from("");
