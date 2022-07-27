@@ -1,4 +1,6 @@
+mod app;
 mod entities;
+use app::App;
 use entities::Entity;
 use entities::WebEntity;
 use inflector::Inflector;
@@ -8,7 +10,6 @@ use tera::to_value;
 use tera::try_get_value;
 use tera::Tera;
 use tera::Value;
-
 #[macro_use]
 extern crate lazy_static;
 lazy_static! {
@@ -36,6 +37,12 @@ pub fn plural(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::
     Ok(to_value(&s.to_plural()).unwrap())
 }
 fn main() {
+    let options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Confirm exit",
+        options,
+        Box::new(|_cc| Box::new(App::default())),
+    );
     println!("web or service");
     let mut web_or_service = String::from("");
     stdin().read_line(&mut web_or_service).unwrap();
