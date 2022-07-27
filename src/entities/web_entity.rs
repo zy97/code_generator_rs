@@ -3,6 +3,7 @@ use std::{
     error::Error,
     fs::{create_dir, File, OpenOptions},
     io::{self, ErrorKind, Read, Write},
+    os::windows::prelude::FileExt,
     path::Path,
 };
 
@@ -21,13 +22,13 @@ lazy_static! {
             }
         };
         tera.autoescape_on(vec![".html", ".sql"]);
-        tera.register_filter("snake", do_nothing_filter);
+        tera.register_filter("snake", snake);
         println!("Tera initialized:{:?}", tera);
         tera
     };
 }
-pub fn do_nothing_filter(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
-    let s = try_get_value!("do_nothing_filter", "value", String, value);
+pub fn snake(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
+    let s = try_get_value!("snake", "value", String, value);
     Ok(to_value(&s.to_snake_case()).unwrap())
 }
 #[derive(Debug)]
@@ -156,6 +157,52 @@ impl WebEntity {
         if !code.contains(&insert_code) {
             // code.push_str(&insert_code)
             file.write(insert_code.as_bytes()).unwrap();
+        }
+    }
+    pub fn create_store(&self) {
+        let mut kv = HashMap::new();
+        kv.insert("entity", Box::new(&self.entity_name));
+        kv.insert("entities", Box::new(&self.plural_name));
+
+        let stores_dir = self
+            .find("stores", false)
+            .path()
+            .to_str()
+            .unwrap()
+            .to_string();
+
+        self.create_dir(&stores_dir).unwrap();
+        self.generate_template(
+            kv,
+            "Web/store.ts",
+            &stores_dir,
+            format!("{}.ts", self.entity_name),
+        );
+        self.export_store(&stores_dir);
+    }
+    fn export_store(&self, api_dir: &str) {
+        let mut options = OpenOptions::new();
+        let mut file = options
+            .write(true)
+            .read(true)
+            .open(api_dir.to_string() + "//index.ts")
+            .unwrap();
+        let mut code = String::new();
+        file.read_to_string(&mut code).unwrap();
+        let import_code = format!(
+            "import {}Store from './{}';\r\n",
+            self.entity_name.to_snake_case(),
+            self.entity_name
+        );
+        if !code.contains(&import_code) {
+            let index = code.rfind("export const").unwrap();
+            code.insert_str(index - 1, &import_code);
+            let index = code.rfind("});").unwrap();
+            code.insert_str(
+                index - 1,
+                format!("\t{}Store", self.entity_name.to_snake_case()).as_str(),
+            );
+            file.seek_write(code.as_bytes(), 0).unwrap();
         }
     }
 }
