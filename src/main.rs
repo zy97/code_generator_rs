@@ -20,7 +20,7 @@ lazy_static! {
                 ::std::process::exit(1);
             }
         };
-        tera.autoescape_on(vec![".ts", ".tsx"]);
+        // tera.autoescape_on(vec![".ts", ".tsx"]);
         tera.register_filter("snake", snake);
         tera.register_filter("plural", plural);
         println!("Tera initialized:{:?}", tera);
@@ -57,7 +57,6 @@ fn main() {
 
         let web_entity = WebEntity::new(entity_path, url);
         println!("web entity:{:#?}", web_entity);
-        let custom = true;
         web_entity.create_api();
         web_entity.create_store();
         web_entity.create_page();

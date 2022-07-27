@@ -17,7 +17,6 @@ use crate::TEMPLATES;
 
 #[derive(Debug)]
 pub struct Entity {
-    path: String,
     namespace: String,
     id_type: String,
     name: String,
@@ -76,7 +75,6 @@ impl Entity {
         let src_index = src_dir.iter().position(|&i| i.contains("src")).unwrap();
         let src_dir = src_dir[..(src_index + 1)].join("\\");
         Entity {
-            path,
             id_type,
             name: entity_name,
             namespace,
