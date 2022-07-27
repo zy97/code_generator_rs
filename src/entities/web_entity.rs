@@ -9,33 +9,11 @@ use std::{
 
 use inflector::Inflector;
 use serde::Serialize;
-use tera::{to_value, try_get_value, Context, Tera, Value};
+use tera::{Context};
 use walkdir::DirEntry;
 
-lazy_static! {
-    static ref TEMPLATES: Tera = {
-        let mut tera = match Tera::new("templates/**/*") {
-            Ok(t) => t,
-            Err(e) => {
-                println!("Parsing error(s): {}", e);
-                ::std::process::exit(1);
-            }
-        };
-        tera.autoescape_on(vec![".ts", ".tsx"]);
-        tera.register_filter("snake", snake);
-        tera.register_filter("plural", plural);
-        println!("Tera initialized:{:?}", tera);
-        tera
-    };
-}
-pub fn snake(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
-    let s = try_get_value!("snake", "value", String, value);
-    Ok(to_value(&s.to_snake_case()).unwrap())
-}
-pub fn plural(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
-    let s = try_get_value!("plural", "value", String, value);
-    Ok(to_value(&s.to_plural()).unwrap())
-}
+use crate::TEMPLATES;
+
 #[derive(Debug)]
 pub struct WebEntity {
     entity_name: String,
@@ -60,7 +38,6 @@ impl WebEntity {
         //     .unwrap()
         //     .as_str()
         //     .to_string();
-        let entity_names = entity_name.to_plural();
 
         // let re = Regex::new(r"<([a-zA-Z]+)>").unwrap();
         // let id_type = re
