@@ -43,7 +43,7 @@ fn main() {
     let options = eframe::NativeOptions {
         decorated: false,
         transparent: true,
-        min_window_size: Some(vec2(320f32, 100f32)),
+        min_window_size: Some(vec2(320.0, 100.0)),
         ..Default::default()
     };
     eframe::run_native(

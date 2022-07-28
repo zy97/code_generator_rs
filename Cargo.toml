@@ -17,3 +17,7 @@ serde = "1.0.140"
 erased-serde = "0.3.21"
 eframe = "0.18.0"
 egui = "0.18.1"
+egui_extras = { version = "0.18.0", features = ["image"] }
+ehttp = "0.2.0"
+image = { version = "0.24.3", default-features = false, features = ["jpeg"] }
+poll-promise = "0.1.0"
