@@ -1,15 +1,16 @@
 use std::sync::mpsc::{channel, Sender};
 
-use egui::{FontDefinitions, RichText};
+use egui::{Pos2, Rect, Vec2};
 use egui_extras::RetainedImage;
 use poll_promise::Promise;
-#[derive(Default)]
+#[derive()]
 pub struct App {
     can_exit: bool,
     is_exiting: bool,
     promise: Option<Promise<ehttp::Result<RetainedImage>>>,
     dropped_files: Vec<egui::DroppedFile>,
     picked_path: Option<String>,
+    image: RetainedImage,
 }
 
 impl eframe::App for App {
@@ -36,6 +37,31 @@ impl eframe::App for App {
         });
 
         custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
+            ui.horizontal(|ui| {
+                let mut image_rect = egui::Rect::everything_above(1.0);
+                ui.vertical(|ui| {
+                    ui.heading("This is an image:");
+                    image_rect = self.image.show_scaled(ui, 0.1).rect;
+                });
+                let image_size = Vec2::new(
+                    self.image.size_vec2().x / 10.0,
+                    self.image.size_vec2().y / 10.0,
+                );
+                ui.vertical(|ui| {
+                    ui.heading("This is a rotated image:");
+                    let sdf = egui::Image::new(self.image.texture_id(ctx), image_size)
+                        .rotate(45.0f32.to_radians(), egui::Vec2::splat(0.5));
+                    ui.add(sdf);
+                });
+                ui.vertical(|ui| {
+                    ui.heading("This is an image you can click:");
+                    ui.add(egui::ImageButton::new(
+                        self.image.texture_id(ctx),
+                        image_size,
+                    ));
+                });
+            });
+
             ui.label("Drag-and-drop files onto the window!");
             if ui.button("Open file...").clicked() {
                 if let Some(path) = rfd::FileDialog::new().pick_file() {
@@ -122,6 +148,11 @@ impl App {
             promise: None,
             dropped_files: Vec::new(),
             picked_path: None,
+            image: RetainedImage::from_image_bytes(
+                "rust-logo",
+                include_bytes!("..\\..\\assets\\rust-logo.png"),
+            )
+            .unwrap(),
         }
     }
 }
@@ -238,7 +269,6 @@ fn preview_file_being_dropped(ctx: &egui::Context) {
 
 fn setup_custom_fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
-    println!("{:?},{:?}", fonts.font_data, fonts.families);
     fonts.font_data.insert(
         "yahei".to_owned(),
         egui::FontData::from_static(include_bytes!("..\\..\\assets\\yahei.ttf")),
