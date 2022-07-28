@@ -88,6 +88,7 @@ fn custom_window_frame(
             let title_bar_rect = {
                 let mut rect = rect;
                 rect.max.y = rect.min.y + height;
+                rect.min.x = rect.min.x + close_response.rect.width();
                 rect
             };
             let title_bar_response =
