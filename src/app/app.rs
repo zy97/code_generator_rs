@@ -1,6 +1,6 @@
 use std::sync::mpsc::{channel, Sender};
 
-use egui::{RichText, FontDefinitions};
+use egui::{FontDefinitions, RichText};
 use egui_extras::RetainedImage;
 use poll_promise::Promise;
 #[derive(Default)]
@@ -21,7 +21,6 @@ impl eframe::App for App {
         egui::Rgba::TRANSPARENT
     }
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        ctx.set_fonts(FontDefinitions::)
         // egui::CentralPanel::default().show(ctx, |ui| ui.heading("Try to close window"));
         let (tx, rx) = channel();
         let promise = self.promise.get_or_insert_with(|| {
@@ -65,7 +64,7 @@ impl eframe::App for App {
                             write!(info, " ({} bytes)", bytes.len()).ok();
                         }
                         println!("info:{}", info);
-                        ui.label(RichText::new(info).);
+                        ui.label(info);
                     }
                 });
             }
@@ -114,7 +113,18 @@ impl eframe::App for App {
     }
 }
 
-impl App {}
+impl App {
+    pub fn new(cc: &eframe::CreationContext) -> Self {
+        setup_custom_fonts(&cc.egui_ctx);
+        Self {
+            can_exit: false,
+            is_exiting: false,
+            promise: None,
+            dropped_files: Vec::new(),
+            picked_path: None,
+        }
+    }
+}
 pub fn custom_window_frame(
     sender: Sender<bool>,
     ctx: &egui::Context,
@@ -224,4 +234,25 @@ fn preview_file_being_dropped(ctx: &egui::Context) {
             Color32::WHITE,
         );
     }
+}
+
+fn setup_custom_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+    println!("{:?},{:?}", fonts.font_data, fonts.families);
+    fonts.font_data.insert(
+        "yahei".to_owned(),
+        egui::FontData::from_static(include_bytes!("..\\..\\assets\\yahei.ttf")),
+    );
+    fonts
+        .families
+        .entry(egui::FontFamily::Proportional)
+        .or_default()
+        .insert(0, "yahei".to_owned());
+
+    fonts
+        .families
+        .entry(egui::FontFamily::Monospace)
+        .or_default()
+        .push("yahei".to_owned());
+    ctx.set_fonts(fonts);
 }

@@ -43,14 +43,14 @@ fn main() {
     let options = eframe::NativeOptions {
         decorated: false,
         transparent: true,
-        drag_and_drop_support:true,
+        drag_and_drop_support: true,
         min_window_size: Some(vec2(320.0, 100.0)),
         ..Default::default()
     };
     eframe::run_native(
         "Confirm exit",
         options,
-        Box::new(|_cc| Box::new(App::default())),
+        Box::new(|_cc| Box::new(App::new(_cc))),
     );
     println!("web or service");
     let mut web_or_service = String::from("");
