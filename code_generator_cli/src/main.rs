@@ -1,6 +1,5 @@
 use clap::{Parser, Subcommand};
-#[path = "src/main.rs"] 
-
+use code_generator::{Entity, WebEntity};
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -69,7 +68,18 @@ fn main() {
             entity_path,
             prefix_api_url,
         }) => {
-            println!("{},{}", entity_path, prefix_api_url);
+            //如果从控制台接受输入，在windows下会有\r\n的结束符，在Unix下游\n的结束符
+            // let entity_path = String::from(
+            //     r"C:\Users\Administrator\Desktop\Bom.Blog\src\Bom.Blog.Web.Admin\src\data\models\Test.ts",
+            // );
+
+            // let url = String::from("/api/app/post-admin");
+
+            let web_entity = WebEntity::new(entity_path, prefix_api_url);
+            println!("web entity:{:#?}", web_entity);
+            web_entity.create_api();
+            web_entity.create_store();
+            web_entity.create_page();
         }
         None => {
             println!("{:?}", args);

@@ -67,6 +67,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "000444226fcff248f2bc4c7625be32c63caccfecc2723a2b9f78a7487a49c407"
 
 [[package]]
+name = "app"
+version = "0.1.0"
+dependencies = [
+ "code_generator",
+ "eframe",
+ "egui",
+ "egui_extras",
+ "ehttp",
+ "image",
+ "poll-promise",
+ "rfd",
+]
+
+[[package]]
 name = "arboard"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -280,9 +294,9 @@ checksum = "fff857943da45f546682664a79488be82e69e43c1a7a2307679ab9afb3a66d2e"
 
 [[package]]
 name = "clap"
-version = "3.2.14"
+version = "3.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54635806b078b7925d6e36810b1755f2a4b5b4d57560432c1ecf60bcbe10602b"
+checksum = "44bbe24bbd31a185bc2c4f7c2abe80bea13a20d57ee4e55be70ac512bdc76417"
 dependencies = [
  "atty",
  "bitflags",
@@ -297,9 +311,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "3.2.7"
+version = "3.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "759bf187376e1afa7b85b959e6a664a3e7a95203415dba952ad19139e798f902"
+checksum = "9ba52acd3b0a5c33aeada5cdaa3267cdc7c594a98731d4268cdc1532f4264cb4"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -360,25 +374,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "code_generator_rs"
+name = "code_generator"
 version = "0.1.0"
 dependencies = [
  "Inflector",
- "clap",
- "eframe",
- "egui",
- "egui_extras",
- "ehttp",
  "encoding",
  "erased-serde",
- "image",
  "lazy_static",
- "poll-promise",
  "regex",
- "rfd",
  "serde",
  "tera",
  "walkdir",
+]
+
+[[package]]
+name = "code_generator_cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "code_generator",
 ]
 
 [[package]]

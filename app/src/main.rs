@@ -1,44 +1,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 mod app;
-mod entities;
 use app::App;
+use code_generator::{Entity, WebEntity};
 use egui::vec2;
-use entities::Entity;
-use entities::WebEntity;
-use inflector::Inflector;
 use std::collections::HashMap;
 use std::io::stdin;
-use tera::to_value;
-use tera::try_get_value;
-use tera::Tera;
-use tera::Value;
-
-#[macro_use]
-extern crate lazy_static;
-lazy_static! {
-    static ref TEMPLATES: Tera = {
-        let mut tera = match Tera::new("templates/**/*") {
-            Ok(t) => t,
-            Err(e) => {
-                println!("Parsing error(s): {}", e);
-                ::std::process::exit(1);
-            }
-        };
-        // tera.autoescape_on(vec![".ts", ".tsx"]);
-        tera.register_filter("snake", snake);
-        tera.register_filter("plural", plural);
-        println!("Tera initialized:{:?}", tera);
-        tera
-    };
-}
-pub fn snake(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
-    let s = try_get_value!("snake", "value", String, value);
-    Ok(to_value(&s.to_snake_case()).unwrap())
-}
-pub fn plural(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
-    let s = try_get_value!("plural", "value", String, value);
-    Ok(to_value(&s.to_plural()).unwrap())
-}
 fn main() {
     let options = eframe::NativeOptions {
         decorated: false,
