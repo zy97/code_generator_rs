@@ -3,6 +3,8 @@ use std::sync::mpsc::{channel, Sender};
 use egui::{Pos2, Rect, Vec2};
 use egui_extras::RetainedImage;
 use poll_promise::Promise;
+
+use super::toggle_switch::toggle;
 #[derive()]
 pub struct App {
     can_exit: bool,
@@ -11,6 +13,7 @@ pub struct App {
     dropped_files: Vec<egui::DroppedFile>,
     picked_path: Option<String>,
     image: RetainedImage,
+    toggled: bool,
 }
 
 impl eframe::App for App {
@@ -37,6 +40,7 @@ impl eframe::App for App {
         });
 
         custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
+            ui.add(toggle(&mut self.toggled));
             ui.horizontal(|ui| {
                 let mut image_rect = egui::Rect::everything_above(1.0);
                 ui.vertical(|ui| {
@@ -147,6 +151,7 @@ impl App {
             is_exiting: false,
             promise: None,
             dropped_files: Vec::new(),
+            toggled: false,
             picked_path: None,
             image: RetainedImage::from_image_bytes(
                 "rust-logo",
