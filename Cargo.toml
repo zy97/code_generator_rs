@@ -2,13 +2,14 @@
 name = "code_generator_rs"
 version = "0.1.0"
 edition = "2021"
-
+default-run = "code_generator"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 
 [dependencies]
 tera = { version = "1.16.0", default-features = false }
 lazy_static = "1.4.0"
-clap = "3.2.14"
+clap = { version = "3.2.14", features = ["derive"] }
 encoding = "0.2.33"
 Inflector = "0.11.4"
 walkdir = "2.3.2"
@@ -19,6 +20,9 @@ eframe = "0.18.0"
 egui = "0.18.1"
 egui_extras = { version = "0.18.0", features = ["image"] }
 ehttp = "0.2.0"
-image = { version = "0.24.3", default-features = false, features = ["jpeg","png"] }
+image = { version = "0.24.3", default-features = false, features = [
+    "jpeg",
+    "png",
+] }
 poll-promise = "0.1.0"
 rfd = "0.9.1"
