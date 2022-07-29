@@ -1,3 +1,3 @@
 [workspace]
 members = ["app", "code_generator", "code_generator_cli"]
-
+default-members = ["code_generator_cli"]
