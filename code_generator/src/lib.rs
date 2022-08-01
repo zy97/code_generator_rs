@@ -4,6 +4,7 @@ use inflector::Inflector;
 use tera::{to_value, try_get_value, Tera, Value};
 
 mod entities;
+mod error;
 pub use entities::Entity;
 pub use entities::WebEntity;
 

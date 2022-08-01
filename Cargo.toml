@@ -1,6 +1,6 @@
 [workspace]
 members = ["app", "code_generator", "code_generator_cli"]
-default-members = ["app"]
+default-members = ["code_generator_cli"]
 
 [profile.release]
 strip = true

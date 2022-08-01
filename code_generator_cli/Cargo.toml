@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 code_generator = { path = "../code_generator" }
 clap = { version = "3.2.14", features = ["derive"] }
+anyhow = "1.0.58"

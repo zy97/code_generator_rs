@@ -1,3 +1,4 @@
+use anyhow::{Context, Ok, Result};
 use clap::{Parser, Subcommand};
 use code_generator::{Entity, WebEntity};
 /// Simple program to greet a person
@@ -40,7 +41,7 @@ enum CreateCode {
         prefix_api_url: String,
     },
 }
-fn main() {
+fn main() -> Result<()> {
     let args = Args::parse();
 
     match args.command {
@@ -54,15 +55,15 @@ fn main() {
             // );
 
             let entity_path = entity_path.trim().to_string();
-            let entity = Entity::new(String::from(entity_path));
+            let entity = Entity::new(String::from(entity_path))?;
             println!("entity:{:#?}", entity);
             let custom = cumstom_service;
-            entity.create_dto();
-            entity.create_createorupdatedto();
-            entity.create_pagedandsortedandfilterresultdto();
-            entity.create_iservice(custom);
-            entity.create_service(custom);
-            entity.insert_mapper();
+            entity.create_dto()?;
+            entity.create_createorupdatedto()?;
+            entity.create_pagedandsortedandfilterresultdto()?;
+            entity.create_iservice(custom)?;
+            entity.create_service(custom)?;
+            entity.insert_mapper()?;
         }
         Some(CreateCode::Web {
             entity_path,
@@ -85,4 +86,5 @@ fn main() {
             println!("{:?}", args);
         }
     }
+    Ok(())
 }

@@ -18,3 +18,4 @@ image = { version = "0.24.3", default-features = false, features = [
 ] }
 poll-promise = "0.1.0"
 rfd = "0.9.1"
+anyhow = "1.0.58"
