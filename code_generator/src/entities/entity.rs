@@ -9,6 +9,7 @@ use std::{
 extern crate inflector;
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
+use log::info;
 use regex::Regex;
 use serde::Serialize;
 use tera::{Context, Tera};
@@ -75,6 +76,7 @@ impl Entity {
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().position(|&i| i.contains("src")).unwrap();
         let src_dir = src_dir[..(src_index + 1)].join("\\");
+        info!("初始化完成");
         Ok(Entity {
             id_type,
             name: entity_name,
@@ -204,7 +206,6 @@ impl Entity {
         let properties: Vec<(_, _)> = re
             .captures_iter(&self.properties)
             .map(|m| {
-                println!("tttt:{:?}", m);
                 let mut splited = m.get(1).unwrap().as_str().trim().split(' ');
                 let t = splited.next().unwrap();
                 let p = splited.next().unwrap();

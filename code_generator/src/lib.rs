@@ -22,7 +22,7 @@ lazy_static! {
         // tera.autoescape_on(vec![".ts", ".tsx"]);
         tera.register_filter("snake", snake);
         tera.register_filter("plural", plural);
-        println!("Tera initialized:{:?}", tera);
+        println!("{:?}",tera);
         tera
     };
 }

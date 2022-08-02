@@ -1,10 +1,10 @@
 [workspace]
 members = ["app", "code_generator", "code_generator_cli"]
-default-members = ["code_generator"]
+default-members = ["code_generator_cli"]
 
 [profile.release]
 strip = true
 opt-level = "z"
 lto = true
 codegen-units = 1
- panic = "abort" #会影响行为，慎用
+panic = "abort"   #会影响行为，慎用

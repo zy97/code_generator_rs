@@ -1,6 +1,10 @@
-use anyhow::{Context, Ok, Result};
+use anyhow::{Ok, Result};
 use clap::{Parser, Subcommand};
 use code_generator::{Entity, WebEntity};
+use env_logger::Builder;
+use log::LevelFilter;
+#[macro_use]
+extern crate log;
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -42,6 +46,10 @@ enum CreateCode {
     },
 }
 fn main() -> Result<()> {
+    // 这种初始化需要设置环境变量，发布时使用
+    // env_logger::init();
+    Builder::new().filter_level(LevelFilter::Info).init();
+    info!("starting up");
     let args = Args::parse();
 
     match args.command {
@@ -56,7 +64,6 @@ fn main() -> Result<()> {
 
             let entity_path = entity_path.trim().to_string();
             let entity = Entity::new(String::from(entity_path))?;
-            println!("entity:{:#?}", entity);
             let custom = cumstom_service;
             entity.create_dto()?;
             entity.create_createorupdatedto()?;
@@ -83,7 +90,8 @@ fn main() -> Result<()> {
             web_entity.create_page();
         }
         None => {
-            println!("{:?}", args);
+            error!("{:?}", args);
+            // println!("{:?}", args);
         }
     }
     Ok(())
