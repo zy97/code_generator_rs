@@ -7,10 +7,18 @@ use app::App;
 use code_generator::{Entity, WebEntity};
 use egui::vec2;
 use env_logger::{Builder, Target};
-use std::io::stdin;
+use std::{io::stdin, sync::mpsc::channel};
+
+use crate::app::Logger;
+
 fn main() -> Result<()> {
-    let mut builder = Builder::from_default_env();
-    builder.target(Target::Stdout);
+    let (tx, rx) = channel();
+    let logger = Logger { sender: tx.clone() };
+    let logger = Box::new(logger);
+    Builder::from_default_env()
+        .filter_level(log::LevelFilter::Debug)
+        .target(Target::Pipe(logger))
+        .init();
     let options = eframe::NativeOptions {
         decorated: true, //如果自定义边框，拖动界面可能会导致操作失效，如自定义界面的关闭按钮
         transparent: true,
@@ -21,7 +29,10 @@ fn main() -> Result<()> {
     eframe::run_native(
         "egui demo",
         options,
-        Box::new(|_cc| Box::new(App::new(_cc))),
+        Box::new(|_cc| {
+            let app = App::new(_cc, rx);
+            Box::new(app)
+        }),
     );
     println!("web or service");
     let mut web_or_service = String::from("");

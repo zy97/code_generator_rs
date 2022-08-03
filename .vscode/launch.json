@@ -1,0 +1,120 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'app'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=app",
+                    "--package=app"
+                ],
+                "filter": {
+                    "name": "app",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'app'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=app",
+                    "--package=app"
+                ],
+                "filter": {
+                    "name": "app",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'code_generator'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=code_generator"
+                ],
+                "filter": {
+                    "name": "code_generator",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'my_benchmark'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bench=my_benchmark",
+                    "--package=code_generator"
+                ],
+                "filter": {
+                    "name": "my_benchmark",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'code_generator_cli'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=code_generator_cli",
+                    "--package=code_generator_cli"
+                ],
+                "filter": {
+                    "name": "code_generator_cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'code_generator_cli'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=code_generator_cli",
+                    "--package=code_generator_cli"
+                ],
+                "filter": {
+                    "name": "code_generator_cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

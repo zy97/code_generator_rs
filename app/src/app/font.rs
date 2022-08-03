@@ -16,5 +16,4 @@ pub fn setup_custom_fonts(ctx: &egui::Context) {
         .or_default()
         .push("yahei".to_owned());
     ctx.set_fonts(fonts);
-    let mut style: egui::Style = (*ctx.style()).clone();
 }

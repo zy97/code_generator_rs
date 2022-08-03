@@ -1,4 +1,4 @@
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{channel, Receiver};
 
 use egui::Vec2;
 use egui_extras::RetainedImage;
@@ -18,6 +18,8 @@ pub struct App {
     toggled: bool,
     selected_tab: TabEnum,
     service: Service,
+    logger: Receiver<u8>,
+    log_text: String,
 }
 #[derive(PartialEq)]
 enum TabEnum {
@@ -46,7 +48,11 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         // egui::CentralPanel::default().show(ctx, |ui| ui.heading("Try to close window"));
         let (_, rx) = channel();
-
+        let s = self.logger.try_recv();
+        match s {
+            Ok(msg) => println!("from pipe: {}", msg),
+            Err(err) => println!("err:{:?}", err),
+        }
         // custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.horizontal_top(|ui| {
@@ -93,7 +99,7 @@ impl eframe::App for App {
 }
 
 impl App {
-    pub fn new(cc: &eframe::CreationContext) -> Self {
+    pub fn new(cc: &eframe::CreationContext, tx: Receiver<u8>) -> Self {
         setup_custom_fonts(&cc.egui_ctx);
         Self {
             can_exit: false,
@@ -109,6 +115,8 @@ impl App {
             .unwrap(),
             selected_tab: TabEnum::Service,
             service: Service::default(),
+            logger: tx,
+            log_text: String::new(),
         }
     }
     fn other_ui(self: &mut App, ui: &mut egui::Ui, ctx: &egui::Context) {
@@ -215,11 +223,14 @@ impl App {
             ui.checkbox(&mut self.service.create_service, "生成Service文件");
             ui.checkbox(&mut self.service.insert_mapper, "插入Mapper配置");
         });
-        
+
         egui::CentralPanel::default().show_inside(ui, |ui| {
-            if ui.button("生成").clicked() {
-                println!("生成");
-            }
+            ui.vertical(|ui| {
+                ui.text_edit_multiline(&mut self.log_text);
+                if ui.button("生成").clicked() {
+                    info!("abc");
+                }
+            });
         });
     }
 }
