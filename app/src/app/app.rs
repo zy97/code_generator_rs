@@ -42,7 +42,8 @@ impl eframe::App for App {
             promise
         });
 
-        custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
+        // custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
+        egui::CentralPanel::default().show(ctx, |ui| {
             ui.add(toggle(&mut self.toggled));
             ui.horizontal(|ui| {
                 let mut image_rect = egui::Rect::everything_above(1.0);

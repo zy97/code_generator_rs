@@ -9,7 +9,6 @@ pub fn custom_window_frame(
 ) {
     use egui::*;
     let text_color = ctx.style().visuals.text_color();
-
     let height = 28.0;
 
     CentralPanel::default()
