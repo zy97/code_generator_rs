@@ -5,8 +5,7 @@ use egui_extras::RetainedImage;
 use poll_promise::Promise;
 
 use super::{
-    custom_window::custom_window_frame, file_drop::preview_file_being_dropped,
-    font::setup_custom_fonts, toggle_switch::toggle,
+    file_drop::preview_file_being_dropped, font::setup_custom_fonts, toggle_switch::toggle,
 };
 #[derive()]
 pub struct App {
@@ -17,6 +16,23 @@ pub struct App {
     picked_path: Option<String>,
     image: RetainedImage,
     toggled: bool,
+    selected_tab: TabEnum,
+    service: Service,
+}
+#[derive(PartialEq)]
+enum TabEnum {
+    Web,
+    Service,
+    Other,
+}
+#[derive(Default)]
+struct Service {
+    create_dto: bool,
+    create_createorupdatedto: bool,
+    create_pagedandsortedandfilterresultdto: bool,
+    create_iservice: bool,
+    create_service: bool,
+    insert_mapper: bool,
 }
 
 impl eframe::App for App {
@@ -29,96 +45,25 @@ impl eframe::App for App {
     }
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         // egui::CentralPanel::default().show(ctx, |ui| ui.heading("Try to close window"));
-        let (tx, rx) = channel();
-        let promise = self.promise.get_or_insert_with(|| {
-            let ctx = ctx.clone();
-            let (sender, promise) = Promise::new();
-            let request = ehttp::Request::get("https://picsum.photos/seed/1.759706314/1024");
-            ehttp::fetch(request, move |response| {
-                let image = response.and_then(parse_response);
-                sender.send(image);
-                ctx.request_repaint();
-            });
-            promise
-        });
+        let (_, rx) = channel();
 
         // custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.add(toggle(&mut self.toggled));
-            ui.horizontal(|ui| {
-                let mut image_rect = egui::Rect::everything_above(1.0);
-                ui.vertical(|ui| {
-                    ui.heading("This is an image:");
-                    image_rect = self.image.show_scaled(ui, 0.1).rect;
-                });
-                let image_size = Vec2::new(
-                    self.image.size_vec2().x / 10.0,
-                    self.image.size_vec2().y / 10.0,
-                );
-                ui.vertical(|ui| {
-                    ui.heading("This is a rotated image:");
-                    let sdf = egui::Image::new(self.image.texture_id(ctx), image_size)
-                        .rotate(45.0f32.to_radians(), egui::Vec2::splat(0.5));
-                    ui.add(sdf);
-                });
-                ui.vertical(|ui| {
-                    ui.heading("This is an image you can click:");
-                    ui.add(egui::ImageButton::new(
-                        self.image.texture_id(ctx),
-                        image_size,
-                    ));
-                });
+            ui.horizontal_top(|ui| {
+                ui.selectable_value(&mut self.selected_tab, TabEnum::Service, "Web服务生成选项");
+                ui.selectable_value(&mut self.selected_tab, TabEnum::Web, "前端生成选项");
+                ui.selectable_value(&mut self.selected_tab, TabEnum::Other, "其他测试");
             });
 
-            ui.label("Drag-and-drop files onto the window!");
-            if ui.button("Open file...").clicked() {
-                if let Some(path) = rfd::FileDialog::new().pick_file() {
-                    self.picked_path = Some(path.display().to_string());
+            match self.selected_tab {
+                TabEnum::Service => {
+                    self.service_ui(ui, ctx);
+                }
+                TabEnum::Web => {}
+                _ => {
+                    self.other_ui(ui, ctx);
                 }
             }
-            if let Some(picked_path) = &self.picked_path {
-                ui.horizontal(|ui| {
-                    ui.label("Picked file:");
-                    ui.monospace(picked_path);
-                });
-            }
-            if !self.dropped_files.is_empty() {
-                ui.group(|ui| {
-                    ui.label("Dropped files:");
-                    for file in &self.dropped_files {
-                        let mut info = if let Some(path) = &file.path {
-                            path.display().to_string()
-                        } else if !file.name.is_empty() {
-                            file.name.clone()
-                        } else {
-                            "???".to_owned()
-                        };
-                        if let Some(bytes) = &file.bytes {
-                            use std::fmt::Write as _;
-                            write!(info, " ({} bytes)", bytes.len()).ok();
-                        }
-                        println!("info:{}", info);
-                        ui.label(info);
-                    }
-                });
-            }
-
-            ui.label("This is just the content of the window");
-            ui.horizontal(|ui| {
-                ui.label("egui theme:");
-                egui::widgets::global_dark_light_mode_buttons(ui);
-            });
-            match promise.ready() {
-                None => {
-                    ui.spinner();
-                }
-                Some(Err(e)) => {
-                    ui.colored_label(egui::Color32::RED, e);
-                }
-                Some(Ok(image)) => {
-                    image.show_max_size(ui, ui.available_size());
-                }
-            };
         });
         preview_file_being_dropped(ctx);
         if !ctx.input().raw.dropped_files.is_empty() {
@@ -162,7 +107,120 @@ impl App {
                 include_bytes!("..\\..\\assets\\rust-logo.png"),
             )
             .unwrap(),
+            selected_tab: TabEnum::Service,
+            service: Service::default(),
         }
+    }
+    fn other_ui(self: &mut App, ui: &mut egui::Ui, ctx: &egui::Context) {
+        let promise = self.promise.get_or_insert_with(|| {
+            let ctx = ctx.clone();
+            let (sender, promise) = Promise::new();
+            let request = ehttp::Request::get("https://picsum.photos/seed/1.759706314/1024");
+            ehttp::fetch(request, move |response| {
+                let image = response.and_then(parse_response);
+                sender.send(image);
+                ctx.request_repaint();
+            });
+            promise
+        });
+        ui.add(toggle(&mut self.toggled));
+        ui.horizontal(|ui| {
+            let mut image_rect = egui::Rect::everything_above(1.0);
+            ui.vertical(|ui| {
+                ui.heading("This is an image:");
+                image_rect = self.image.show_scaled(ui, 0.1).rect;
+            });
+            let image_size = Vec2::new(
+                self.image.size_vec2().x / 10.0,
+                self.image.size_vec2().y / 10.0,
+            );
+            ui.vertical(|ui| {
+                ui.heading("This is a rotated image:");
+                let sdf = egui::Image::new(self.image.texture_id(ctx), image_size)
+                    .rotate(45.0f32.to_radians(), egui::Vec2::splat(0.5));
+                ui.add(sdf);
+            });
+            ui.vertical(|ui| {
+                ui.heading("This is an image you can click:");
+                ui.add(egui::ImageButton::new(
+                    self.image.texture_id(ctx),
+                    image_size,
+                ));
+            });
+        });
+
+        ui.label("Drag-and-drop files onto the window!");
+        if ui.button("Open file...").clicked() {
+            if let Some(path) = rfd::FileDialog::new().pick_file() {
+                self.picked_path = Some(path.display().to_string());
+            }
+        }
+        if let Some(picked_path) = &self.picked_path {
+            ui.horizontal(|ui| {
+                ui.label("Picked file:");
+                ui.monospace(picked_path);
+            });
+        }
+        if !self.dropped_files.is_empty() {
+            ui.group(|ui| {
+                ui.label("Dropped files:");
+                for file in &self.dropped_files {
+                    let mut info = if let Some(path) = &file.path {
+                        path.display().to_string()
+                    } else if !file.name.is_empty() {
+                        file.name.clone()
+                    } else {
+                        "???".to_owned()
+                    };
+                    if let Some(bytes) = &file.bytes {
+                        use std::fmt::Write as _;
+                        write!(info, " ({} bytes)", bytes.len()).ok();
+                    }
+                    println!("info:{}", info);
+                    ui.label(info);
+                }
+            });
+        }
+
+        ui.label("This is just the content of the window");
+        ui.horizontal(|ui| {
+            ui.label("egui theme:");
+            egui::widgets::global_dark_light_mode_buttons(ui);
+        });
+        match promise.ready() {
+            None => {
+                ui.spinner();
+            }
+            Some(Err(e)) => {
+                ui.colored_label(egui::Color32::RED, e);
+            }
+            Some(Ok(image)) => {
+                image.show_max_size(ui, ui.available_size());
+            }
+        };
+    }
+
+    fn service_ui(self: &mut App, ui: &mut egui::Ui, _: &egui::Context) {
+        egui::SidePanel::left("left_panel").show_inside(ui, |ui| {
+            ui.checkbox(&mut self.service.create_dto, "生成DTO文件");
+            ui.checkbox(
+                &mut self.service.create_createorupdatedto,
+                "生成CreateOrUpdateDTO文件",
+            );
+            ui.checkbox(
+                &mut self.service.create_pagedandsortedandfilterresultdto,
+                "生成PagedAndSortedAndFilterResultDTO文件",
+            );
+            ui.checkbox(&mut self.service.create_iservice, "生成IService文件");
+            ui.checkbox(&mut self.service.create_service, "生成Service文件");
+            ui.checkbox(&mut self.service.insert_mapper, "插入Mapper配置");
+        });
+        
+        egui::CentralPanel::default().show_inside(ui, |ui| {
+            if ui.button("生成").clicked() {
+                println!("生成");
+            }
+        });
     }
 }
 

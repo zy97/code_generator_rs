@@ -82,7 +82,9 @@ dependencies = [
  "egui",
  "egui_extras",
  "ehttp",
+ "env_logger",
  "image",
+ "log",
  "poll-promise",
  "rfd",
 ]

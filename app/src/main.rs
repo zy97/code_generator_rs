@@ -1,13 +1,16 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+#[macro_use]
+extern crate log;
 mod app;
 use anyhow::{Ok, Result};
 use app::App;
 use code_generator::{Entity, WebEntity};
 use egui::vec2;
-use std::collections::HashMap;
+use env_logger::{Builder, Target};
 use std::io::stdin;
-use std::sync::Arc;
 fn main() -> Result<()> {
+    let mut builder = Builder::from_default_env();
+    builder.target(Target::Stdout);
     let options = eframe::NativeOptions {
         decorated: true, //如果自定义边框，拖动界面可能会导致操作失效，如自定义界面的关闭按钮
         transparent: true,
