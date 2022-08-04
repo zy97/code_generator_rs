@@ -1,6 +1,7 @@
-use std::borrow::Cow;
-
-use serde::de::value::CowStrDeserializer;
+use std::{
+    fmt,
+    io::{self},
+};
 
 #[derive(thiserror::Error, Debug)]
 pub enum CodeGeneratorError {
@@ -10,4 +11,20 @@ pub enum CodeGeneratorError {
     TeraError(#[from] tera::Error),
     #[error(transparent)]
     RegexError(#[from] regex::Error),
+    #[error("file operate failure")]
+    RegexNoMatchError(#[from] RegexNoMatchError),
 }
+#[derive(Debug)]
+pub struct RegexNoMatchError;
+impl fmt::Display for RegexNoMatchError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "An Error Occurred, Please Try Again!") // user-facing output
+    }
+}
+impl From<io::Error> for RegexNoMatchError {
+    fn from(error: io::Error) -> Self {
+        RegexNoMatchError {}
+    }
+}
+
+impl std::error::Error for RegexNoMatchError {}

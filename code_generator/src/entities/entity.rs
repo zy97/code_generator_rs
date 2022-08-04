@@ -15,7 +15,10 @@ use serde::Serialize;
 use tera::{Context, Tera};
 use walkdir::DirEntry;
 
-use crate::{error::CodeGeneratorError, TEMPLATES};
+use crate::{
+    error::{CodeGeneratorError, RegexNoMatchError},
+    TEMPLATES,
+};
 
 #[derive(Debug)]
 pub struct Entity {
@@ -38,9 +41,9 @@ impl Entity {
         let re = Regex::new(r"class ([a-zA-Z]+) :")?;
         let entity_name = re
             .captures(&code)
-            .unwrap()
+            .ok_or(RegexNoMatchError)?
             .get(1)
-            .unwrap()
+            .ok_or(RegexNoMatchError)?
             .as_str()
             .to_string();
         let entity_names = entity_name.to_plural();
@@ -48,18 +51,18 @@ impl Entity {
         let re = Regex::new(r"<([a-zA-Z]+)>")?;
         let id_type = re
             .captures(&code)
-            .unwrap()
+            .ok_or(RegexNoMatchError)?
             .get(1)
-            .unwrap()
+            .ok_or(RegexNoMatchError)?
             .as_str()
             .to_string();
 
         let re = Regex::new(format!(r"namespace ([a-zA-Z.]+).{}", entity_names).as_str())?;
         let namespace = re
             .captures(&code)
-            .unwrap()
+            .ok_or(RegexNoMatchError)?
             .get(1)
-            .unwrap()
+            .ok_or(RegexNoMatchError)?
             .as_str()
             .to_string();
 
@@ -67,9 +70,9 @@ impl Entity {
         let re = Regex::new(r">([\s]*)\{([a-zA-Z\\ \r\n;{}]+)}([\s]*)}")?;
         let properties = re
             .captures(&code)
-            .unwrap()
+            .ok_or(RegexNoMatchError)?
             .get(2)
-            .unwrap()
+            .ok_or(RegexNoMatchError)?
             .as_str()
             .to_string();
 

@@ -269,12 +269,18 @@ impl App {
             egui::CentralPanel::default().show_inside(ui, |ui| {
                 egui::TopBottomPanel::bottom("bottom").show_inside(ui, |ui| {
                     if ui.button("生成").clicked() {
-                        match &self.entity {
-                            Some(entity) => {
-                                debug!("开始执行生成操作：");
-                            }
-                            None => {
-                                warn!("请选择abp entity文件！");
+                        if self.entity_path == String::default() {
+                            warn!("请选择abp entity文件！");
+                        } else {
+                            // self.entity = Entity::new(self.entity_path.clone()).ok();
+                            let et = Entity::new(self.entity_path.clone());
+                            match &self.entity {
+                                Some(entity) => {
+                                    debug!("开始执行生成操作：");
+                                }
+                                None => {
+                                    warn!("请选择有效的abp entity文件！");
+                                }
                             }
                         }
                     }

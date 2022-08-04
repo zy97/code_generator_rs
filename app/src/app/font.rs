@@ -1,7 +1,7 @@
 use std::{borrow::Cow, fs::File, io::Read};
 
 use egui::{FontId, TextStyle};
-
+// https://github.com/emilk/egui/issues/64
 pub fn setup_custom_fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
     let mut font = File::open(r"C:\Windows\Fonts\FZYTK.TTF").unwrap();
