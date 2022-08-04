@@ -1,5 +1,6 @@
 use std::sync::mpsc::{channel, Receiver};
 
+use code_generator::Entity;
 use egui::Vec2;
 use egui_extras::RetainedImage;
 use env_logger::{Builder, Env, Target};
@@ -22,6 +23,8 @@ pub struct App {
     service: Service,
     log_text: String,
     logger: Receiver<u8>,
+    entity: Option<Entity>,
+    entity_path: String,
 }
 
 #[derive(PartialEq)]
@@ -56,7 +59,7 @@ impl eframe::App for App {
             .split('\n')
             .for_each(|msg| {
                 if !msg.is_empty() {
-                    println!("from pipe: {}", msg);
+                    // println!("from pipe: {}", msg);
                     self.log_text.push_str(format!("{}\r\n", msg).as_str());
                 }
             });
@@ -80,7 +83,17 @@ impl eframe::App for App {
         });
         preview_file_being_dropped(ctx);
         if !ctx.input().raw.dropped_files.is_empty() {
-            self.dropped_files = ctx.input().raw.dropped_files.clone();
+            match self.selected_tab {
+                TabEnum::Web => {}
+                TabEnum::Service => {
+                    let files = ctx.input().raw.dropped_files.clone();
+                    let file = &files[0];
+                    self.entity_path = file.path.clone().unwrap().display().to_string();
+                }
+                TabEnum::Other => {
+                    self.dropped_files = ctx.input().raw.dropped_files.clone();
+                }
+            }
         }
         if let Ok(r) = rx.try_recv() {
             self.is_exiting = r
@@ -134,6 +147,8 @@ impl App {
             service: Service::default(),
             logger: rx,
             log_text: String::new(),
+            entity: None,
+            entity_path: String::new(),
         }
     }
     fn other_ui(self: &mut App, ui: &mut egui::Ui, ctx: &egui::Context) {
@@ -226,35 +241,53 @@ impl App {
     }
 
     fn service_ui(self: &mut App, ui: &mut egui::Ui, _: &egui::Context) {
-        egui::SidePanel::left("left_panel").show_inside(ui, |ui| {
-            ui.checkbox(&mut self.service.create_dto, "生成DTO文件");
-            ui.checkbox(
-                &mut self.service.create_createorupdatedto,
-                "生成CreateOrUpdateDTO文件",
-            );
-            ui.checkbox(
-                &mut self.service.create_pagedandsortedandfilterresultdto,
-                "生成PagedAndSortedAndFilterResultDTO文件",
-            );
-            ui.checkbox(&mut self.service.create_iservice, "生成IService文件");
-            ui.checkbox(&mut self.service.create_service, "生成Service文件");
-            ui.checkbox(&mut self.service.insert_mapper, "插入Mapper配置");
-        });
-
         egui::CentralPanel::default().show_inside(ui, |ui| {
-            egui::TopBottomPanel::bottom("bottom").show_inside(ui, |ui| {
-                if ui.button("生成").clicked() {
-                    info!("abc");
+            ui.horizontal(|ui| {
+                ui.label("Drag-and-drop files onto the window!");
+                ui.text_edit_singleline(&mut self.entity_path);
+                if ui.button("Open file...").clicked() {
+                    if let Some(path) = rfd::FileDialog::new().pick_file() {
+                        self.entity_path = path.display().to_string();
+                    }
                 }
             });
-            egui::TopBottomPanel::top("top").show_inside(ui, |ui| {
-                egui::ScrollArea::both().show(ui, |ui| {
-                    ui.add_sized(
-                        ui.available_size(),
-                        egui::TextEdit::multiline(&mut self.log_text),
-                    );
+            egui::SidePanel::left("left_panel").show_inside(ui, |ui| {
+                ui.checkbox(&mut self.service.create_dto, "生成DTO文件");
+                ui.checkbox(
+                    &mut self.service.create_createorupdatedto,
+                    "生成CreateOrUpdateDTO文件",
+                );
+                ui.checkbox(
+                    &mut self.service.create_pagedandsortedandfilterresultdto,
+                    "生成PagedAndSortedAndFilterResultDTO文件",
+                );
+                ui.checkbox(&mut self.service.create_iservice, "生成IService文件");
+                ui.checkbox(&mut self.service.create_service, "生成Service文件");
+                ui.checkbox(&mut self.service.insert_mapper, "插入Mapper配置");
+            });
+
+            egui::CentralPanel::default().show_inside(ui, |ui| {
+                egui::TopBottomPanel::bottom("bottom").show_inside(ui, |ui| {
+                    if ui.button("生成").clicked() {
+                        match &self.entity {
+                            Some(entity) => {
+                                debug!("开始执行生成操作：");
+                            }
+                            None => {
+                                warn!("请选择abp entity文件！");
+                            }
+                        }
+                    }
                 });
-                ui.allocate_space(ui.available_size());
+                egui::TopBottomPanel::top("top").show_inside(ui, |ui| {
+                    egui::ScrollArea::both().show(ui, |ui| {
+                        ui.add_sized(
+                            ui.available_size(),
+                            egui::TextEdit::multiline(&mut self.log_text),
+                        );
+                    });
+                    ui.allocate_space(ui.available_size());
+                });
             });
         });
     }
