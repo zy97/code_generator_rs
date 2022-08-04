@@ -2,10 +2,12 @@ use std::sync::mpsc::{channel, Receiver};
 
 use egui::Vec2;
 use egui_extras::RetainedImage;
+use env_logger::{Builder, Env, Target};
+
 use poll_promise::Promise;
 
 use super::{
-    file_drop::preview_file_being_dropped, font::setup_custom_fonts, toggle_switch::toggle,
+    file_drop::preview_file_being_dropped, font::setup_custom_fonts, toggle_switch::toggle, Logger,
 };
 #[derive()]
 pub struct App {
@@ -18,9 +20,10 @@ pub struct App {
     toggled: bool,
     selected_tab: TabEnum,
     service: Service,
-    logger: Receiver<u8>,
     log_text: String,
+    logger: Receiver<u8>,
 }
+
 #[derive(PartialEq)]
 enum TabEnum {
     Web,
@@ -51,7 +54,9 @@ impl eframe::App for App {
         let s = self.logger.try_recv();
         match s {
             Ok(msg) => println!("from pipe: {}", msg),
-            Err(err) => println!("err:{:?}", err),
+            Err(err) => {
+                println!("{:?}", err);
+            }
         }
         // custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -99,7 +104,17 @@ impl eframe::App for App {
 }
 
 impl App {
-    pub fn new(cc: &eframe::CreationContext, tx: Receiver<u8>) -> Self {
+    pub fn new(cc: &eframe::CreationContext) -> Self {
+        let env = Env::default()
+            .filter_or("MY_LOG_LEVEL", "trace")
+            // Normally using a pipe as a target would mean a value of false, but this forces it to be true.
+            .write_style_or("MY_LOG_STYLE", "always");
+        let (tx, rx) = channel::<u8>();
+        Builder::from_env(env)
+            .filter_level(log::LevelFilter::max())
+            .target(Target::Pipe(Box::new(Logger { sender: tx })))
+            // .target(Target::Stdout)
+            .init();
         setup_custom_fonts(&cc.egui_ctx);
         Self {
             can_exit: false,
@@ -115,7 +130,7 @@ impl App {
             .unwrap(),
             selected_tab: TabEnum::Service,
             service: Service::default(),
-            logger: tx,
+            logger: rx,
             log_text: String::new(),
         }
     }
@@ -225,16 +240,24 @@ impl App {
         });
 
         egui::CentralPanel::default().show_inside(ui, |ui| {
-            ui.vertical(|ui| {
-                ui.text_edit_multiline(&mut self.log_text);
+            egui::TopBottomPanel::bottom("bottom").show_inside(ui, |ui| {
                 if ui.button("生成").clicked() {
+                    self.log_text.push_str("生成\r\n");
                     info!("abc");
                 }
+            });
+            egui::TopBottomPanel::top("top").show_inside(ui, |ui| {
+                egui::ScrollArea::both().show(ui, |ui| {
+                    ui.add_sized(
+                        ui.available_size(),
+                        egui::TextEdit::multiline(&mut self.log_text),
+                    );
+                });
+                ui.allocate_space(ui.available_size());
             });
         });
     }
 }
-
 #[allow(clippy::needless_pass_by_value)]
 fn parse_response(response: ehttp::Response) -> ehttp::Result<RetainedImage> {
     let content_type = response.content_type().unwrap_or_default();

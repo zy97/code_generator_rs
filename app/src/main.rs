@@ -12,13 +12,6 @@ use std::{io::stdin, sync::mpsc::channel};
 use crate::app::Logger;
 
 fn main() -> Result<()> {
-    let (tx, rx) = channel();
-    let logger = Logger { sender: tx.clone() };
-    let logger = Box::new(logger);
-    Builder::from_default_env()
-        .filter_level(log::LevelFilter::Debug)
-        .target(Target::Pipe(logger))
-        .init();
     let options = eframe::NativeOptions {
         decorated: true, //如果自定义边框，拖动界面可能会导致操作失效，如自定义界面的关闭按钮
         transparent: true,
@@ -30,7 +23,7 @@ fn main() -> Result<()> {
         "egui demo",
         options,
         Box::new(|_cc| {
-            let app = App::new(_cc, rx);
+            let app = App::new(_cc);
             Box::new(app)
         }),
     );

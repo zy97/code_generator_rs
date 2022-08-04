@@ -1,18 +1,16 @@
-use std::{
-    io::Write,
-    rc::Rc,
-    sync::{mpsc::Sender, Arc},
-};
+use std::{io, sync::mpsc::Sender};
 
 pub struct Logger {
     pub sender: Sender<u8>,
 }
-impl Write for Logger {
+impl io::Write for Logger {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         for chr in buf {
             let op = self.sender.send(*chr);
             match op {
-                Ok(_) => {}
+                Ok(_) => {
+                    println!("send: {}", *chr);
+                }
                 Err(err) => {
                     println!("err11:{:?}", err);
                     return Ok(0);
@@ -23,7 +21,6 @@ impl Write for Logger {
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        println!("结束");
         Ok(())
     }
 }
