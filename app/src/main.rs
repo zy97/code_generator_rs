@@ -6,10 +6,8 @@ use anyhow::{Ok, Result};
 use app::App;
 use code_generator::{Entity, WebEntity};
 use egui::vec2;
-use env_logger::{Builder, Target};
-use std::{io::stdin, sync::mpsc::channel};
 
-use crate::app::Logger;
+use std::io::stdin;
 
 fn main() -> Result<()> {
     let options = eframe::NativeOptions {
