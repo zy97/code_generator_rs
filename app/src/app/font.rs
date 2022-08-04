@@ -4,9 +4,9 @@ use egui::{FontId, TextStyle};
 
 pub fn setup_custom_fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
-    let mut font = File::open(r"C:\Windows\Fonts\msyhbd.ttc").unwrap();
+    let mut font = File::open(r"C:\Windows\Fonts\FZYTK.TTF").unwrap();
     let mut buffer = vec![];
-    let font = font.read_to_end(&mut buffer);
+    font.read_to_end(&mut buffer).unwrap();
     // let sd: Cow<'static, [u8]> = std::borrow::Cow::Owned(buffer);
     fonts
         .font_data
