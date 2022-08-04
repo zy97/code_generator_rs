@@ -51,13 +51,15 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         // egui::CentralPanel::default().show(ctx, |ui| ui.heading("Try to close window"));
         let (_, rx) = channel();
-        let s = self.logger.try_recv();
-        match s {
-            Ok(msg) => println!("from pipe: {}", msg),
-            Err(err) => {
-                println!("{:?}", err);
-            }
-        }
+        String::from_utf8(self.logger.try_iter().collect::<Vec<u8>>())
+            .unwrap()
+            .split('\n')
+            .for_each(|msg| {
+                if !msg.is_empty() {
+                    println!("from pipe: {}", msg);
+                    self.log_text.push_str(format!("{}\r\n", msg).as_str());
+                }
+            });
         // custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.horizontal_top(|ui| {
@@ -242,7 +244,6 @@ impl App {
         egui::CentralPanel::default().show_inside(ui, |ui| {
             egui::TopBottomPanel::bottom("bottom").show_inside(ui, |ui| {
                 if ui.button("生成").clicked() {
-                    self.log_text.push_str("生成\r\n");
                     info!("abc");
                 }
             });

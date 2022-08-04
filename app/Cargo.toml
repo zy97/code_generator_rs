@@ -19,5 +19,7 @@ image = { version = "0.24.3", default-features = false, features = [
 poll-promise = "0.1.0"
 rfd = "0.9.1"
 anyhow = "1.0.58"
-env_logger = "0.9.0"
+# env_logger = "0.9.0"
+# 官方这个自定义输出有问题
+env_logger = { git = "https://github.com/niklasha/env_logger.git", branch = "issue-208-pipe-fix" }
 log = "0.4.17"

@@ -8,15 +8,16 @@ impl io::Write for Logger {
         for chr in buf {
             let op = self.sender.send(*chr);
             match op {
-                Ok(_) => {
-                    println!("send: {}", *chr);
-                }
+                Ok(_) => {}
                 Err(err) => {
-                    println!("err11:{:?}", err);
+                    println!("err:{:?}", err);
                     return Ok(0);
                 }
             }
         }
+        // for c in "\r\n".bytes() {
+        //     self.sender.send(c);
+        // }
         Ok(buf.len())
     }
 
