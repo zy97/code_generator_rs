@@ -6,7 +6,6 @@ use anyhow::{Ok, Result};
 use app::App;
 use code_generator::{Entity, WebEntity};
 use egui::vec2;
-
 use std::io::stdin;
 
 fn main() -> Result<()> {
