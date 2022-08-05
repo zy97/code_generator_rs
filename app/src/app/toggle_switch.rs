@@ -1,5 +1,3 @@
-use egui::Ui;
-
 ///https://github.com/emilk/egui/blob/master/egui_demo_lib/src/demo/toggle_switch.rs
 pub fn toggle_ui(ui: &mut egui::Ui, on: &mut bool) -> egui::Response {
     // Widget code can be broken up in four steps:
@@ -82,7 +80,4 @@ fn toggle_ui_compact(ui: &mut egui::Ui, on: &mut bool) -> egui::Response {
 }
 pub fn toggle(on: &mut bool) -> impl egui::Widget + '_ {
     move |ui: &mut egui::Ui| toggle_ui(ui, on)
-}
-pub fn url_to_file_source_code() -> String {
-    format!("https://github.com/emilk/egui/blob/master/{}", file!())
 }

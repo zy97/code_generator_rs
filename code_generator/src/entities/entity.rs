@@ -9,7 +9,7 @@ use std::{
 extern crate inflector;
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
-use log::info;
+use log::{debug, info};
 use regex::Regex;
 use serde::Serialize;
 use tera::{Context, Tera};
@@ -290,7 +290,7 @@ impl Entity {
 
         let file = File::create(&file_path)?;
         match TEMPLATES.render_to(template_name, &context, file) {
-            Ok(()) => println!("{} write success", file_path),
+            Ok(()) => debug!("{} 生成成功！", file_path),
             Err(e) => {
                 println!("Error: {}", e);
                 let mut cause = e.source();

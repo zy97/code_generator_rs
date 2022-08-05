@@ -5,13 +5,13 @@ use std::{
 
 #[derive(thiserror::Error, Debug)]
 pub enum CodeGeneratorError {
-    #[error("file operate failure")]
+    #[error(transparent)]
     FileError(#[from] std::io::Error),
     #[error(transparent)]
     TeraError(#[from] tera::Error),
     #[error(transparent)]
     RegexError(#[from] regex::Error),
-    #[error("file operate failure")]
+    #[error("regex no match")]
     RegexNoMatchError(#[from] RegexNoMatchError),
 }
 #[derive(Debug)]
