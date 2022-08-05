@@ -1,8 +1,16 @@
 use egui::Ui;
 
 mod demo_page;
+mod service_page;
 pub use demo_page::DemoPage;
+pub use service_page::ServicePage;
 
+#[derive(PartialEq)]
+pub enum TabEnum {
+    Web,
+    Service,
+    Other,
+}
 pub trait AppComponent {
     type AppData;
     #[allow(unused)]

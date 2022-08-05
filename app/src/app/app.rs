@@ -1,50 +1,23 @@
 use std::sync::mpsc::{channel, Receiver};
 
-use code_generator::Entity;
-use egui::Vec2;
-use egui_extras::RetainedImage;
 use env_logger::{Builder, Env, Target};
 
-use poll_promise::Promise;
-
 use super::{
-    components::{AppComponent, DemoPage},
+    components::{AppComponent, DemoPage, ServicePage, TabEnum},
     file_drop::preview_file_being_dropped,
     font::setup_custom_fonts,
-    toggle_switch::toggle,
     Logger,
 };
 #[derive()]
 pub struct App {
     pub can_exit: bool,
     pub is_exiting: bool,
-    pub promise: Option<Promise<ehttp::Result<RetainedImage>>>,
-    pub dropped_files: Vec<egui::DroppedFile>,
-    pub picked_path: Option<String>,
-    pub image: RetainedImage,
-    pub toggled: bool,
     pub selected_tab: TabEnum,
-    pub service: Service,
     pub log_text: String,
     pub logger: Receiver<u8>,
-    pub entity: Option<Entity>,
-    pub entity_path: String,
-}
 
-#[derive(PartialEq)]
-pub enum TabEnum {
-    Web,
-    Service,
-    Other,
-}
-#[derive(Default)]
-pub struct Service {
-    create_dto: bool,
-    create_createorupdatedto: bool,
-    create_pagedandsortedandfilterresultdto: bool,
-    create_iservice: bool,
-    create_service: bool,
-    insert_mapper: bool,
+    pub demo_page: DemoPage,
+    pub service_page: ServicePage,
 }
 
 impl eframe::App for App {
@@ -56,17 +29,16 @@ impl eframe::App for App {
         egui::Rgba::TRANSPARENT
     }
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        // egui::CentralPanel::default().show(ctx, |ui| ui.heading("Try to close window"));
         let (_, rx) = channel();
         String::from_utf8(self.logger.try_iter().collect::<Vec<u8>>())
             .unwrap()
             .split('\n')
             .for_each(|msg| {
                 if !msg.is_empty() {
-                    // println!("from pipe: {}", msg);
                     self.log_text.push_str(format!("{}\r\n", msg).as_str());
                 }
             });
+
         // custom_window_frame(tx, ctx, frame, "egui with custom frame", |ui| {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.horizontal_top(|ui| {
@@ -77,25 +49,29 @@ impl eframe::App for App {
 
             match self.selected_tab {
                 TabEnum::Service => {
-                    self.service_ui(ui, ctx);
+                    // self.service_ui(ui, ctx);
+                    ServicePage::add(self, ui);
+                    // self.service_page.add(&mut self, ui);
                 }
                 TabEnum::Web => {}
                 _ => {
                     DemoPage::add(self, ui);
+                    // self.demo_page.add(&mut self, ui);
                 }
             }
         });
-        preview_file_being_dropped(ctx);
+
         if !ctx.input().raw.dropped_files.is_empty() {
             match self.selected_tab {
                 TabEnum::Web => {}
                 TabEnum::Service => {
                     let files = ctx.input().raw.dropped_files.clone();
                     let file = &files[0];
-                    self.entity_path = file.path.clone().unwrap().display().to_string();
+                    self.service_page.entity_path =
+                        file.path.clone().unwrap().display().to_string();
                 }
                 TabEnum::Other => {
-                    self.dropped_files = ctx.input().raw.dropped_files.clone();
+                    self.demo_page.dropped_files = ctx.input().raw.dropped_files.clone();
                 }
             }
         }
@@ -138,79 +114,11 @@ impl App {
         Self {
             can_exit: false,
             is_exiting: false,
-            promise: None,
-            dropped_files: Vec::new(),
-            toggled: false,
-            picked_path: None,
-            image: RetainedImage::from_image_bytes(
-                "rust-logo",
-                include_bytes!("..\\..\\assets\\rust-logo.png"),
-            )
-            .unwrap(),
             selected_tab: TabEnum::Service,
-            service: Service::default(),
             logger: rx,
             log_text: String::new(),
-            entity: None,
-            entity_path: String::new(),
+            demo_page: DemoPage::default(),
+            service_page: ServicePage::default(),
         }
-    }
-
-    fn service_ui(self: &mut App, ui: &mut egui::Ui, _: &egui::Context) {
-        egui::CentralPanel::default().show_inside(ui, |ui| {
-            ui.horizontal(|ui| {
-                ui.label("Drag-and-drop files onto the window!");
-                ui.text_edit_singleline(&mut self.entity_path);
-                if ui.button("Open file...").clicked() {
-                    if let Some(path) = rfd::FileDialog::new().pick_file() {
-                        self.entity_path = path.display().to_string();
-                    }
-                }
-            });
-            egui::SidePanel::left("left_panel").show_inside(ui, |ui| {
-                ui.checkbox(&mut self.service.create_dto, "生成DTO文件");
-                ui.checkbox(
-                    &mut self.service.create_createorupdatedto,
-                    "生成CreateOrUpdateDTO文件",
-                );
-                ui.checkbox(
-                    &mut self.service.create_pagedandsortedandfilterresultdto,
-                    "生成PagedAndSortedAndFilterResultDTO文件",
-                );
-                ui.checkbox(&mut self.service.create_iservice, "生成IService文件");
-                ui.checkbox(&mut self.service.create_service, "生成Service文件");
-                ui.checkbox(&mut self.service.insert_mapper, "插入Mapper配置");
-            });
-
-            egui::CentralPanel::default().show_inside(ui, |ui| {
-                egui::TopBottomPanel::bottom("bottom").show_inside(ui, |ui| {
-                    if ui.button("生成").clicked() {
-                        if self.entity_path == String::default() {
-                            warn!("请选择abp entity文件！");
-                        } else {
-                            // self.entity = Entity::new(self.entity_path.clone()).ok();
-                            let et = Entity::new(self.entity_path.clone());
-                            match &self.entity {
-                                Some(entity) => {
-                                    debug!("开始执行生成操作：");
-                                }
-                                None => {
-                                    warn!("请选择有效的abp entity文件！");
-                                }
-                            }
-                        }
-                    }
-                });
-                egui::TopBottomPanel::top("top").show_inside(ui, |ui| {
-                    egui::ScrollArea::both().show(ui, |ui| {
-                        ui.add_sized(
-                            ui.available_size(),
-                            egui::TextEdit::multiline(&mut self.log_text),
-                        );
-                    });
-                    ui.allocate_space(ui.available_size());
-                });
-            });
-        });
     }
 }
