@@ -1,41 +1,39 @@
 use anyhow::Ok;
-use code_generator::Entity;
+use code_generator::WebEntity;
 
-use crate::app::{preview_file_being_dropped, toggle_switch::toggle, App};
+use crate::app::{preview_file_being_dropped, App};
 
 use super::AppComponent;
 
-pub struct ServicePage {
+pub struct WebPage {
     pub entity_path: String,
-    entity: Option<Entity>,
+    url_prefix: String,
+    entity: Option<WebEntity>,
     service: Service,
 }
 #[derive(Default)]
 struct Service {
-    create_dto: bool,
-    create_createorupdatedto: bool,
-    create_pagedandsortedandfilterresultdto: bool,
-    create_iservice: bool,
-    create_service: bool,
-    insert_mapper: bool,
-    custom: bool,
+    api: bool,
+    store: bool,
+    page: bool,
 }
-impl Default for ServicePage {
+impl Default for WebPage {
     fn default() -> Self {
         Self {
             entity_path: Default::default(),
             entity: Default::default(),
             service: Default::default(),
+            url_prefix: Default::default(),
         }
     }
 }
 
-impl AppComponent for ServicePage {
+impl AppComponent for WebPage {
     type AppData = App;
     fn add(app: &mut Self::AppData, ui: &mut egui::Ui) {
         preview_file_being_dropped(&ui.ctx());
 
-        let data = &mut app.service_page;
+        let data = &mut app.web_page;
         egui::CentralPanel::default().show_inside(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.label("拖放abp domain entity文件到此处:");
@@ -46,24 +44,17 @@ impl AppComponent for ServicePage {
                     }
                 }
             });
-            egui::SidePanel::left("left_panel").show_inside(ui, |ui| {
-                ui.checkbox(&mut data.service.create_dto, "生成DTO文件");
-                ui.checkbox(
-                    &mut data.service.create_createorupdatedto,
-                    "生成CreateOrUpdateDTO文件",
-                );
-                ui.checkbox(
-                    &mut data.service.create_pagedandsortedandfilterresultdto,
-                    "生成PagedAndSortedAndFilterResultDTO文件",
-                );
-                ui.horizontal(|ui| {
-                    ui.add(toggle(&mut data.service.custom));
-                    ui.label("是否生成自定service文件")
+            ui.horizontal(|ui| {
+                ui.label("请输入api地址前缀:");
+                ui.centered_and_justified(|ui| {
+                    ui.text_edit_singleline(&mut data.url_prefix);
                 });
-                ui.checkbox(&mut data.service.create_iservice, "生成IService文件");
-                ui.checkbox(&mut data.service.create_service, "生成Service文件");
+            });
 
-                ui.checkbox(&mut data.service.insert_mapper, "插入Mapper配置");
+            egui::SidePanel::left("left_panel").show_inside(ui, |ui| {
+                ui.checkbox(&mut data.service.api, "生成api文件");
+                ui.checkbox(&mut data.service.store, "生成store文件");
+                ui.checkbox(&mut data.service.page, "生成page文件");
             });
 
             egui::CentralPanel::default().show_inside(ui, |ui| {
@@ -72,7 +63,8 @@ impl AppComponent for ServicePage {
                         if data.entity_path == String::default() {
                             warn!("请选择abp entity文件！");
                         } else {
-                            let entity = Entity::new(data.entity_path.clone());
+                            let entity =
+                                WebEntity::new(data.entity_path.clone(), data.url_prefix.clone());
                             match entity {
                                 core::result::Result::Ok(entity) => {
                                     data.entity = Some(entity);
@@ -85,23 +77,14 @@ impl AppComponent for ServicePage {
                                 Some(entity) => {
                                     let data = &data.service;
                                     debug!("开始执行生成操作：");
-                                    if data.create_dto {
-                                        entity.create_dto().unwrap();
+                                    if data.api {
+                                        entity.create_api();
                                     }
-                                    if data.create_createorupdatedto {
-                                        entity.create_createorupdatedto().unwrap();
+                                    if data.store {
+                                        entity.create_store();
                                     }
-                                    if data.create_pagedandsortedandfilterresultdto {
-                                        entity.create_pagedandsortedandfilterresultdto().unwrap();
-                                    }
-                                    if data.create_iservice {
-                                        entity.create_iservice(data.custom).unwrap();
-                                    }
-                                    if data.create_service {
-                                        entity.create_service(data.custom).unwrap();
-                                    }
-                                    if data.insert_mapper {
-                                        entity.insert_mapper().unwrap();
+                                    if data.page {
+                                        entity.create_page();
                                     }
                                     debug!("执行生成操作完成！");
                                 }

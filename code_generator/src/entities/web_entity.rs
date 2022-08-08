@@ -9,10 +9,10 @@ use std::{
 
 use inflector::Inflector;
 use serde::Serialize;
-use tera::{Context};
+use tera::Context;
 use walkdir::DirEntry;
 
-use crate::TEMPLATES;
+use crate::{error::CodeGeneratorError, TEMPLATES};
 
 #[derive(Debug)]
 pub struct WebEntity {
@@ -22,59 +22,18 @@ pub struct WebEntity {
 }
 
 impl WebEntity {
-    pub fn new(path: String, url_prefix: String) -> Self {
+    pub fn new(path: String, url_prefix: String) -> Result<Self, CodeGeneratorError> {
         let file = Path::new(&path);
         let entity_name = file.file_stem().unwrap().to_str().unwrap().to_string();
-        // let mut file = File::open(&path).unwrap();
-        // let mut code = vec![];
-        // file.read_to_end(&mut code).unwrap();
-        // let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
-
-        // let re = Regex::new(r"class ([a-zA-Z]+) :").unwrap();
-        // let entity_name = re
-        //     .captures(&code)
-        //     .unwrap()
-        //     .get(1)
-        //     .unwrap()
-        //     .as_str()
-        //     .to_string();
-
-        // let re = Regex::new(r"<([a-zA-Z]+)>").unwrap();
-        // let id_type = re
-        //     .captures(&code)
-        //     .unwrap()
-        //     .get(1)
-        //     .unwrap()
-        //     .as_str()
-        //     .to_string();
-
-        // let re = Regex::new(format!(r"namespace ([a-zA-Z.]+).{}", entity_names).as_str()).unwrap();
-        // let namespace = re
-        //     .captures(&code)
-        //     .unwrap()
-        //     .get(1)
-        //     .unwrap()
-        //     .as_str()
-        //     .to_string();
-
-        // //正则表达式可以优化
-        // let re = Regex::new(r">([\s]*)\{([a-zA-Z\\ \r\n;{}]+)}([\s]*)}").unwrap();
-        // let properties = re
-        //     .captures(&code)
-        //     .unwrap()
-        //     .get(2)
-        //     .unwrap()
-        //     .as_str()
-        //     .to_string();
 
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().rposition(|&i| i.contains("src")).unwrap();
         let src_dir = src_dir[..(src_index + 1)].join("\\");
-        WebEntity {
+        Ok(WebEntity {
             entity_name,
             url_prefix,
             src_dir,
-        }
+        })
     }
     fn find(&self, contain_name: &str, is_file: bool) -> DirEntry {
         let result = walkdir::WalkDir::new(&self.src_dir)

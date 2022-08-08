@@ -1,10 +1,10 @@
 use egui::Ui;
-
 mod demo_page;
 mod service_page;
+mod web_page;
 pub use demo_page::DemoPage;
 pub use service_page::ServicePage;
-
+pub use web_page::WebPage;
 #[derive(PartialEq)]
 pub enum TabEnum {
     Web,

@@ -3,8 +3,7 @@ use std::sync::mpsc::{channel, Receiver};
 use env_logger::{Builder, Env, Target};
 
 use super::{
-    components::{AppComponent, DemoPage, ServicePage, TabEnum},
-    file_drop::preview_file_being_dropped,
+    components::{AppComponent, DemoPage, ServicePage, TabEnum, WebPage},
     font::setup_custom_fonts,
     Logger,
 };
@@ -18,6 +17,7 @@ pub struct App {
 
     pub demo_page: DemoPage,
     pub service_page: ServicePage,
+    pub web_page: WebPage,
 }
 
 impl eframe::App for App {
@@ -53,7 +53,9 @@ impl eframe::App for App {
                     ServicePage::add(self, ui);
                     // self.service_page.add(&mut self, ui);
                 }
-                TabEnum::Web => {}
+                TabEnum::Web => {
+                    WebPage::add(self, ui);
+                }
                 _ => {
                     DemoPage::add(self, ui);
                     // self.demo_page.add(&mut self, ui);
@@ -63,7 +65,12 @@ impl eframe::App for App {
 
         if !ctx.input().raw.dropped_files.is_empty() {
             match self.selected_tab {
-                TabEnum::Web => {}
+                TabEnum::Web => {
+                    let files = ctx.input().raw.dropped_files.clone();
+                    let file = &files[0];
+                    self.web_page.entity_path =
+                        file.path.clone().unwrap().display().to_string();
+                }
                 TabEnum::Service => {
                     let files = ctx.input().raw.dropped_files.clone();
                     let file = &files[0];
@@ -119,6 +126,7 @@ impl App {
             log_text: String::new(),
             demo_page: DemoPage::default(),
             service_page: ServicePage::default(),
+            web_page: WebPage::default(),
         }
     }
 }
