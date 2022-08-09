@@ -7,18 +7,24 @@ use std::{
     path::Path,
 };
 
+use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
+use regex::Regex;
 use serde::Serialize;
 use tera::Context;
 use walkdir::DirEntry;
 
-use crate::{error::CodeGeneratorError, TEMPLATES};
+use crate::{
+    error::{CodeGeneratorError, RegexNoMatchError},
+    TEMPLATES,
+};
 
 #[derive(Debug)]
 pub struct WebEntity {
     entity_name: String,
     url_prefix: String,
     src_dir: String,
+    properties: Vec<String>,
 }
 
 impl WebEntity {
@@ -29,10 +35,21 @@ impl WebEntity {
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().rposition(|&i| i.contains("src")).unwrap();
         let src_dir = src_dir[..(src_index + 1)].join("\\");
+        let mut properties = vec![];
+        let mut file = File::open(&path)?;
+        let mut code = vec![];
+        file.read_to_end(&mut code)?;
+        let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
+        let re = Regex::new(r"([a-zA-Z]+): ([a-zA-Z]+);")?;
+        for caps in re.captures_iter(code.as_str()) {
+            properties.push(caps.get(1).unwrap().as_str().to_string());
+        }
+
         Ok(WebEntity {
             entity_name,
             url_prefix,
             src_dir,
+            properties,
         })
     }
     fn find(&self, contain_name: &str, is_file: bool) -> DirEntry {
@@ -144,8 +161,9 @@ impl WebEntity {
         }
     }
     pub fn create_page(&self) {
-        let mut kv = HashMap::new();
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("entity", Box::new(&self.entity_name));
+        kv.insert("properties", Box::new(&self.properties));
 
         let pages = self
             .find("Pages", false)

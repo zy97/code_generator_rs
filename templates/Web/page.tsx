@@ -107,6 +107,9 @@ function {{entity}}() {
             },
           }}
         >
+        {% for property in properties -%}
+          <Table.Column<{{dto}}> title="{{property}}" dataIndex="{{property}}" />
+        {% endfor%}
           <Table.Column<{{dto}}> title="Id" dataIndex="id" />
           <Table.Column<{{dto}}> title="标题" dataIndex="title" />
           <Table.Column<{{dto}}> title="链接地址" dataIndex="linkUrl" />
