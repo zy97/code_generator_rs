@@ -2,9 +2,11 @@ use std::{
     collections::HashMap,
     error::Error,
     fs::{create_dir, File, OpenOptions},
+    hash,
     io::{self, ErrorKind, Read, Write},
     os::windows::prelude::FileExt,
     path::Path,
+    vec,
 };
 
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
@@ -24,7 +26,7 @@ pub struct WebEntity {
     entity_name: String,
     url_prefix: String,
     src_dir: String,
-    properties: Vec<String>,
+    properties: Vec<(String, String)>,
 }
 
 impl WebEntity {
@@ -42,7 +44,11 @@ impl WebEntity {
         let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
         let re = Regex::new(r"([a-zA-Z]+): ([a-zA-Z]+);")?;
         for caps in re.captures_iter(code.as_str()) {
-            properties.push(caps.get(1).unwrap().as_str().to_string());
+            // properties.push(caps.get(1).unwrap().as_str().to_string());
+            properties.push((
+                caps.get(1).unwrap().as_str().to_owned(),
+                caps.get(2).unwrap().as_str().to_owned(),
+            ));
         }
 
         Ok(WebEntity {

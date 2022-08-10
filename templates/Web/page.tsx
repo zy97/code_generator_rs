@@ -108,11 +108,8 @@ function {{entity}}() {
           }}
         >
         {% for property in properties -%}
-          <Table.Column<{{dto}}> title="{{property}}" dataIndex="{{property}}" />
+          <Table.Column<{{dto}}> title="{{property.0}}" dataIndex="{{property.0}}" {% if property.1 == "boolean" %}render={(value) => <div>{value === true ? "是" : "否"}</div>}{% endif %}/>
         {% endfor%}
-          <Table.Column<{{dto}}> title="Id" dataIndex="id" />
-          <Table.Column<{{dto}}> title="标题" dataIndex="title" />
-          <Table.Column<{{dto}}> title="链接地址" dataIndex="linkUrl" />
           <Table.Column<{{dto}}>
             title="操作"
             render={(recode) => {
