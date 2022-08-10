@@ -12,6 +12,7 @@ import useStores from "../../../../hooks/useStore";
 
 function {{entity}}() {
   const { {{store}} } = useStores();
+  const [modalTitle, setModalTitle] = useState("");
   const [visible, setVisible] = useState(false);
   const [form] = Form.useForm();
   const [modalForm] = Form.useForm();
@@ -41,12 +42,14 @@ function {{entity}}() {
     });
   };
   const showModal = () => {
+    setModalTitle("添加{{entity}}");
     setVisible(true);
   };
   const get{{entity}} = async (record: {{dto}}) => {
     try {
       const {{snakeName}} = await runAsync(record.id);
       if ({{snakeName}}) {
+        setModalTitle("编辑{{entity}}");
         modalForm.setFieldsValue({{snakeName}});
         console.log({{snakeName}});
         setVisible(true);
@@ -133,7 +136,7 @@ function {{entity}}() {
       </div>
       <Modal
         visible={visible}
-        title="添加一个新标签"
+        title={modalTitle}
         okText="确定"
         cancelText="取消"
         onCancel={() => {
