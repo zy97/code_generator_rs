@@ -9,7 +9,7 @@ class {{entity}}Store {
   constructor() {
     makeAutoObservable(this);
   }
-  get{{entities}} = async (data: any, form: any) => {
+  get{{entities}} = async (data: { current: number; pageSize: number }, form: any) => {
     try {
       const result = await {{snakeName}}Api.get{{entities}}({
         skipCount: data.pageSize * (data.current - 1),

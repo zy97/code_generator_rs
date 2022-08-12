@@ -166,10 +166,11 @@ function {{entity}}() {
             <Input />
           </Form.Item>
         {% for property in properties -%}
-          <Form.Item name="{{property.0}}" label="{{property.0}}" rules={[{ required: true, message: "请输入{{property.0}}" }]} {% if property.0 == "id" -%}hidden{% endif %}>
+          <Form.Item name="{{property.0}}" label="{{property.0}}" rules={[{ required: true, message: "请输入{{property.0}}" }]}>
             <Input />
           </Form.Item>
         {% endfor %}
+        </Form>
       </Modal>
     </div>
   );

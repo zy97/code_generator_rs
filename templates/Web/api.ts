@@ -1,5 +1,5 @@
 import axios from "axios";
-import PagedList from "../data/models/PagedList";
+import { PagedList } from "../data/models/PagedList";
 import PageRequest from "../data/models/PageRequest";
 import { Add{{entity}}Dto, {{entity}}Dto } from "../data/models/{{entity}}";
 
