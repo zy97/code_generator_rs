@@ -16,18 +16,11 @@ function {{entity}}() {
   const [visible, setVisible] = useState(false);
   const [form] = Form.useForm();
   const [modalForm] = Form.useForm();
-  const { tableProps, search } = useAntdTable({{store}}.get{{entities}}, {
-    defaultPageSize: 10,
-    form,
-    debounceWait: 500,
-  });
-  const { runAsync } = useRequest({{store}}.get{{entity}}ById, {
-    manual: true,
-  });
+  const { tableProps, search } = useAntdTable({{store}}.get{{entities}}, { defaultPageSize: 10, form, debounceWait: 500, });
+  const { runAsync } = useRequest({{store}}.get{{entity}}ById, { manual: true, });
   const delete{{entity}} = (record: {{dto}}) => {
     Modal.confirm({
-      title: "删除标签",
-      content: "确定删除吗？",
+      title: "删除标签", content: "确定删除吗？",
       onOk: async () => {
         const success = await {{store}}.delete{{entity}}(record.id);
         if (success) {
@@ -37,8 +30,7 @@ function {{entity}}() {
           message.error("删除失败");
         }
       },
-      okText: "确定",
-      cancelText: "取消",
+      okText: "确定", cancelText: "取消",
     });
   };
   const showModal = () => {
@@ -54,7 +46,7 @@ function {{entity}}() {
         console.log({{snakeName}});
         setVisible(true);
       }
-    } catch (error) {}
+    } catch (error) { return; }
   };
   const addOrUpdate{{entity}} = async (data: {{dto}}) => {
     try {
@@ -75,30 +67,16 @@ function {{entity}}() {
           search.submit();
         }
       }
-    } catch (error) {}
+    } catch (error) { return; }
   };
   return (
     <div>
-      <AdvancedSearchForm
-        form={form}
-        {...search}
-        extraActions={[
-          {
-            content: "添加",
-            action: showModal,
-          },
-        ]}
-      >
-        <Form.Item name="title" label="标题">
-          <Input placeholder="请输入标题" />
-        </Form.Item>
-        <Form.Item name="linkUrl" label="链接地址">
-          <Input placeholder="请输入链接地址" />
-        </Form.Item>
+      <AdvancedSearchForm form={form} {...search} extraActions={[{ content: "添加", action: showModal }]}>
+        <Form.Item name="title" label="标题"><Input placeholder="请输入标题" /></Form.Item>
+        <Form.Item name="linkUrl" label="链接地址"><Input placeholder="请输入链接地址" /></Form.Item>
       </AdvancedSearchForm>
       <div className="mt-4">
-        <Table<{{dto}}>
-          rowKey="id"
+        <Table<{{dto}}> rowKey="id"
           {...{
             ...tableProps,
             pagination: {
@@ -106,39 +84,24 @@ function {{entity}}() {
               showTotal: (total) => {
                 return <div>总共：{total} 项</div>;
               },
-              showSizeChanger: true,
-            },
-          }}
-        >
+              showSizeChanger: true
+          }
+        }}>
         {% for property in properties -%}
           <Table.Column<{{dto}}> title="{{property.0}}" dataIndex="{{property.0}}" {% if property.1 == "boolean" %}render={(value) => <div>{value === true ? "是" : "否"}</div>}{% endif %}/>
         {% endfor%}
-          <Table.Column<{{dto}}>
-            title="操作"
+          <Table.Column<{{dto}}> title="操作"
             render={(recode) => {
               return (
                 <div className="space-x-4">
-                  <Button type="primary" onClick={() => get{{entity}}(recode)}>
-                    编辑
-                  </Button>
-                  <Button
-                    type="primary"
-                    danger
-                    onClick={() => delete{{entity}}(recode)}
-                  >
-                    删除
-                  </Button>
+                  <Button type="primary" onClick={() => get{{entity}}(recode)}>编辑</Button>
+                  <Button type="primary" danger onClick={() => delete{{entity}}(recode)}>删除</Button>
                 </div>
               );
-            }}
-          />
+            }} />
         </Table>
       </div>
-      <Modal
-        visible={visible}
-        title={modalTitle}
-        okText="确定"
-        cancelText="取消"
+      <Modal visible={visible} title={modalTitle} okText="确定" cancelText="取消"
         onCancel={() => {
           setVisible(false);
           modalForm.resetFields();
@@ -149,31 +112,18 @@ function {{entity}}() {
             .then((values) => {
               addOrUpdate{{entity}}(values);
             })
-            .catch((info) => {
-              message.error("添加失败");
-            });
-        }}
-      >
-        
-{% raw %}<Form
-          form={modalForm}
-          name="form_in_modal"
-          labelCol={{ span: 6 }}
-          wrapperCol={{ span: 18 }}
-          >
-{% endraw %}
-          <Form.Item name="id" label="id" hidden>
-            <Input />
-          </Form.Item>
-        {% for property in properties -%}
-          <Form.Item name="{{property.0}}" label="{{property.0}}" rules={[{ required: true, message: "请输入{{property.0}}" }]}>
-            <Input />
-          </Form.Item>
-        {% endfor %}
+            .catch(() => { message.error("添加失败"); });
+        }}>
+{%- raw %}
+        <Form form={modalForm} name="form_in_modal" labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+{%- endraw %}
+          <Form.Item name="id" label="id" hidden><Input /></Form.Item>
+        {%- for property in properties %}
+          <Form.Item name="{{property.0}}" label="{{property.0}}" rules={[{ required: true, message: "请输入{{property.0}}" }]}><Input /></Form.Item>
+        {%- endfor %}
         </Form>
       </Modal>
     </div>
   );
 }
-
 export default {{entity}};

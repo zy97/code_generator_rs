@@ -37,7 +37,7 @@ class {{entity}}Store {
       const data = await {{snakeName}}Api.add{{entity}}({{snakeName}});
       return data.data;
     } catch (error) {
-      return false;
+      return;
     }
   }
   async get{{entity}}ById(id: string) {
@@ -45,7 +45,7 @@ class {{entity}}Store {
       const {{snakeName}} = await {{snakeName}}Api.get{{entity}}ById(id);
       return {{snakeName}}.data;
     } catch (error) {
-      console.log(error);
+      return;
     }
   }
   async update{{entity}}(id: string, {{snakeName}}: Add{{entity}}Dto) {
@@ -53,7 +53,7 @@ class {{entity}}Store {
       const result = await {{snakeName}}Api.update{{entity}}(id, {{snakeName}});
       return result.data;
     } catch (error) {
-      console.log(error);
+      return;
     }
   }
 }
