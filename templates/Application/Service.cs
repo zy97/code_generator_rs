@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 namespace {{namespace}}.{{folder}}
 {
-{% if custom %}
+{%- if custom %}
     public class {{entity}}Service : I{{entity}}Service
     {
         public {{entity}}Service()
@@ -13,7 +13,7 @@ namespace {{namespace}}.{{folder}}
 
         }
     }
-{% else %}
+{%- else %}
     public class {{entity}}Service : CrudAppService<{{entity}}, {{entity}}Dto, {{id}}, PagedAndSortedAndFilteredResultRequestDto, CreateOrUpdate{{entity}}Dto>, I{{entity}}Service
     {
          public {{entity}}Service(IRepository<{{entity}}, {{id}}> repository) : base(repository)
@@ -28,5 +28,5 @@ namespace {{namespace}}.{{folder}}
             return queryable;
          }
     }   
-{% endif %}
+{%- endif %}
 }

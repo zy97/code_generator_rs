@@ -3,13 +3,13 @@ using Volo.Abp.Application.Services;
 
 namespace {{namespace}}.{{folder}}
 {
-{% if custom %}
+{%- if custom %}
     public interface I{{entity}}Service : IApplicationService
     {
     }
-{% else %}
+{%- else %}
     public interface I{{entity}}Service : ICrudAppService<{{entity}}Dto, {{id}}, PagedAndSortedAndFilteredResultRequestDto, CreateOrUpdate{{entity}}Dto>
     {
     }   
-{% endif %}
+{%- endif %}
 }

@@ -5,6 +5,6 @@ namespace {{namespace}}.{{folder}}
 {
     public class {{entity}}Dto : EntityDto<{{id}}>
     {
-       {{ properties }}
+       {{- properties -}}
     }
 }

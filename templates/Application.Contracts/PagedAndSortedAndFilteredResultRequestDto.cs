@@ -4,6 +4,6 @@ namespace {{namespace}}.{{folder}}
 {
     public class PagedAndSortedAndFilteredResultRequestDto : PagedAndSortedResultRequestDto
     {
-        {{ properties }}
+        {{- properties -}}
     }
 }
