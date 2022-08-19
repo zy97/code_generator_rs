@@ -7,7 +7,7 @@ mod entities;
 mod error;
 pub use entities::Entity;
 pub use entities::WebEntity;
-
+pub use entities::Permission;
 #[macro_use]
 extern crate lazy_static;
 lazy_static! {
@@ -34,11 +34,4 @@ fn plural(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Erro
     let s = try_get_value!("plural", "value", String, value);
     Ok(to_value(&s.to_plural()).unwrap())
 }
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
+
