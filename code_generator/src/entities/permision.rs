@@ -39,7 +39,6 @@ impl Permission {
         let mut code = vec![];
         file.read_to_end(&mut code)?;
         let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
-        eprintln!("{}", code);
         let re = Regex::new(r"public static class ([a-zA-Z]+)")?;
 
         let class_name = re
@@ -81,7 +80,6 @@ impl Permission {
         let re = Regex::new(r#"public static class([\s\S]+?)}"#).unwrap();
         for caps in re.captures_iter(&class_properties) {
             let permisson_code = caps.get(0).unwrap().as_str();
-            eprintln!("------{}", permisson_code);
             let re = Regex::new(r"public static class ([a-zA-Z]+)")?;
 
             let class_name = re
@@ -250,6 +248,42 @@ impl Permission {
                 + "Group",
             permission,
             permission.to_camel_case() + "DefaultPermission"
+        );
+        code.insert_str(insert_index, &insert_code);
+        file.seek_write(code.as_bytes(), 0)?;
+        Ok(())
+    }
+    pub fn add_permission_to_service(
+        &self,
+        service_file:&str,
+        group: &str,
+        permission: &str,
+    ) -> Result<(), CodeGeneratorError> {
+        // let provider_file_path = find(&self.src_dir, "PermissionDefinitionProvider.cs", true);
+
+        // let provider_file_path = provider_file_path.path().to_str().unwrap();
+        let mut options = OpenOptions::new();
+        let mut file = options
+            .write(true)
+            .read(true)
+            .open(service_file)
+            .expect("create failed");
+        let mut code = String::new();
+        file.read_to_string(&mut code)?;
+        let re = Regex::new(
+            r#"public ([a-zA-Z])([\s\S]+?)}"#,
+        )
+        .unwrap();
+        let insert_index = re.captures(&code).unwrap().get(0).unwrap().range().end -2;
+
+        let insert_code = format!(
+            r###"
+            this.UpdatePolicyName = BlogPermissions.Admin.Update;
+            this.DeletePolicyName = BlogPermissions.Admin.Delete;
+            this.CreatePolicyName = BlogPermissions.Admin.Create;
+            this.GetPolicyName = BlogPermissions.Admin.Default;
+            this.GetListPolicyName = BlogPermissions.Admin.Default;
+        "###
         );
         code.insert_str(insert_index, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;

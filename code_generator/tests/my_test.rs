@@ -22,7 +22,8 @@ mod tests {
         let permission = permission.unwrap();
         // permission.add_group("Hello");
         // permission.add_permission(format!("{}GroupName","Hello").as_str(), "TestPermission");
-        permission.add_permission_to_provider("GroupName", "Admin");
+        // permission.add_permission_to_provider("GroupName", "Admin");
+        permission.add_permission_to_service(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\Tags\TagService.cs", "group", "permission");
         
     }
     #[test]
