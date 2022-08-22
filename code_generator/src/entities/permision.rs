@@ -3,7 +3,8 @@ use std::{
     fs::{File, OpenOptions},
     io::Read,
     os::windows::{prelude::FileExt, process::CommandExt},
-    vec, process::{Command, Stdio},
+    process::{Command, Stdio},
+    vec,
 };
 
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
@@ -25,6 +26,7 @@ pub struct Permission {
     // plural_name: String,
     // properties: String,
     groups: Vec<PermissionGroup>,
+    permissions_class_name: String,
 }
 
 impl Permission {
@@ -47,6 +49,8 @@ impl Permission {
             .ok_or(RegexNoMatchError)?
             .as_str()
             .to_string();
+
+        let permissions_class_name = class_name;
 
         let re = Regex::new(r"\{([\s\S]+)}([\s]*)}").unwrap();
         let class_properties = re
@@ -105,7 +109,11 @@ impl Permission {
             }
         }
 
-        Ok(Permission { groups, src_dir })
+        Ok(Permission {
+            groups,
+            src_dir,
+            permissions_class_name,
+        })
     }
     pub fn add_group(&self, group: &str) -> Result<(), CodeGeneratorError> {
         let permission_file_path = find(&self.src_dir, "Permissions.cs", true);
@@ -189,6 +197,61 @@ impl Permission {
         // insert_code.push('\r');
         // insert_code.push('\n');
         code.insert_str(range.end + 2, &insert_code);
+        file.seek_write(code.as_bytes(), 0)?;
+        Ok(())
+    }
+    pub fn add_permission_to_provider(
+        &self,
+        group: &str,
+        permission: &str,
+    ) -> Result<(), CodeGeneratorError> {
+        let provider_file_path = find(&self.src_dir, "PermissionDefinitionProvider.cs", true);
+
+        let provider_file_path = provider_file_path.path().to_str().unwrap();
+        let mut options = OpenOptions::new();
+        let mut file = options
+            .write(true)
+            .read(true)
+            .open(&provider_file_path)
+            .expect("create failed");
+        let mut code = String::new();
+
+        file.read_to_string(&mut code)?;
+        let re = Regex::new(
+            r#"public override void Define([\s\S]+?)}([\s]+)private static LocalizableString L"#,
+        )
+        .unwrap();
+        let insert_index = re.captures(&code).unwrap().get(1).unwrap().range().end;
+
+        let insert_code = format!(
+            r###"
+        var {2} = context.GetGroupOrNull({0}.{1});
+        if ({2} == null)
+        {{
+            {2} = context.AddGroup({0}.{1});
+        }}
+        var {4} = {2}.GetPermissionOrNull({0}.{3}.Default);
+        if ({4} == null)
+        {{
+            {4} = {2}.AddPermission({0}.{3}.Default);
+            {4}.AddChild({0}.{3}.Create);
+            {4}.AddChild({0}.{3}.Delete);
+            {4}.AddChild({0}.{3}.Update);
+        }}"###,
+            self.permissions_class_name,
+            group,
+            self.groups
+                .iter()
+                .find(|e| e.group_property_name == group)
+                .unwrap()
+                .group_property_value
+                .clone()
+                .to_camel_case()
+                + "Group",
+            permission,
+            permission.to_camel_case() + "DefaultPermission"
+        );
+        code.insert_str(insert_index, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;
         Ok(())
     }

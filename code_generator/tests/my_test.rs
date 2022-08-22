@@ -20,8 +20,10 @@ mod tests {
         let permission = Permission::new(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Permissions\BlogPermissions.cs".to_owned());
         println!("{:#?}", permission);
         let permission = permission.unwrap();
-        permission.add_group("Hello");
-        permission.add_permission("TestGroup", "TestPermission");
+        // permission.add_group("Hello");
+        // permission.add_permission(format!("{}GroupName","Hello").as_str(), "TestPermission");
+        permission.add_permission_to_provider("GroupName", "Admin");
+        
     }
     #[test]
     fn cmd() {

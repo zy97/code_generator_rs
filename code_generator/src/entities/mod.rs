@@ -33,11 +33,8 @@ fn format_csharp(project_dir: &str, relative_file_path: &str) {
         .stdout(Stdio::piped())
         .output()
         .expect("cmd exec error!");
-        println!("hello");
-    println!("{}", String::from_utf8_lossy(&output.stdout));
     println!("{}",&output.status);
     println!("{}", String::from_utf8_lossy(&output.stderr));
-    // println!("{}", UTF_8.decode(&output.stderr, DecoderTrap::Strict).unwrap());
 }
 #[cfg(test)]
 mod tests {
@@ -47,7 +44,7 @@ mod tests {
     fn format_csharp1() {
         format_csharp(
             r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts",
-            r"Permissions\BlogPermissions.cs",
+            r"Permissions\BlogPermissionDefinitionProvider.cs",
         );
     }
 }
