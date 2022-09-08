@@ -83,7 +83,7 @@ fn main() -> Result<()> {
 
             // let url = String::from("/api/app/post-admin");
 
-            let web_entity = WebEntity::new(entity_path, prefix_api_url);
+            let web_entity = WebEntity::new(entity_path, prefix_api_url)?;
             println!("web entity:{:#?}", web_entity);
             web_entity.create_api();
             web_entity.create_store();

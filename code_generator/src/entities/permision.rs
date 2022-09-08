@@ -1,15 +1,13 @@
 use std::{
-    collections::HashMap,
     fs::{File, OpenOptions},
     io::Read,
-    os::windows::{prelude::FileExt, process::CommandExt},
-    process::{Command, Stdio},
+    os::windows::{prelude::FileExt},
     vec,
 };
 
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
-use log::{info, trace};
+
 use regex::Regex;
 
 use crate::error::{CodeGeneratorError, RegexNoMatchError};
@@ -165,13 +163,13 @@ impl Permission {
 
         file.read_to_string(&mut code)?;
         let re = Regex::new(r#"public const string ([A-Za-z=\\ "]+);"#).unwrap();
-        let sdf = re
-            .captures_iter(&code)
-            .last()
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .as_str();
+        // let sdf = re
+        //     .captures_iter(&code)
+        //     .last()
+        //     .unwrap()
+        //     .get(0)
+        //     .unwrap()
+        //     .as_str();
         let range = re
             .captures_iter(&code)
             .last()
@@ -179,7 +177,7 @@ impl Permission {
             .get(0)
             .unwrap()
             .range();
-        let mut insert_code = format!(
+        let  insert_code = format!(
             r#"
         public static class {0}
         {{
@@ -260,7 +258,7 @@ impl Permission {
         permission: &str,
     ) -> Result<(), CodeGeneratorError> {
         // let provider_file_path = find(&self.src_dir, "PermissionDefinitionProvider.cs", true);
-
+        println!("{},{}",group, permission);
         // let provider_file_path = provider_file_path.path().to_str().unwrap();
         let mut options = OpenOptions::new();
         let mut file = options

@@ -23,6 +23,7 @@ impl fmt::Display for RegexNoMatchError {
 }
 impl From<io::Error> for RegexNoMatchError {
     fn from(error: io::Error) -> Self {
+        println!("{}",error);
         RegexNoMatchError {}
     }
 }

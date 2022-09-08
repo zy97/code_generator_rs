@@ -2,7 +2,6 @@ use std::{
     collections::HashMap,
     error::Error,
     fs::{create_dir, File, OpenOptions},
-    hash,
     io::{self, ErrorKind, Read, Write},
     os::windows::prelude::FileExt,
     path::Path,
@@ -17,7 +16,7 @@ use tera::Context;
 use walkdir::DirEntry;
 
 use crate::{
-    error::{CodeGeneratorError, RegexNoMatchError},
+    error::{CodeGeneratorError},
     TEMPLATES,
 };
 

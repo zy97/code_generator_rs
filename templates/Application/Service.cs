@@ -22,9 +22,14 @@ namespace {{namespace}}.{{folder}}
          //如果不需要过滤删除这个重载，属性判断根据自己的情况酌情调整
          protected override async Task<IQueryable<{{entity}}>> CreateFilteredQueryAsync(PagedAndSortedAndFilteredResultRequestDto input)
          {
-            var queryable = await this.ReadOnlyRepository.GetQueryableAsync().ConfigureAwait(false);{% for property in properties %}{% if property.1 == "string"%}
-            queryable = queryable.WhereIf(!string.IsNullOrWhiteSpace(input.{{property.0}}), i => i.{{property.0}}.Contains(input.{{property.0}}));{% else %}
-            throw new NotImplementedException("属性{{property.0}}为{{property.1}}类型需自己实现过滤");{% endif %}{% endfor%}
+            var queryable = await this.ReadOnlyRepository.GetQueryableAsync().ConfigureAwait(false);
+            {%- for name,type in properties %}
+            {%- if type == "string"%}
+            queryable = queryable.WhereIf(!string.IsNullOrWhiteSpace(input.{{name}}), i => i.{{name}}.Contains(input.{{name}}));
+            {%- else %}
+            throw new NotImplementedException("属性{{property.0}}为{{property.1}}类型需自己实现过滤");
+            {%- endif %}
+            {%- endfor%}
             return queryable;
          }
     }   

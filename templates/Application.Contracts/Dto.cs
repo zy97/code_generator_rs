@@ -5,6 +5,8 @@ namespace {{namespace}}.{{folder}}
 {
     public class {{entity}}Dto : EntityDto<{{id}}>
     {
-       {{- properties -}}
+      {%- for name,type in properties %}
+      public {{type}} {{name}} { get; set; }
+      {%- endfor %}
     }
 }

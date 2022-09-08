@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fs::File, io::Read};
+use std::{fs::File, io::Read};
 
 use egui::{FontId, TextStyle};
 // https://github.com/emilk/egui/issues/64

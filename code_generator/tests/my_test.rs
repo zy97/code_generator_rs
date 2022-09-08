@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use std::os::windows::process::CommandExt;
     use std::process::Command;
     use std::process::Stdio;
 
+    use code_generator::Entity;
     use code_generator::Permission;
     use code_generator::WebEntity;
 
@@ -23,8 +23,13 @@ mod tests {
         // permission.add_group("Hello");
         // permission.add_permission(format!("{}GroupName","Hello").as_str(), "TestPermission");
         // permission.add_permission_to_provider("GroupName", "Admin");
-        permission.add_permission_to_service(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\Tags\TagService.cs", "group", "permission");
-        
+        permission
+            .add_permission_to_service(
+                r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\Tags\TagService.cs",
+                "group",
+                "permission",
+            )
+            .unwrap();
     }
     #[test]
     fn cmd() {
@@ -36,5 +41,19 @@ mod tests {
             .output()
             .expect("cmd exec error!");
         println!("{}", String::from_utf8_lossy(&output.stdout));
+    }
+    #[test]
+    fn csharp_entity_test() {
+        //不能运行测试，只能运行调试，不然找不到模板
+        let entity_path = r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs".to_owned();
+        let entity = Entity::new(entity_path).unwrap();
+        println!("entity:{:#?}", entity);
+        let custom = false;
+        entity.create_dto().unwrap();
+        entity.create_createorupdatedto().unwrap();
+        entity.create_pagedandsortedandfilterresultdto().unwrap();
+        entity.create_iservice(custom).unwrap();
+        entity.create_service(custom).unwrap();
+        entity.format_all();
     }
 }

@@ -1,6 +1,7 @@
 use std::sync::mpsc::Sender;
 
-pub fn custom_window_frame(
+#[warn(dead_code)]
+pub fn _custom_window_frame(
     sender: Sender<bool>,
     ctx: &egui::Context,
     frame: &mut eframe::Frame,

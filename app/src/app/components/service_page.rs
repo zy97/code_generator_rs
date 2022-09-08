@@ -1,4 +1,4 @@
-use anyhow::Ok;
+
 use code_generator::Entity;
 
 use crate::app::{preview_file_being_dropped, toggle_switch::toggle, App};

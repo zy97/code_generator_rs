@@ -1,4 +1,4 @@
-use anyhow::Ok;
+
 use code_generator::WebEntity;
 
 use crate::app::{preview_file_being_dropped, App};

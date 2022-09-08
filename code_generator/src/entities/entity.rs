@@ -1,24 +1,27 @@
 use std::{
+    cell::{Cell, RefCell},
     collections::HashMap,
     error::Error,
     fs::{create_dir, File, OpenOptions},
-    io::{self, ErrorKind, Read},
+    io::{ErrorKind, Read},
     os::windows::prelude::FileExt,
-    result,
 };
 extern crate inflector;
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
 use log::{debug, info};
-use regex::Regex;
+
 use serde::Serialize;
-use tera::{Context, Tera};
+use tera::Context;
 use walkdir::DirEntry;
 
 use crate::{
-    error::{CodeGeneratorError, RegexNoMatchError},
+    entities::{get_class_name, get_generic_type, get_namespace, get_properties},
+    error::CodeGeneratorError,
     TEMPLATES,
 };
+
+use super::{find, format_csharp_code};
 
 #[derive(Debug)]
 pub struct Entity {
@@ -26,9 +29,10 @@ pub struct Entity {
     id_type: String,
     name: String,
     src_dir: String,
-    //复数名字
-    plural_name: String,
-    properties: String,
+    entity_dir: String,
+    plural_name: String, //复数名字
+    properties: HashMap<String, String>,
+    changed_files: RefCell<Vec<String>>,
 }
 
 impl Entity {
@@ -38,47 +42,21 @@ impl Entity {
         file.read_to_end(&mut code)?;
         let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
 
-        let re = Regex::new(r"class ([a-zA-Z]+) :")?;
-        let entity_name = re
-            .captures(&code)
-            .ok_or(RegexNoMatchError)?
-            .get(1)
-            .ok_or(RegexNoMatchError)?
-            .as_str()
-            .to_string();
+        let entity_name = get_class_name(&code)?;
         let entity_names = entity_name.to_plural();
 
-        let re = Regex::new(r"<([a-zA-Z]+)>")?;
-        let id_type = re
-            .captures(&code)
-            .ok_or(RegexNoMatchError)?
-            .get(1)
-            .ok_or(RegexNoMatchError)?
-            .as_str()
-            .to_string();
+        let id_type = get_generic_type(&code)?;
 
-        let re = Regex::new(format!(r"namespace ([a-zA-Z.]+).{}", entity_names).as_str())?;
-        let namespace = re
-            .captures(&code)
-            .ok_or(RegexNoMatchError)?
-            .get(1)
-            .ok_or(RegexNoMatchError)?
-            .as_str()
-            .to_string();
+        let namespace = get_namespace(&code)?;
+        let namespace = namespace.replace((String::from(".") + &entity_names).as_str(), "");
 
-        //正则表达式可以优化
-        let re = Regex::new(r">([\s]*)\{([a-zA-Z\\ \r\n;{}]+)}([\s]*)}")?;
-        let properties = re
-            .captures(&code)
-            .ok_or(RegexNoMatchError)?
-            .get(2)
-            .ok_or(RegexNoMatchError)?
-            .as_str()
-            .to_string();
+        let properties = get_properties(&code).unwrap();
 
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().position(|&i| i.contains("src")).unwrap();
+        let entity_dir = src_dir[..(src_dir.len() - 1)].join("\\");
         let src_dir = src_dir[..(src_index + 1)].join("\\");
+
         info!("初始化完成");
         Ok(Entity {
             id_type,
@@ -86,7 +64,9 @@ impl Entity {
             namespace,
             plural_name: entity_names,
             src_dir,
+            entity_dir,
             properties,
+            changed_files: RefCell::new(vec![]),
         })
     }
     fn find(&self, contain_name: &str, is_file: bool) -> DirEntry {
@@ -114,7 +94,7 @@ impl Entity {
         }
     }
     pub fn create_dto(&self) -> Result<(), CodeGeneratorError> {
-        let mut kv = HashMap::new();
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
@@ -129,16 +109,18 @@ impl Entity {
             .to_string();
 
         self.create_dir(&application_contracts_dir)?;
-        self.generate_template(
+        let path = self.generate_template(
             kv,
             "Application.Contracts/Dto.cs",
             &application_contracts_dir,
             format!("{}Dto.cs", self.name),
-        )
+        )?;
+        self.add_file_change_log(path);
+        Ok(())
     }
 
     pub fn create_createorupdatedto(&self) -> Result<(), CodeGeneratorError> {
-        let mut kv = HashMap::new();
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
@@ -151,16 +133,18 @@ impl Entity {
             .to_string();
 
         self.create_dir(&application_contracts_dir)?;
-        self.generate_template(
+        let path = self.generate_template(
             kv,
             "Application.Contracts/CreateOrUpdateDto.cs",
             &application_contracts_dir,
             format!("CreateOrUpdate{}Dto.cs", self.name),
-        )
+        )?;
+        self.add_file_change_log(path);
+        Ok(())
     }
 
     pub fn create_pagedandsortedandfilterresultdto(&self) -> Result<(), CodeGeneratorError> {
-        let mut kv = HashMap::new();
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("properties", Box::new(&self.properties));
@@ -172,12 +156,14 @@ impl Entity {
             .to_string();
 
         self.create_dir(&application_contracts_dir)?;
-        self.generate_template(
+        let path = self.generate_template(
             kv,
             "Application.Contracts/PagedAndSortedAndFilteredResultRequestDto.cs",
             &application_contracts_dir,
             String::from("PagedAndSortedAndFilteredResultRequestDto.cs"),
-        )
+        )?;
+        self.add_file_change_log(path);
+        Ok(())
     }
 
     pub fn create_iservice(&self, custom: bool) -> Result<(), CodeGeneratorError> {
@@ -196,31 +182,23 @@ impl Entity {
 
         self.create_dir(&application_contracts_dir)?;
 
-        self.generate_template(
+        let path = self.generate_template(
             kv,
             "Application.Contracts/IService.cs",
             &application_contracts_dir,
             format!("I{}Service.cs", self.name),
-        )
+        )?;
+        self.add_file_change_log(path);
+        Ok(())
     }
 
     pub fn create_service(&self, custom: bool) -> Result<(), CodeGeneratorError> {
-        let re = Regex::new(r"public ([a-zA-Z\\ ]+)")?;
-        let properties: Vec<(_, _)> = re
-            .captures_iter(&self.properties)
-            .map(|m| {
-                let mut splited = m.get(1).unwrap().as_str().trim().split(' ');
-                let t = splited.next().unwrap();
-                let p = splited.next().unwrap();
-                (p, t)
-            })
-            .collect();
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("id", Box::new(&self.id_type));
-        kv.insert("properties", Box::new(properties));
+        kv.insert("properties", Box::new(&self.properties));
         kv.insert("custom", Box::new(custom));
         let application_dir = self
             .find(".Application", false)
@@ -230,13 +208,37 @@ impl Entity {
             .to_string();
 
         self.create_dir(&application_dir)?;
-        self.generate_template(
+        let path = self.generate_template(
             kv,
             "Application/Service.cs",
             &application_dir,
             format!("{}Service.cs", &self.name),
-        )
+        )?;
+        self.add_file_change_log(path);
+        Ok(())
     }
+
+    // pub fn create_exception(&self,exception_name:&str) -> Result<(), CodeGeneratorError> {
+    //     let exception_name = exception_name.trim_end_matches("Exception");
+    //     let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+    //     kv.insert("namespace", Box::new(&self.namespace));
+    //     kv.insert("entities", Box::new(&self.plural_name));
+    //     kv.insert("exception_name", Box::new(exception_name));
+    //     kv.insert("error_codes", Box::new(&self.id_type));
+    //     let error_codes = self
+    //         .find("ErrorCodes.cs", true)
+    //         .path()
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+
+    //     self.generate_template(
+    //         kv,
+    //         "Domain/Exception.cs",
+    //         &self.,
+    //         format!("{}Service.cs", &self.name),
+    //     )
+    // }
 
     pub fn insert_mapper(&self) -> Result<(), CodeGeneratorError> {
         let mapper_file_path = self.find("ApplicationAutoMapperProfile", true);
@@ -267,6 +269,10 @@ impl Entity {
         file.seek_write(code.as_bytes(), 0)?;
         Ok(())
     }
+    fn add_file_change_log(&self, path: String) {
+        let mut changs = self.changed_files.borrow_mut();
+        changs.push(path);
+    }
 }
 
 impl Entity {
@@ -276,21 +282,20 @@ impl Entity {
         template_name: &str,
         dir: &str,
         file_name: String,
-    ) -> Result<(), CodeGeneratorError>
+    ) -> Result<String, CodeGeneratorError>
     where
         T: Serialize + ?Sized,
     {
         let file_path = vec![dir, self.plural_name.as_str(), file_name.as_str()].join("\\");
 
         let mut context = Context::new();
-        // context.insert("numbers", &vec![1, 2, 3]);
         for entity in kv {
             context.insert(entity.0, &entity.1);
         }
 
         let file = File::create(&file_path)?;
         match TEMPLATES.render_to(template_name, &context, file) {
-            Ok(()) => debug!("{} 生成成功！", file_path),
+            Ok(()) => println!("{} 生成成功！", file_path),
             Err(e) => {
                 println!("Error: {}", e);
                 let mut cause = e.source();
@@ -300,6 +305,30 @@ impl Entity {
                 }
             }
         };
-        Ok(())
+        Ok(file_path)
     }
+}
+impl Entity {
+    pub fn format_all(&self) {
+        self.format_application_project();
+        self.format_application_contracts_project();
+        self.format_domain_project();
+        self.format_domain_share_project();
+    }
+    pub fn format_application_project(&self) {}
+    pub fn format_application_contracts_project(&self) {
+        let project_dir = find(&self.src_dir, "Application.Contracts", false);
+        let work_dir = project_dir.path().display().to_string();
+        let files = self.changed_files.borrow().to_vec();
+        let files = files
+        .into_iter()
+        .filter(|f| f.starts_with(work_dir.as_str()))
+        .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned()).collect::<Vec<_>>();
+        format_csharp_code(
+            work_dir,
+            files,
+        )
+    }
+    pub fn format_domain_project(&self) {}
+    pub fn format_domain_share_project(&self) {}
 }
