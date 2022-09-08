@@ -144,6 +144,85 @@ impl Entity {
         Ok(())
     }
     
+    pub fn create_exception(&self, exception_name:Option<String>,exception_code:Option<String>,exception_display_text:Option<String>) -> Result<(), CodeGeneratorError> {
+        let exception_name = exception_name.unwrap_or("Template".to_owned());
+        let exception_code = exception_code.unwrap_or("TemplateCode".to_owned());
+        let exception_display_text = exception_display_text.unwrap_or("TemplateDiaplayText".to_owned());
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv.insert("namespace", Box::new(&self.namespace));
+        kv.insert("entities", Box::new(&self.plural_name));
+        kv.insert("entity", Box::new(&self.name));
+        kv.insert("exception_name", Box::new(&exception_name));
+
+        let domain_dir = find(&self.src_dir, ".Domain", false)
+            .path()
+            .display()
+            .to_string();
+
+        self.create_dir(&domain_dir)?;
+        let path = self.generate_template(
+            kv,
+            "Domain/Exception.cs",
+            &domain_dir,
+            format!("{}{}Exception.cs", self.name,exception_name),
+        )?;
+        self.insert_error_code(&exception_name, exception_code.clone())?;
+        self.insert_dispaly_text(exception_code.clone(), exception_display_text)?;
+        self.add_file_change_log(path);
+        Ok(())
+    }
+    fn insert_error_code(&self,exception_name:&str,exception_code:String)->Result<(), CodeGeneratorError>{
+        let error_code_file_path = find(&self.src_dir, "ErrorCodes.cs", true);
+
+        let mapper_file_path = error_code_file_path.path().to_str().unwrap();
+        let mut options = OpenOptions::new();
+        let mut file = options
+            .write(true)
+            .read(true)
+            .open(&mapper_file_path)
+            .expect("create failed");
+        let mut code = String::new();
+
+        file.read_to_string(&mut code)?;
+        let index = code.rfind(';').unwrap();
+        code.insert_str(
+            index + 1,
+            format!(
+                "\r\npublic const string {}{} = \"{}\";",
+                self.name,exception_name,exception_code
+            )
+            .as_str(),
+        );
+        file.seek_write(code.as_bytes(), 0)?;
+        self.add_file_change_log(mapper_file_path.to_owned());
+        Ok(())  
+    }
+    fn insert_dispaly_text(&self,exception_code:String,exception_display_text:String)->Result<(), CodeGeneratorError>{
+        let json_path = find(&self.src_dir, "zh-Hans.json", true);
+
+        let mapper_file_path = json_path.path().to_str().unwrap();
+        let mut options = OpenOptions::new();
+        let mut file = options
+            .write(true)
+            .read(true)
+            .open(&mapper_file_path)
+            .expect("create failed");
+        let mut code = String::new();
+
+        file.read_to_string(&mut code)?;
+        let index = code.rfind('"').unwrap();
+        code.insert_str(
+            index + 1,
+            format!(
+                ",\r\n\"{}\": \"{}\"",
+                exception_code,exception_display_text
+            )
+            .as_str(),
+        );
+        file.seek_write(code.as_bytes(), 0)?;
+        self.add_file_change_log(mapper_file_path.to_owned());
+        Ok(())  
+    }
     pub fn create_createorupdatedto(&self) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
