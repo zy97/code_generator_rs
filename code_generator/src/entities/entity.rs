@@ -1,5 +1,5 @@
 use std::{
-    cell::{Cell, RefCell},
+    cell::RefCell,
     collections::HashMap,
     error::Error,
     fs::{create_dir, File, OpenOptions},
@@ -9,11 +9,10 @@ use std::{
 extern crate inflector;
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
-use log::{debug, info};
+use log::info;
 
 use serde::Serialize;
 use tera::Context;
-use walkdir::DirEntry;
 
 use crate::{
     entities::{get_class_name, get_generic_type, get_namespace, get_properties},
@@ -69,22 +68,6 @@ impl Entity {
             changed_files: RefCell::new(vec![]),
         })
     }
-    fn find(&self, contain_name: &str, is_file: bool) -> DirEntry {
-        let result = walkdir::WalkDir::new(&self.src_dir)
-            .into_iter()
-            .filter_map(Result::ok)
-            .filter(|e| {
-                if is_file {
-                    e.file_type().is_file()
-                        && e.file_name().to_str().unwrap().contains(contain_name)
-                } else {
-                    e.file_type().is_dir() && e.file_name().to_str().unwrap().contains(contain_name)
-                }
-            })
-            .nth(0)
-            .unwrap();
-        return result;
-    }
     fn create_dir(&self, dir: &str) -> Result<(), CodeGeneratorError> {
         let dir = format!("{}\\{}", dir, &self.plural_name);
         match create_dir(dir) {
@@ -101,11 +84,9 @@ impl Entity {
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("properties", Box::new(&self.properties));
 
-        let application_contracts_dir = self
-            .find(".Application.Contracts", false)
+        let application_contracts_dir = find(&self.src_dir, ".Application.Contracts", false)
             .path()
-            .to_str()
-            .unwrap()
+            .display()
             .to_string();
 
         self.create_dir(&application_contracts_dir)?;
@@ -119,17 +100,59 @@ impl Entity {
         Ok(())
     }
 
+    pub fn create_repository_interface(&self) -> Result<(), CodeGeneratorError> {
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv.insert("namespace", Box::new(&self.namespace));
+        kv.insert("entities", Box::new(&self.plural_name));
+        kv.insert("entity", Box::new(&self.name));
+        kv.insert("generic_type", Box::new(&self.id_type));
+
+        let domain_dir = find(&self.src_dir, ".Domain", false)
+            .path()
+            .display()
+            .to_string();
+
+        self.create_dir(&domain_dir)?;
+        let path = self.generate_template(
+            kv,
+            "Domain/IRepository.cs",
+            &domain_dir,
+            format!("I{}Repository.cs", self.name),
+        )?;
+        self.add_file_change_log(path);
+        Ok(())
+    }
+    pub fn create_manager(&self) -> Result<(), CodeGeneratorError> {
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv.insert("namespace", Box::new(&self.namespace));
+        kv.insert("entities", Box::new(&self.plural_name));
+        kv.insert("entity", Box::new(&self.name));
+
+        let domain_dir = find(&self.src_dir, ".Domain", false)
+            .path()
+            .display()
+            .to_string();
+
+        self.create_dir(&domain_dir)?;
+        let path = self.generate_template(
+            kv,
+            "Domain/Manager.cs",
+            &domain_dir,
+            format!("{}Manager.cs", self.name),
+        )?;
+        self.add_file_change_log(path);
+        Ok(())
+    }
+    
     pub fn create_createorupdatedto(&self) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("properties", Box::new(&self.properties));
-        let application_contracts_dir = self
-            .find(".Application.Contracts", false)
+        let application_contracts_dir = find(&self.src_dir, ".Application.Contracts", false)
             .path()
-            .to_str()
-            .unwrap()
+            .display()
             .to_string();
 
         self.create_dir(&application_contracts_dir)?;
@@ -148,11 +171,9 @@ impl Entity {
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("properties", Box::new(&self.properties));
-        let application_contracts_dir = self
-            .find(".Application.Contracts", false)
+        let application_contracts_dir = find(&self.src_dir, ".Application.Contracts", false)
             .path()
-            .to_str()
-            .unwrap()
+            .display()
             .to_string();
 
         self.create_dir(&application_contracts_dir)?;
@@ -173,11 +194,9 @@ impl Entity {
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("custom", Box::new(custom));
-        let application_contracts_dir = self
-            .find(".Application.Contracts", false)
+        let application_contracts_dir =find(&self.src_dir, ".Application.Contracts", false)
             .path()
-            .to_str()
-            .unwrap()
+            .display()
             .to_string();
 
         self.create_dir(&application_contracts_dir)?;
@@ -200,11 +219,9 @@ impl Entity {
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("properties", Box::new(&self.properties));
         kv.insert("custom", Box::new(custom));
-        let application_dir = self
-            .find(".Application", false)
+        let application_dir = find(&self.src_dir, ".Application.Contracts", false)
             .path()
-            .to_str()
-            .unwrap()
+            .display()
             .to_string();
 
         self.create_dir(&application_dir)?;
@@ -241,7 +258,7 @@ impl Entity {
     // }
 
     pub fn insert_mapper(&self) -> Result<(), CodeGeneratorError> {
-        let mapper_file_path = self.find("ApplicationAutoMapperProfile", true);
+        let mapper_file_path = find(&self.src_dir, ".Application.Contracts", false);
 
         let mapper_file_path = mapper_file_path.path().to_str().unwrap();
         let mut options = OpenOptions::new();
@@ -267,12 +284,15 @@ impl Entity {
             format!("using {}.{};\r\n", &self.namespace, self.plural_name).as_str(),
         );
         file.seek_write(code.as_bytes(), 0)?;
+        self.add_file_change_log(mapper_file_path.to_owned());
         Ok(())
     }
+    
     fn add_file_change_log(&self, path: String) {
         let mut changs = self.changed_files.borrow_mut();
         changs.push(path);
     }
+
 }
 
 impl Entity {
@@ -315,20 +335,48 @@ impl Entity {
         self.format_domain_project();
         self.format_domain_share_project();
     }
-    pub fn format_application_project(&self) {}
+    pub fn format_application_project(&self) {
+        let project_dir = find(&self.src_dir, ".Application", false);
+        let work_dir = project_dir.path().display().to_string();
+        let files = self.changed_files.borrow().to_vec();
+        let files = files
+            .into_iter()
+            .filter(|f| f.starts_with(work_dir.as_str()))
+            .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned())
+            .collect::<Vec<_>>();
+        format_csharp_code(work_dir, files)
+    }
     pub fn format_application_contracts_project(&self) {
         let project_dir = find(&self.src_dir, "Application.Contracts", false);
         let work_dir = project_dir.path().display().to_string();
         let files = self.changed_files.borrow().to_vec();
         let files = files
-        .into_iter()
-        .filter(|f| f.starts_with(work_dir.as_str()))
-        .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned()).collect::<Vec<_>>();
-        format_csharp_code(
-            work_dir,
-            files,
-        )
+            .into_iter()
+            .filter(|f| f.starts_with(work_dir.as_str()))
+            .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned())
+            .collect::<Vec<_>>();
+        format_csharp_code(work_dir, files)
     }
-    pub fn format_domain_project(&self) {}
-    pub fn format_domain_share_project(&self) {}
+    pub fn format_domain_project(&self) {
+        let domain_dir = find(&self.src_dir, ".Domain", false);
+        let work_dir = domain_dir.path().display().to_string();
+        let files = self.changed_files.borrow().to_vec();
+        let files = files
+            .into_iter()
+            .filter(|f| f.starts_with(work_dir.as_str()))
+            .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned())
+            .collect::<Vec<_>>();
+        format_csharp_code(work_dir, files)
+    }
+    pub fn format_domain_share_project(&self) {
+        let project_dir = find(&self.src_dir, "Domain.Shared", false);
+        let work_dir = project_dir.path().display().to_string();
+        let files = self.changed_files.borrow().to_vec();
+        let files = files
+            .into_iter()
+            .filter(|f| f.starts_with(work_dir.as_str()))
+            .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned())
+            .collect::<Vec<_>>();
+        format_csharp_code(work_dir, files)
+    }
 }
