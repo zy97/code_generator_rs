@@ -64,7 +64,7 @@ impl Entity {
             changed_files: RefCell::new(vec![]),
         })
     }
-    
+
     fn create_dir(&self, dir: &str) -> Result<(), CodeGeneratorError> {
         let dir = format!("{}\\{}", dir, &self.plural_name);
         match create_dir(dir) {
@@ -119,7 +119,7 @@ impl Entity {
         self.add_file_change_log(path);
         Ok(())
     }
-    
+
     pub fn create_manager(&self) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
@@ -201,7 +201,7 @@ impl Entity {
             return Ok(());
         }
         let index = code.rfind(';').unwrap();
-        code.insert_str(index + 1, format!("\r\n{}",insert_code).as_str());
+        code.insert_str(index + 1, format!("\r\n{}", insert_code).as_str());
         file.seek_write(code.as_bytes(), 0)?;
         self.add_file_change_log(mapper_file_path.to_owned());
         Ok(())
@@ -220,11 +220,11 @@ impl Entity {
 
         file.read_to_string(&mut code)?;
         let insert_code = format!("\"{}\": \"{}\"", exception_code, exception_display_text);
-        if code.contains(&insert_code){
+        if code.contains(&insert_code) {
             return Ok(());
         }
         let index = code.rfind('"').unwrap();
-        code.insert_str(index + 1, format!(",{}",insert_code).as_str());
+        code.insert_str(index + 1, format!(",{}", insert_code).as_str());
         file.seek_write(code.as_bytes(), 0)?;
         self.add_file_change_log(json_file.to_owned());
         Ok(())
@@ -326,7 +326,10 @@ impl Entity {
         kv.insert("entity", Box::new(&self.name));
         kv.insert("entities", Box::new(&self.plural_name));
         kv.insert("generic_type", Box::new(&self.id_type));
-        let dbcontext_path = find(&self.src_dir, "DbContext.cs",true).path().display().to_string();
+        let dbcontext_path = find(&self.src_dir, "DbContext.cs", true)
+            .path()
+            .display()
+            .to_string();
         let dbcontext_code = read_file(&dbcontext_path)?;
         let dbconetxt_class_name = get_class_name(&dbcontext_code)?;
         kv.insert("dbcontext", Box::new(dbconetxt_class_name));
@@ -361,13 +364,72 @@ impl Entity {
             return Ok(());
         }
         let index = code.rfind(';').unwrap();
-        code.insert_str(index + 1, format!("\r\n{}\r\n{}",map_to_dto,map_to_entity).as_str());
+        code.insert_str(
+            index + 1,
+            format!("\r\n{}\r\n{}", map_to_dto, map_to_entity).as_str(),
+        );
         code.insert_str(
             0,
             format!("using {}.{};\r\n", &self.namespace, self.plural_name).as_str(),
         );
         file.seek_write(code.as_bytes(), 0)?;
         self.add_file_change_log(mapper_file_path.to_owned());
+        Ok(())
+    }
+
+    pub fn insert_efcore_entity_config(&self) -> Result<(), CodeGeneratorError> {
+        let dbcontext_path = find(&self.src_dir, "DbContext.cs", true)
+            .path()
+            .display()
+            .to_string();
+        let mut file = open_file(&dbcontext_path)?;
+        let mut code = String::new();
+        file.read_to_string(&mut code)?;
+        let insert_dbset_property = format!(
+            "public DbSet<{}> {} {{ get; set; }}",
+            &self.name, &self.plural_name
+        );
+        if code.contains(&insert_dbset_property) {
+            return Ok(());
+        }
+        let insert_namespace = format!("using {}.{};\r\n", self.namespace, self.plural_name);
+        code.insert_str(0, &insert_namespace);
+        let dbconetxt_class_name = get_class_name(&code)?;
+        let constructor = format!("public {}", dbconetxt_class_name);
+        let constructor_index = code.find(&constructor).unwrap();
+
+        code.insert_str(
+            constructor_index - 1,
+            format!("{}\r\n", insert_dbset_property).as_str(),
+        );
+        let config_index = code.rfind(';').unwrap();
+        let domain_dir = find(&self.src_dir, ".Domain", false)
+            .path()
+            .display()
+            .to_string();
+        let consts_path = find(&domain_dir, "Consts.cs", true)
+            .path()
+            .display()
+            .to_string();
+        let consts_code = read_file(&consts_path)?;
+        let consts_class_name = get_class_name(&consts_code)?;
+        let insert_config = format!(
+            r###"
+            builder.Entity<{}>(b =>
+            {{
+                        b.ToTable({2}.DbTablePrefix + "{}", {2}.DbSchema);
+                        b.ConfigureByConvention(); //auto configure for the base class props
+                        b.HasKey(i => i.Id);
+                        //根据自己的情况配置
+                        //b.Property(i => i.Name).IsRequired().HasMaxLength(FriendLinkConst.MaxNameLength);
+                        //b.Property(i => i.Url).IsRequired().HasMaxLength(FriendLinkConst.MaxUrlLength);
+            }});
+                 "###,
+            self.name, self.plural_name, consts_class_name
+        );
+        code.insert_str(config_index + 2, format!("\r\n{}", insert_config).as_str());
+        file.seek_write(code.as_bytes(), 0)?;
+        self.add_file_change_log(dbcontext_path);
         Ok(())
     }
 
