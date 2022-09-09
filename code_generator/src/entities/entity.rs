@@ -7,7 +7,6 @@ use std::{
     os::windows::prelude::FileExt,
 };
 extern crate inflector;
-use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
 use log::info;
 
@@ -15,12 +14,12 @@ use serde::Serialize;
 use tera::Context;
 
 use crate::{
-    entities::{get_class_name, get_generic_type, get_namespace, get_properties},
+    entities::{get_class_name, get_generic_type, get_namespace, get_properties, read_file},
     error::CodeGeneratorError,
     TEMPLATES,
 };
 
-use super::{find, format_code};
+use super::{find, format_code, open_file};
 
 #[derive(Debug)]
 pub struct Entity {
@@ -28,7 +27,7 @@ pub struct Entity {
     id_type: String,
     name: String,
     src_dir: String,
-    solution_dir:String,
+    solution_dir: String,
     entity_dir: String,
     plural_name: String, //复数名字
     properties: HashMap<String, String>,
@@ -37,10 +36,7 @@ pub struct Entity {
 
 impl Entity {
     pub fn new(path: String) -> Result<Self, CodeGeneratorError> {
-        let mut file = File::open(&path)?;
-        let mut code = vec![];
-        file.read_to_end(&mut code)?;
-        let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
+        let code = read_file(&path)?;
 
         let entity_name = get_class_name(&code)?;
         let entity_names = entity_name.to_plural();
@@ -55,7 +51,7 @@ impl Entity {
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().position(|&i| i.contains("src")).unwrap();
         let entity_dir = src_dir[..(src_dir.len() - 1)].join("\\");
-let solution_dir = src_dir[..(src_index )].join("\\");
+        let solution_dir = src_dir[..(src_index)].join("\\");
         let src_dir = src_dir[..(src_index + 1)].join("\\");
         info!("初始化完成");
         Ok(Entity {
@@ -145,16 +141,29 @@ let solution_dir = src_dir[..(src_index )].join("\\");
         self.add_file_change_log(path);
         Ok(())
     }
-    
-    pub fn create_exception(&self, exception_name:Option<String>,exception_code:Option<String>,exception_display_text:Option<String>) -> Result<(), CodeGeneratorError> {
+
+    pub fn create_exception(
+        &self,
+        exception_name: Option<String>,
+        exception_code: Option<String>,
+        exception_display_text: Option<String>,
+    ) -> Result<(), CodeGeneratorError> {
         let exception_name = exception_name.unwrap_or("Template".to_owned());
         let exception_code = exception_code.unwrap_or("TemplateCode".to_owned());
-        let exception_display_text = exception_display_text.unwrap_or("TemplateDiaplayText".to_owned());
+        let exception_display_text =
+            exception_display_text.unwrap_or("TemplateDiaplayText".to_owned());
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("entities", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("exception_name", Box::new(&exception_name));
+        let error_code_file = find(&self.src_dir, "DomainErrorCodes.cs", true)
+            .path()
+            .display()
+            .to_string();
+        let code = read_file(&error_code_file)?;
+        let class_name = get_class_name(&code)?;
+        kv.insert("error_codes", Box::new(class_name));
 
         let domain_dir = find(&self.src_dir, ".Domain", false)
             .path()
@@ -166,49 +175,47 @@ let solution_dir = src_dir[..(src_index )].join("\\");
             kv,
             "Domain/Exception.cs",
             &domain_dir,
-            format!("{}{}Exception.cs", self.name,exception_name),
+            format!("{}{}Exception.cs", self.name, exception_name),
         )?;
         self.insert_error_code(&exception_name, exception_code.clone())?;
         self.insert_dispaly_text(exception_code.clone(), exception_display_text)?;
         self.add_file_change_log(path);
         Ok(())
     }
-    fn insert_error_code(&self,exception_name:&str,exception_code:String)->Result<(), CodeGeneratorError>{
+    fn insert_error_code(
+        &self,
+        exception_name: &str,
+        exception_code: String,
+    ) -> Result<(), CodeGeneratorError> {
         let error_code_file_path = find(&self.src_dir, "ErrorCodes.cs", true);
 
         let mapper_file_path = error_code_file_path.path().to_str().unwrap();
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(&mapper_file_path)
-            .expect("create failed");
+        let mut file = open_file(mapper_file_path)?;
         let mut code = String::new();
-
         file.read_to_string(&mut code)?;
-        let index = code.rfind(';').unwrap();
-        code.insert_str(
-            index + 1,
-            format!(
-                "\r\npublic const string {}{} = \"{}\";",
-                self.name,exception_name,exception_code
-            )
-            .as_str(),
+        let insert_code = format!(
+            "public const string {}{} = \"{}\";",
+            self.name, exception_name, exception_code
         );
+        if code.contains(&insert_code) {
+            return Ok(());
+        }
+        let index = code.rfind(';').unwrap();
+        code.insert_str(index + 1, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;
         self.add_file_change_log(mapper_file_path.to_owned());
-        Ok(())  
+        Ok(())
     }
-    fn insert_dispaly_text(&self,exception_code:String,exception_display_text:String)->Result<(), CodeGeneratorError>{
+    fn insert_dispaly_text(
+        &self,
+        exception_code: String,
+        exception_display_text: String,
+    ) -> Result<(), CodeGeneratorError> {
         let json_path = find(&self.src_dir, "zh-Hans.json", true);
 
-        let mapper_file_path = json_path.path().to_str().unwrap();
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(&mapper_file_path)
-            .expect("create failed");
+        let json_file = json_path.path().to_str().unwrap();
+
+        let mut file = open_file(json_file)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
@@ -217,13 +224,13 @@ let solution_dir = src_dir[..(src_index )].join("\\");
             index + 1,
             format!(
                 ",\r\n\"{}\": \"{}\"",
-                exception_code,exception_display_text
+                exception_code, exception_display_text
             )
             .as_str(),
         );
         file.seek_write(code.as_bytes(), 0)?;
-        self.add_file_change_log(mapper_file_path.to_owned());
-        Ok(())  
+        self.add_file_change_log(json_file.to_owned());
+        Ok(())
     }
     pub fn create_createorupdatedto(&self) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
@@ -275,7 +282,7 @@ let solution_dir = src_dir[..(src_index )].join("\\");
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("custom", Box::new(custom));
-        let application_contracts_dir =find(&self.src_dir, ".Application.Contracts", false)
+        let application_contracts_dir = find(&self.src_dir, ".Application.Contracts", false)
             .path()
             .display()
             .to_string();
@@ -320,24 +327,18 @@ let solution_dir = src_dir[..(src_index )].join("\\");
         let mapper_file_path = find(&self.src_dir, "ApplicationAutoMapperProfile.cs", true);
 
         let mapper_file_path = mapper_file_path.path().to_str().unwrap();
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(&mapper_file_path)
-            .expect("create failed");
+
+        let mut file = open_file(mapper_file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
+        let map_to_dto = format!("CreateMap<{0}, {0}Dto>();", self.name);
+        let map_to_entity = format!("CreateMap<CreateOrUpdate{0}Dto, {0}>();", self.name);
+        if code.contains(map_to_dto.as_str()) {
+            return Ok(());
+        }
         let index = code.rfind(';').unwrap();
-        code.insert_str(
-            index + 1,
-            format!(
-                "\r\n\t\tCreateMap<{0}, {0}Dto>();\r\n\t\tCreateMap<CreateOrUpdate{0}Dto, {0}>();",
-                self.name
-            )
-            .as_str(),
-        );
+        code.insert_str(index + 1, (map_to_dto + map_to_entity.as_str()).as_str());
         code.insert_str(
             0,
             format!("using {}.{};\r\n", &self.namespace, self.plural_name).as_str(),
@@ -346,12 +347,11 @@ let solution_dir = src_dir[..(src_index )].join("\\");
         self.add_file_change_log(mapper_file_path.to_owned());
         Ok(())
     }
-    
+
     fn add_file_change_log(&self, path: String) {
         let mut changs = self.changed_files.borrow_mut();
         changs.push(path);
     }
-
 }
 
 impl Entity {

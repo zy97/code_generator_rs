@@ -10,7 +10,7 @@ use inflector::Inflector;
 
 use regex::Regex;
 
-use crate::error::{CodeGeneratorError, RegexNoMatchError};
+use crate::{error::{CodeGeneratorError, RegexNoMatchError}, entities::open_file};
 
 use super::find;
 
@@ -115,12 +115,7 @@ impl Permission {
         let permission_file_path = find(&self.src_dir, "Permissions.cs", true);
 
         let permission_file_path = permission_file_path.path().to_str().unwrap();
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(&permission_file_path)
-            .expect("create failed");
+        let mut file =open_file(permission_file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
@@ -153,12 +148,7 @@ impl Permission {
         let permission_file_path = find(&self.src_dir, "Permissions.cs", true);
 
         let permission_file_path = permission_file_path.path().to_str().unwrap();
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(&permission_file_path)
-            .expect("create failed");
+        let mut file = open_file(permission_file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
@@ -204,12 +194,7 @@ impl Permission {
         let provider_file_path = find(&self.src_dir, "PermissionDefinitionProvider.cs", true);
 
         let provider_file_path = provider_file_path.path().to_str().unwrap();
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(&provider_file_path)
-            .expect("create failed");
+        let mut file = open_file(provider_file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
@@ -260,12 +245,7 @@ impl Permission {
         // let provider_file_path = find(&self.src_dir, "PermissionDefinitionProvider.cs", true);
         println!("{},{}",group, permission);
         // let provider_file_path = provider_file_path.path().to_str().unwrap();
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(service_file)
-            .expect("create failed");
+        let mut file = open_file(service_file)?;
         let mut code = String::new();
         file.read_to_string(&mut code)?;
         let re = Regex::new(

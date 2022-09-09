@@ -20,6 +20,8 @@ use crate::{
     TEMPLATES,
 };
 
+use super::open_file;
+
 #[derive(Debug)]
 pub struct WebEntity {
     entity_name: String,
@@ -102,12 +104,9 @@ impl WebEntity {
         self.export_api(&api_dir);
     }
     fn export_api(&self, api_dir: &str) {
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(api_dir.to_string() + "//index.ts")
-            .unwrap();
+        let file = api_dir.to_string() + "//index.ts";
+       
+        let mut file = open_file(&file).unwrap();
         let mut code = String::new();
         file.read_to_string(&mut code).unwrap();
         let insert_code = format!(
@@ -141,12 +140,9 @@ impl WebEntity {
         self.export_store(&stores_dir);
     }
     fn export_store(&self, api_dir: &str) {
-        let mut options = OpenOptions::new();
-        let mut file = options
-            .write(true)
-            .read(true)
-            .open(api_dir.to_string() + "//index.ts")
-            .unwrap();
+        let file = api_dir.to_string() + "//index.ts";
+        
+        let mut file = open_file(&file).unwrap();
         let mut code = String::new();
         file.read_to_string(&mut code).unwrap();
         let import_code = format!(
