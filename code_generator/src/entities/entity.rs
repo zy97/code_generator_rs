@@ -201,7 +201,7 @@ impl Entity {
             return Ok(());
         }
         let index = code.rfind(';').unwrap();
-        code.insert_str(index + 1, &insert_code);
+        code.insert_str(index + 1, format!("\r\n{}",insert_code).as_str());
         file.seek_write(code.as_bytes(), 0)?;
         self.add_file_change_log(mapper_file_path.to_owned());
         Ok(())
@@ -219,15 +219,12 @@ impl Entity {
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
+        let insert_code = format!("\"{}\": \"{}\"", exception_code, exception_display_text);
+        if code.contains(&insert_code){
+            return Ok(());
+        }
         let index = code.rfind('"').unwrap();
-        code.insert_str(
-            index + 1,
-            format!(
-                ",\r\n\"{}\": \"{}\"",
-                exception_code, exception_display_text
-            )
-            .as_str(),
-        );
+        code.insert_str(index + 1, format!(",{}",insert_code).as_str());
         file.seek_write(code.as_bytes(), 0)?;
         self.add_file_change_log(json_file.to_owned());
         Ok(())
@@ -338,7 +335,7 @@ impl Entity {
             return Ok(());
         }
         let index = code.rfind(';').unwrap();
-        code.insert_str(index + 1, (map_to_dto + map_to_entity.as_str()).as_str());
+        code.insert_str(index + 1, format!("\r\n{}\r\n{}",map_to_dto,map_to_entity).as_str());
         code.insert_str(
             0,
             format!("using {}.{};\r\n", &self.namespace, self.plural_name).as_str(),
