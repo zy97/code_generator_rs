@@ -459,7 +459,7 @@ impl Entity {
 
         let file = File::create(&file_path)?;
         match TEMPLATES.render_to(template_name, &context, file) {
-            Ok(()) => println!("{} 生成成功！", file_path),
+            Ok(()) => eprintln!("{} create successful!", file_path),
             Err(e) => {
                 println!("Error: {}", e);
                 let mut cause = e.source();

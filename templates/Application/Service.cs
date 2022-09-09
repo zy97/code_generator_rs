@@ -16,7 +16,7 @@ namespace {{namespace}}.{{folder}}
 {%- else %}
     public class {{entity}}Service : CrudAppService<{{entity}}, {{entity}}Dto, {{id}}, PagedAndSortedAndFilteredResultRequestDto, CreateOrUpdate{{entity}}Dto>, I{{entity}}Service
     {
-         public {{entity}}Service(IRepository<{{entity}}, {{id}}> repository) : base(repository)
+         public {{entity}}Service(I{{entity}}Repository repository, {{entity}}Manager {{entity|snake}}Manage) : base(repository)
          {
          }
          //如果不需要过滤删除这个重载，属性判断根据自己的情况酌情调整

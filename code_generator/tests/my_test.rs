@@ -17,19 +17,18 @@ mod tests {
     }
     #[test]
     fn read_permission_file() {
-        let permission = Permission::new(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Permissions\BlogPermissions.cs".to_owned());
+        let permission = Permission::new(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Permissions\BlogPermissions.cs".to_owned())?;
         println!("{:#?}", permission);
-        let permission = permission.unwrap();
         // permission.add_group("Hello");
         // permission.add_permission(format!("{}GroupName","Hello").as_str(), "TestPermission");
         // permission.add_permission_to_provider("GroupName", "Admin");
-        permission
-            .add_permission_to_service(
-                r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\Tags\TagService.cs",
-                "group",
-                "permission",
-            )
-            .unwrap();
+        // permission
+        //     .add_permission_to_service(
+        //         r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\Tags\TagService.cs",
+        //         "group",
+        //         "permission",
+        //     )
+        //     .unwrap();
     }
     #[test]
     fn cmd() {
@@ -48,7 +47,7 @@ mod tests {
         let entity_path = r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs".to_owned();
         let entity = Entity::new(entity_path).unwrap();
         println!("entity:{:#?}", entity);
-        let custom = false;
+        let custom = true;
         entity.create_dto().unwrap();
         entity.create_createorupdatedto().unwrap();
         entity.create_pagedandsortedandfilterresultdto().unwrap();
