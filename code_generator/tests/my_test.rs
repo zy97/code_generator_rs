@@ -17,10 +17,12 @@ mod tests {
     }
     #[test]
     fn read_permission_file() {
-        let permission = Permission::new(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Permissions\BlogPermissions.cs".to_owned())?;
+        let permission = Permission::new(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Permissions\BlogPermissions.cs".to_owned()).unwrap();
         println!("{:#?}", permission);
-        // permission.add_group("Hello");
-        // permission.add_permission(format!("{}GroupName","Hello").as_str(), "TestPermission");
+        permission.add_group("Hello").unwrap();
+        permission.add_permission(format!("{}GroupName","Hello").as_str(), "TestPermission").unwrap();
+        permission.format_all();
+      
         // permission.add_permission_to_provider("GroupName", "Admin");
         // permission
         //     .add_permission_to_service(

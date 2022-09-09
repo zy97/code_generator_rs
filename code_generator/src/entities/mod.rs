@@ -95,6 +95,9 @@ fn get_properties(content: &str) -> Result<HashMap<String, String>, CodeGenerato
     Ok(kv)
 }
 fn format_code(work_dir: String, files: Vec<String>) {
+    if files.len() == 0{
+        return;
+    }
     let output = Command::new("cmd")
         .arg("/c")
         .current_dir(work_dir)

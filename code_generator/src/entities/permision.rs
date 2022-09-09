@@ -1,18 +1,11 @@
-use std::{
-    fs::{File},
-    io::Read,
-    os::windows::{prelude::FileExt},
-    vec,
+use super::{find, get_class_name, read_file, format_code};
+use crate::{
+    entities::open_file,
+    error::{CodeGeneratorError, RegexNoMatchError},
 };
-
-use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
-
 use regex::Regex;
-
-use crate::{error::{CodeGeneratorError, RegexNoMatchError}, entities::open_file};
-
-use super::find;
+use std::{cell::RefCell, io::Read, os::windows::prelude::FileExt, vec};
 
 #[derive(Debug)]
 pub struct Permission {
@@ -20,33 +13,25 @@ pub struct Permission {
     // id_type: String,
     // name: String,
     src_dir: String,
+    solution_dir: String,
     // //复数名字
     // plural_name: String,
     // properties: String,
     groups: Vec<PermissionGroup>,
     permissions_class_name: String,
+    changed_files: RefCell<Vec<String>>,
 }
 
 impl Permission {
     pub fn new(path: String) -> Result<Self, CodeGeneratorError> {
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().rposition(|&i| i.contains("src")).unwrap();
+        let solution_dir = src_dir[..(src_index)].join("\\");
         let src_dir = src_dir[..(src_index + 1)].join("\\");
 
-        let mut file = File::open(&path)?;
-        let mut code = vec![];
-        file.read_to_end(&mut code)?;
-        let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
-        let re = Regex::new(r"public static class ([a-zA-Z]+)")?;
+        let code = read_file(&path)?;
 
-        let class_name = re
-            .captures(&code)
-            .ok_or(RegexNoMatchError)?
-            .get(1)
-            .ok_or(RegexNoMatchError)?
-            .as_str()
-            .to_string();
-
+        let class_name = get_class_name(&code)?;
         let permissions_class_name = class_name;
 
         let re = Regex::new(r"\{([\s\S]+)}([\s]*)}").unwrap();
@@ -106,28 +91,23 @@ impl Permission {
         }
 
         Ok(Permission {
+            changed_files: RefCell::new(vec![]),
             groups,
             src_dir,
+            solution_dir,
             permissions_class_name,
         })
     }
+
     pub fn add_group(&self, group: &str) -> Result<(), CodeGeneratorError> {
         let permission_file_path = find(&self.src_dir, "Permissions.cs", true);
 
-        let permission_file_path = permission_file_path.path().to_str().unwrap();
-        let mut file =open_file(permission_file_path)?;
+        let permission_file_path = permission_file_path.path().display().to_string();
+        let mut file = open_file(&permission_file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
         let re = Regex::new(r#"public const string ([A-Za-z=\\ "]+);"#).unwrap();
-        let sdf = re
-            .captures_iter(&code)
-            .last()
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .as_str();
-        eprintln!("#################{}", sdf);
         let range = re
             .captures_iter(&code)
             .last()
@@ -135,31 +115,24 @@ impl Permission {
             .get(0)
             .unwrap()
             .range();
-        eprintln!("#################{:?}", range);
-        let mut insert_code = format!(r#"public const string {0}GroupName = "{0}";"#, group);
-        insert_code.insert(0, '\t');
-        insert_code.push('\r');
-        insert_code.push('\n');
+        let insert_code = format!(r#"public const string {0}GroupName = "{0}";"#, group);
+        if code.contains(&insert_code){
+            return Ok(());
+        }
         code.insert_str(range.end + 2, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;
+        self.add_file_change_log(permission_file_path);
         Ok(())
     }
+    
     pub fn add_permission(&self, group: &str, permission: &str) -> Result<(), CodeGeneratorError> {
-        let permission_file_path = find(&self.src_dir, "Permissions.cs", true);
+        let permission_file_path = find(&self.src_dir, "Permissions.cs", true).path().display().to_string();
 
-        let permission_file_path = permission_file_path.path().to_str().unwrap();
-        let mut file = open_file(permission_file_path)?;
+        let mut file = open_file(&permission_file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
         let re = Regex::new(r#"public const string ([A-Za-z=\\ "]+);"#).unwrap();
-        // let sdf = re
-        //     .captures_iter(&code)
-        //     .last()
-        //     .unwrap()
-        //     .get(0)
-        //     .unwrap()
-        //     .as_str();
         let range = re
             .captures_iter(&code)
             .last()
@@ -167,7 +140,7 @@ impl Permission {
             .get(0)
             .unwrap()
             .range();
-        let  insert_code = format!(
+        let insert_code = format!(
             r#"
         public static class {0}
         {{
@@ -179,13 +152,18 @@ impl Permission {
         "#,
             permission, group
         );
-        // insert_code.insert(0, '\t');
-        // insert_code.push('\r');
-        // insert_code.push('\n');
+        let mut lines =insert_code.lines();
+        lines.next();
+        
+      if code.contains(lines.next().unwrap().trim()){
+        return  Ok(());
+      }
         code.insert_str(range.end + 2, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;
+        self.add_file_change_log(permission_file_path);
         Ok(())
     }
+    
     pub fn add_permission_to_provider(
         &self,
         group: &str,
@@ -236,23 +214,21 @@ impl Permission {
         file.seek_write(code.as_bytes(), 0)?;
         Ok(())
     }
+    
     pub fn add_permission_to_service(
         &self,
-        service_file:&str,
+        service_file: &str,
         group: &str,
         permission: &str,
     ) -> Result<(), CodeGeneratorError> {
         // let provider_file_path = find(&self.src_dir, "PermissionDefinitionProvider.cs", true);
-        println!("{},{}",group, permission);
+        println!("{},{}", group, permission);
         // let provider_file_path = provider_file_path.path().to_str().unwrap();
         let mut file = open_file(service_file)?;
         let mut code = String::new();
         file.read_to_string(&mut code)?;
-        let re = Regex::new(
-            r#"public ([a-zA-Z])([\s\S]+?)}"#,
-        )
-        .unwrap();
-        let insert_index = re.captures(&code).unwrap().get(0).unwrap().range().end -2;
+        let re = Regex::new(r#"public ([a-zA-Z])([\s\S]+?)}"#).unwrap();
+        let insert_index = re.captures(&code).unwrap().get(0).unwrap().range().end - 2;
 
         let insert_code = format!(
             r###"
@@ -267,6 +243,12 @@ impl Permission {
         file.seek_write(code.as_bytes(), 0)?;
         Ok(())
     }
+    
+    fn add_file_change_log(&self, path: String) {
+        let mut changs = self.changed_files.borrow_mut();
+        changs.push(path);
+    }
+
 }
 #[derive(Debug)]
 struct PermissionGroup {
@@ -278,4 +260,10 @@ struct PermissionGroup {
 struct PermissionDetail {
     class_name: String,
     permission_name: Vec<String>,
+}
+impl  Permission {
+    pub fn format_all(&self) {
+        let files = self.changed_files.borrow().to_vec();
+        format_code(self.solution_dir.clone(), files)
+    }
 }
