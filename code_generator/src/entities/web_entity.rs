@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     error::Error,
-    fs::{create_dir, File, OpenOptions},
+    fs::{create_dir, File},
     io::{self, ErrorKind, Read, Write},
     os::windows::prelude::FileExt,
     path::Path,

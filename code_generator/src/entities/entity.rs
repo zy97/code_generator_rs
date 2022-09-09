@@ -2,7 +2,7 @@ use std::{
     cell::RefCell,
     collections::HashMap,
     error::Error,
-    fs::{create_dir, File, OpenOptions},
+    fs::{create_dir, File},
     io::{ErrorKind, Read},
     os::windows::prelude::FileExt,
 };
@@ -28,7 +28,6 @@ pub struct Entity {
     name: String,
     src_dir: String,
     solution_dir: String,
-    entity_dir: String,
     plural_name: String, //复数名字
     properties: HashMap<String, String>,
     changed_files: RefCell<Vec<String>>,
@@ -50,7 +49,7 @@ impl Entity {
 
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().position(|&i| i.contains("src")).unwrap();
-        let entity_dir = src_dir[..(src_dir.len() - 1)].join("\\");
+        // let entity_dir = src_dir[..(src_dir.len() - 1)].join("\\");
         let solution_dir = src_dir[..(src_index)].join("\\");
         let src_dir = src_dir[..(src_index + 1)].join("\\");
         info!("初始化完成");
@@ -61,11 +60,11 @@ impl Entity {
             namespace,
             plural_name: entity_names,
             src_dir,
-            entity_dir,
             properties,
             changed_files: RefCell::new(vec![]),
         })
     }
+    
     fn create_dir(&self, dir: &str) -> Result<(), CodeGeneratorError> {
         let dir = format!("{}\\{}", dir, &self.plural_name);
         match create_dir(dir) {
@@ -120,6 +119,7 @@ impl Entity {
         self.add_file_change_log(path);
         Ok(())
     }
+    
     pub fn create_manager(&self) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
@@ -315,6 +315,32 @@ impl Entity {
             "Application/Service.cs",
             &application_dir,
             format!("{}Service.cs", &self.name),
+        )?;
+        self.add_file_change_log(path);
+        Ok(())
+    }
+
+    pub fn create_ef_repository(&self) -> Result<(), CodeGeneratorError> {
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv.insert("namespace", Box::new(&self.namespace));
+        kv.insert("entity", Box::new(&self.name));
+        kv.insert("entities", Box::new(&self.plural_name));
+        kv.insert("generic_type", Box::new(&self.id_type));
+        let dbcontext_path = find(&self.src_dir, "DbContext.cs",true).path().display().to_string();
+        let dbcontext_code = read_file(&dbcontext_path)?;
+        let dbconetxt_class_name = get_class_name(&dbcontext_code)?;
+        kv.insert("dbcontext", Box::new(dbconetxt_class_name));
+        let ef_core_dir = find(&self.src_dir, ".EntityFrameworkCore", false)
+            .path()
+            .display()
+            .to_string();
+
+        self.create_dir(&ef_core_dir)?;
+        let path = self.generate_template(
+            kv,
+            "EfCore/EfCoreRepository.cs",
+            &ef_core_dir,
+            format!("EfCore{}Repository.cs", &self.name),
         )?;
         self.add_file_change_log(path);
         Ok(())

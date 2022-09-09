@@ -58,6 +58,7 @@ mod tests {
         entity.create_repository_interface().unwrap();
         entity.create_manager().unwrap();
         entity.create_exception(Some("AlreadyExist".to_owned()),Some("xxxxxx".to_owned()),Some("tttttttttt".to_owned())).unwrap();
+        entity.create_ef_repository().unwrap();
         entity.format_all();
     }
 }
