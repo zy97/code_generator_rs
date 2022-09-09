@@ -49,12 +49,12 @@ mod tests {
         let entity = Entity::new(entity_path).unwrap();
         println!("entity:{:#?}", entity);
         let custom = false;
-        // entity.create_dto().unwrap();
-        // entity.create_createorupdatedto().unwrap();
-        // entity.create_pagedandsortedandfilterresultdto().unwrap();
-        // entity.create_iservice(custom).unwrap();
-        // entity.create_service(custom).unwrap();
-        // entity.insert_mapper().unwrap();
+        entity.create_dto().unwrap();
+        entity.create_createorupdatedto().unwrap();
+        entity.create_pagedandsortedandfilterresultdto().unwrap();
+        entity.create_iservice(custom).unwrap();
+        entity.create_service(custom).unwrap();
+        entity.insert_mapper().unwrap();
         entity.create_repository_interface().unwrap();
         entity.create_manager().unwrap();
         entity.create_exception(Some("AlreadyExist".to_owned()),Some("xxxxxx".to_owned()),Some("tttttttttt".to_owned())).unwrap();

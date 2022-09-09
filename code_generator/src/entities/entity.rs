@@ -20,7 +20,7 @@ use crate::{
     TEMPLATES,
 };
 
-use super::{find, format_csharp_code};
+use super::{find, format_code};
 
 #[derive(Debug)]
 pub struct Entity {
@@ -28,6 +28,7 @@ pub struct Entity {
     id_type: String,
     name: String,
     src_dir: String,
+    solution_dir:String,
     entity_dir: String,
     plural_name: String, //复数名字
     properties: HashMap<String, String>,
@@ -54,10 +55,11 @@ impl Entity {
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().position(|&i| i.contains("src")).unwrap();
         let entity_dir = src_dir[..(src_dir.len() - 1)].join("\\");
+let solution_dir = src_dir[..(src_index )].join("\\");
         let src_dir = src_dir[..(src_index + 1)].join("\\");
-
         info!("初始化完成");
         Ok(Entity {
+            solution_dir,
             id_type,
             name: entity_name,
             namespace,
@@ -298,7 +300,7 @@ impl Entity {
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("properties", Box::new(&self.properties));
         kv.insert("custom", Box::new(custom));
-        let application_dir = find(&self.src_dir, ".Application.Contracts", false)
+        let application_dir = find(&self.src_dir, ".Application", false)
             .path()
             .display()
             .to_string();
@@ -314,30 +316,8 @@ impl Entity {
         Ok(())
     }
 
-    // pub fn create_exception(&self,exception_name:&str) -> Result<(), CodeGeneratorError> {
-    //     let exception_name = exception_name.trim_end_matches("Exception");
-    //     let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-    //     kv.insert("namespace", Box::new(&self.namespace));
-    //     kv.insert("entities", Box::new(&self.plural_name));
-    //     kv.insert("exception_name", Box::new(exception_name));
-    //     kv.insert("error_codes", Box::new(&self.id_type));
-    //     let error_codes = self
-    //         .find("ErrorCodes.cs", true)
-    //         .path()
-    //         .to_str()
-    //         .unwrap()
-    //         .to_string();
-
-    //     self.generate_template(
-    //         kv,
-    //         "Domain/Exception.cs",
-    //         &self.,
-    //         format!("{}Service.cs", &self.name),
-    //     )
-    // }
-
     pub fn insert_mapper(&self) -> Result<(), CodeGeneratorError> {
-        let mapper_file_path = find(&self.src_dir, ".Application.Contracts", false);
+        let mapper_file_path = find(&self.src_dir, "ApplicationAutoMapperProfile.cs", true);
 
         let mapper_file_path = mapper_file_path.path().to_str().unwrap();
         let mut options = OpenOptions::new();
@@ -409,53 +389,7 @@ impl Entity {
 }
 impl Entity {
     pub fn format_all(&self) {
-        self.format_application_project();
-        self.format_application_contracts_project();
-        self.format_domain_project();
-        self.format_domain_share_project();
-    }
-    pub fn format_application_project(&self) {
-        let project_dir = find(&self.src_dir, ".Application", false);
-        let work_dir = project_dir.path().display().to_string();
         let files = self.changed_files.borrow().to_vec();
-        let files = files
-            .into_iter()
-            .filter(|f| f.starts_with(work_dir.as_str()))
-            .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned())
-            .collect::<Vec<_>>();
-        format_csharp_code(work_dir, files)
-    }
-    pub fn format_application_contracts_project(&self) {
-        let project_dir = find(&self.src_dir, "Application.Contracts", false);
-        let work_dir = project_dir.path().display().to_string();
-        let files = self.changed_files.borrow().to_vec();
-        let files = files
-            .into_iter()
-            .filter(|f| f.starts_with(work_dir.as_str()))
-            .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned())
-            .collect::<Vec<_>>();
-        format_csharp_code(work_dir, files)
-    }
-    pub fn format_domain_project(&self) {
-        let domain_dir = find(&self.src_dir, ".Domain", false);
-        let work_dir = domain_dir.path().display().to_string();
-        let files = self.changed_files.borrow().to_vec();
-        let files = files
-            .into_iter()
-            .filter(|f| f.starts_with(work_dir.as_str()))
-            .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned())
-            .collect::<Vec<_>>();
-        format_csharp_code(work_dir, files)
-    }
-    pub fn format_domain_share_project(&self) {
-        let project_dir = find(&self.src_dir, "Domain.Shared", false);
-        let work_dir = project_dir.path().display().to_string();
-        let files = self.changed_files.borrow().to_vec();
-        let files = files
-            .into_iter()
-            .filter(|f| f.starts_with(work_dir.as_str()))
-            .map(|f| f.trim_start_matches(work_dir.as_str()).to_owned())
-            .collect::<Vec<_>>();
-        format_csharp_code(work_dir, files)
+        format_code(self.solution_dir.clone(), files)
     }
 }

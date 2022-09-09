@@ -78,15 +78,11 @@ fn get_properties(content: &str) -> Result<HashMap<String, String>, CodeGenerato
     }
     Ok(kv)
 }
-fn format_csharp_code(work_dir: String, relative_file_or_dir: Vec<String>) {
+fn format_code(work_dir: String, files: Vec<String>) {
     let output = Command::new("cmd")
-        // .creation_flags(0x08000000)
         .arg("/c")
         .current_dir(work_dir)
-        .arg(format!(
-            r"dotnet format --include {}",
-            relative_file_or_dir.join(" ")
-        ))
+        .arg(format!(r"dprint fmt {}", files.join(" ")))
         .stdout(Stdio::piped())
         .output()
         .expect("cmd exec error!");
