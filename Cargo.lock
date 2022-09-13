@@ -619,6 +619,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "csharp_binding"
+version = "0.1.0"
+dependencies = [
+ "interoptopus",
+ "interoptopus_backend_csharp",
+]
+
+[[package]]
 name = "csv"
 version = "1.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1337,6 +1345,37 @@ dependencies = [
  "js-sys",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "interoptopus"
+version = "0.14.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b04aeb61beece992734581fb489c1f3f7eb63fe24cc6088369b4b9e60e6c67f9"
+dependencies = [
+ "interoptopus_proc",
+]
+
+[[package]]
+name = "interoptopus_backend_csharp"
+version = "0.14.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb9e5007abeaf135339a75b66b3cc7a56d41e6facdeb66fe247783e578190d5c"
+dependencies = [
+ "heck",
+ "interoptopus",
+]
+
+[[package]]
+name = "interoptopus_proc"
+version = "0.14.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2b2ad0cd688b1e0e1830cef008fd1d67e528903f449d472a0a52ea94d28fa06"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

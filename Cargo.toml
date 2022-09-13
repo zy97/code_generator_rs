@@ -1,6 +1,6 @@
 [workspace]
-members = ["app", "code_generator", "code_generator_cli"]
-default-members = ["app"]
+members = ["app", "code_generator", "code_generator_cli","csharp_binding"]
+default-members = ["csharp_binding"]
 
 [profile.release]
 strip = true
