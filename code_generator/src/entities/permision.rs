@@ -1,4 +1,4 @@
-use super::{find, get_class_name, read_file, format_code};
+use super::{find, format_code, get_class_name, read_file};
 use crate::{
     entities::open_file,
     error::{CodeGeneratorError, RegexNoMatchError},
@@ -116,7 +116,7 @@ impl Permission {
             .unwrap()
             .range();
         let insert_code = format!(r#"public const string {0}GroupName = "{0}";"#, group);
-        if code.contains(&insert_code){
+        if code.contains(&insert_code) {
             return Ok(());
         }
         code.insert_str(range.end + 2, &insert_code);
@@ -124,9 +124,12 @@ impl Permission {
         self.add_file_change_log(permission_file_path);
         Ok(())
     }
-    
+
     pub fn add_permission(&self, group: &str, permission: &str) -> Result<(), CodeGeneratorError> {
-        let permission_file_path = find(&self.src_dir, "Permissions.cs", true).path().display().to_string();
+        let permission_file_path = find(&self.src_dir, "Permissions.cs", true)
+            .path()
+            .display()
+            .to_string();
 
         let mut file = open_file(&permission_file_path)?;
         let mut code = String::new();
@@ -152,18 +155,18 @@ impl Permission {
         "#,
             permission, group
         );
-        let mut lines =insert_code.lines();
+        let mut lines = insert_code.lines();
         lines.next();
-        
-      if code.contains(lines.next().unwrap().trim()){
-        return  Ok(());
-      }
+
+        if code.contains(lines.next().unwrap().trim()) {
+            return Ok(());
+        }
         code.insert_str(range.end + 2, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;
         self.add_file_change_log(permission_file_path);
         Ok(())
     }
-    
+
     pub fn add_permission_to_provider(
         &self,
         group: &str,
@@ -180,7 +183,45 @@ impl Permission {
             r#"public override void Define([\s\S]+?)}([\s]+)private static LocalizableString L"#,
         )
         .unwrap();
-        let insert_index = re.captures(&code).unwrap().get(1).unwrap().range().end;
+        let insert_range = re.captures(&code).unwrap().get(1).unwrap().range();
+
+        let insert_index = insert_range.end;
+
+        let group = format!(
+            "var {2} = context.GetGroupOrNull({0}.{1});",
+            self.permissions_class_name,
+            group,
+            self.groups
+                .iter()
+                .find(|e| e.group_property_name == group)
+                .unwrap()
+                .group_property_value
+                .clone()
+                .to_camel_case()
+                + "Group"
+        );
+        match code.find(&group) {
+            Some(group_index) => {
+                let default_permission = format!(
+                    "var {4} = {2}.GetPermissionOrNull({0}.{3}.Default);",
+                    self.permissions_class_name,
+                    group,
+                    self.groups
+                        .iter()
+                        .find(|e| e.group_property_name == group)
+                        .unwrap()
+                        .group_property_value
+                        .clone()
+                        .to_camel_case()
+                        + "Group",
+                    permission,
+                    permission.to_camel_case() + "DefaultPermission"
+                );
+            }
+            None => {
+                code.insert_str(insert_index, &group);
+            }
+        };
 
         let insert_code = format!(
             r###"
@@ -214,7 +255,7 @@ impl Permission {
         file.seek_write(code.as_bytes(), 0)?;
         Ok(())
     }
-    
+
     pub fn add_permission_to_service(
         &self,
         service_file: &str,
@@ -243,12 +284,11 @@ impl Permission {
         file.seek_write(code.as_bytes(), 0)?;
         Ok(())
     }
-    
+
     fn add_file_change_log(&self, path: String) {
         let mut changs = self.changed_files.borrow_mut();
         changs.push(path);
     }
-
 }
 #[derive(Debug)]
 struct PermissionGroup {
@@ -261,7 +301,7 @@ struct PermissionDetail {
     class_name: String,
     permission_name: Vec<String>,
 }
-impl  Permission {
+impl Permission {
     pub fn format_all(&self) {
         let files = self.changed_files.borrow().to_vec();
         format_code(self.solution_dir.clone(), files)

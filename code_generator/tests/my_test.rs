@@ -21,9 +21,9 @@ mod tests {
         println!("{:#?}", permission);
         permission.add_group("Hello").unwrap();
         permission.add_permission(format!("{}GroupName","Hello").as_str(), "TestPermission").unwrap();
+        permission.add_permission_to_provider("GroupName", "Admin").unwrap();
         permission.format_all();
       
-        // permission.add_permission_to_provider("GroupName", "Admin");
         // permission
         //     .add_permission_to_service(
         //         r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\Tags\TagService.cs",
