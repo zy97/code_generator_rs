@@ -622,6 +622,7 @@ dependencies = [
 name = "csharp_binding"
 version = "0.1.0"
 dependencies = [
+ "code_generator",
  "interoptopus",
  "interoptopus_backend_csharp",
 ]

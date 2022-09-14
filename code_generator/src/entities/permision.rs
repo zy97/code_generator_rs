@@ -203,9 +203,8 @@ impl Permission {
         match code.find(&group) {
             Some(group_index) => {
                 let default_permission = format!(
-                    "var {4} = {2}.GetPermissionOrNull({0}.{3}.Default);",
+                    "var {3} = {1}.GetPermissionOrNull({0}.{2}.Default);",
                     self.permissions_class_name,
-                    group,
                     self.groups
                         .iter()
                         .find(|e| e.group_property_name == group)

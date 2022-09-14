@@ -8,5 +8,6 @@ edition = "2021"
 crate-type = ["cdylib","rlib"]
 
 [dependencies]
+code_generator = { path = "../code_generator" }
 interoptopus = "0.14.14"
 interoptopus_backend_csharp = "0.14.14"
