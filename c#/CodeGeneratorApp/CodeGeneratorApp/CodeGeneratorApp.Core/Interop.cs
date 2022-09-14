@@ -22,6 +22,36 @@ namespace My.Company
         [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_dto")]
         public static extern FFIError create_dto(IntPtr context_ptr);
 
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_createorupdatedto")]
+        public static extern FFIError create_createorupdatedto(IntPtr context_ptr);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_ef_repository")]
+        public static extern FFIError create_ef_repository(IntPtr context_ptr);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_exception")]
+        public static extern FFIError create_exception(IntPtr context_ptr, ExceptionInfo exception);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_iservice")]
+        public static extern FFIError create_iservice(IntPtr context_ptr, ref bool custom);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_manager")]
+        public static extern FFIError create_manager(IntPtr context_ptr);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_mancreate_pagedandsortedandfilterresultdtoager")]
+        public static extern FFIError create_mancreate_pagedandsortedandfilterresultdtoager(IntPtr context_ptr);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_repository_interface")]
+        public static extern FFIError create_repository_interface(IntPtr context_ptr);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_service")]
+        public static extern FFIError create_service(IntPtr context_ptr, ref bool custom);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "insert_mapper")]
+        public static extern FFIError insert_mapper(IntPtr context_ptr);
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "format_all")]
+        public static extern FFIError format_all(IntPtr context_ptr);
+
         [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "dispose")]
         public static extern FFIError dispose(ref IntPtr context_ptr);
 
@@ -31,6 +61,15 @@ namespace My.Company
     {
         Ok = 0,
         NullPointerPassed = 10,
+    }
+
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    public partial struct ExceptionInfo
+    {
+        public IntPtr excetpion_name;
+        public IntPtr excetpion_code;
+        public IntPtr excetpion_displayname;
     }
 
 

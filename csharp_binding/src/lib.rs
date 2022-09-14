@@ -1,13 +1,23 @@
 mod ffi;
 
-use interoptopus::{Inventory, InventoryBuilder, function, ffi_function, ffi_type, ffi_service, ffi_service_ctor, ffi_service_method, patterns::result::FFIError};
+use interoptopus::{Inventory, InventoryBuilder, function};
 
-use crate::ffi::{ dispose, create, create_dto};
+use crate::ffi::{*};
 
 pub fn my_inventory () -> Inventory{
  InventoryBuilder::new()
     .register(function!(create))
     .register(function!(create_dto))
+    .register(function!(create_createorupdatedto))
+    .register(function!(create_ef_repository))
+    .register(function!(create_exception))
+    .register(function!(create_iservice))
+    .register(function!(create_manager))
+    .register(function!(create_mancreate_pagedandsortedandfilterresultdtoager))
+    .register(function!(create_repository_interface))
+    .register(function!(create_service))
+    .register(function!(insert_mapper))
+    .register(function!(format_all))
     .register(function!(dispose))
     .inventory()
 }
