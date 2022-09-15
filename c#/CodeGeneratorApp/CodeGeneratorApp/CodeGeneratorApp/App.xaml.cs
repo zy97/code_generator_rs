@@ -2,7 +2,6 @@
 using CodeGeneratorApp.Services;
 using CodeGeneratorApp.Services.Interfaces;
 using CodeGeneratorApp.Views;
-using My.Company;
 using Prism.Ioc;
 using Prism.Modularity;
 using System.Windows;
@@ -26,21 +25,21 @@ namespace CodeGeneratorApp
                 //    excetpion_displayname = Marshal.StringToCoTaskMemAnsi("tttttttttt")
                 //};
                 //IntPtr context_ptr = IntPtr.Zero;
-                using (var entityGenerator = EntityGenerator.New("C:\\repo\\Abp.Bom.Blog\\src\\Bom.Blog.Domain\\Tests\\Test.cs"))
-                {
-                    entityGenerator.CreateDto();
-                    entityGenerator.CreateCreateorupdatedto();
-                    entityGenerator.CreateEfRepository();
-                    entityGenerator.CreateException("AlreadyExist", "xxxxxx", "tttttttttt");
-                    entityGenerator.CreateIservice(custom);
-                    entityGenerator.CreateManager();
-                    entityGenerator.CreatePagedandsortedandfilterresultdto();
-                    entityGenerator.CreateService(custom);
-                    entityGenerator.InsertMapper();
-                    entityGenerator.CreateRepositoryInterface();
-                    entityGenerator.InsertEfcoreEntityConfig();
-                    entityGenerator.FormatAll();
-                }
+                //using (var entityGenerator = EntityGenerator.New("C:\\repo\\Abp.Bom.Blog\\src\\Bom.Blog.Domain\\Tests\\Test.cs"))
+                //{
+                //    entityGenerator.CreateDto();
+                //    entityGenerator.CreateCreateorupdatedto();
+                //    entityGenerator.CreateEfRepository();
+                //    entityGenerator.CreateException("AlreadyExist", "xxxxxx", "tttttttttt");
+                //    entityGenerator.CreateIservice(custom);
+                //    entityGenerator.CreateManager();
+                //    entityGenerator.CreatePagedandsortedandfilterresultdto();
+                //    entityGenerator.CreateService(custom);
+                //    entityGenerator.InsertMapper();
+                //    entityGenerator.CreateRepositoryInterface();
+                //    entityGenerator.InsertEfcoreEntityConfig();
+                //    entityGenerator.FormatAll();
+                //}
                 return Container.Resolve<MainWindow>();
             }
             catch (System.Exception ex)
@@ -53,6 +52,7 @@ namespace CodeGeneratorApp
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterSingleton<IMessageService, MessageService>();
+            containerRegistry.RegisterSingleton<IEntityGenerateService, EntityGenerateService>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
