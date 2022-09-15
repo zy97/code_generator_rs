@@ -5,8 +5,6 @@ using CodeGeneratorApp.Views;
 using My.Company;
 using Prism.Ioc;
 using Prism.Modularity;
-using System;
-using System.Runtime.InteropServices;
 using System.Windows;
 
 namespace CodeGeneratorApp
@@ -20,35 +18,32 @@ namespace CodeGeneratorApp
         {
             try
             {
-                //var custom = new CustomService { is_custom = Optionbool.FromNullable(false) };
-                var custom = true;
-                var exception = new ExceptionInfo
+                var custom = false;
+                //var exception = new ExceptionInfo
+                //{
+                //    excetpion_name = Marshal.StringToCoTaskMemAnsi("AlreadyExist"),
+                //    excetpion_code = Marshal.StringToCoTaskMemAnsi("xxxxxx"),
+                //    excetpion_displayname = Marshal.StringToCoTaskMemAnsi("tttttttttt")
+                //};
+                //IntPtr context_ptr = IntPtr.Zero;
+                using (var entityGenerator = EntityGenerator.New("C:\\repo\\Abp.Bom.Blog\\src\\Bom.Blog.Domain\\Tests\\Test.cs"))
                 {
-                    excetpion_name = Marshal.StringToCoTaskMemAnsi("AlreadyExist"),
-                    excetpion_code = Marshal.StringToCoTaskMemAnsi("xxxxxx"),
-                    excetpion_displayname = Marshal.StringToCoTaskMemAnsi("tttttttttt")
-                };
-                IntPtr context_ptr = IntPtr.Zero;
-                Interop.create(ref context_ptr, "C:\\repo\\Abp.Bom.Blog\\src\\Bom.Blog.Domain\\Tests\\Test.cs");
-                Interop.create_dto(context_ptr);
-                Interop.create_createorupdatedto(context_ptr);
-                Interop.create_ef_repository(context_ptr);
-                Interop.create_exception(context_ptr, exception);
-                Interop.create_iservice(context_ptr, ref custom);
-                Interop.create_manager(context_ptr);
-                Interop.create_mancreate_pagedandsortedandfilterresultdtoager(context_ptr);
-                Interop.create_service(context_ptr, ref custom);
-                Interop.insert_mapper(context_ptr);
-                Interop.create_repository_interface(context_ptr);
-                Interop.format_all(context_ptr);
-                Interop.dispose(ref context_ptr);
-                Marshal.FreeCoTaskMem(exception.excetpion_name);
-                Marshal.FreeCoTaskMem(exception.excetpion_code);
-                Marshal.FreeCoTaskMem(exception.excetpion_displayname);
-                //var sdf = Marshal.PtrToStringAnsi(sf.path);
+                    entityGenerator.CreateDto();
+                    entityGenerator.CreateCreateorupdatedto();
+                    entityGenerator.CreateEfRepository();
+                    entityGenerator.CreateException("AlreadyExist", "xxxxxx", "tttttttttt");
+                    entityGenerator.CreateIservice(custom);
+                    entityGenerator.CreateManager();
+                    entityGenerator.CreatePagedandsortedandfilterresultdto();
+                    entityGenerator.CreateService(custom);
+                    entityGenerator.InsertMapper();
+                    entityGenerator.CreateRepositoryInterface();
+                    entityGenerator.InsertEfcoreEntityConfig();
+                    entityGenerator.FormatAll();
+                }
                 return Container.Resolve<MainWindow>();
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
 
                 throw;

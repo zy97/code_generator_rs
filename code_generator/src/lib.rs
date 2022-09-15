@@ -8,6 +8,7 @@ mod error;
 pub use entities::Entity;
 pub use entities::Permission;
 pub use entities::WebEntity;
+pub use error::CodeGeneratorError;
 #[macro_use]
 extern crate lazy_static;
 lazy_static! {

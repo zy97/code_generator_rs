@@ -1,24 +1,27 @@
 mod ffi;
+mod ffi_service;
 
-use interoptopus::{Inventory, InventoryBuilder, function};
+use ffi_service::EntityGenerator;
+use interoptopus::{Inventory, InventoryBuilder, function, pattern,};
 
 use crate::ffi::{*};
 
 pub fn my_inventory () -> Inventory{
  InventoryBuilder::new()
-    .register(function!(create))
-    .register(function!(create_dto))
-    .register(function!(create_createorupdatedto))
-    .register(function!(create_ef_repository))
-    .register(function!(create_exception))
-    .register(function!(create_iservice))
-    .register(function!(create_manager))
-    .register(function!(create_mancreate_pagedandsortedandfilterresultdtoager))
-    .register(function!(create_repository_interface))
-    .register(function!(create_service))
-    .register(function!(insert_mapper))
-    .register(function!(format_all))
-    .register(function!(dispose))
+    // .register(function!(create))
+    // .register(function!(create_dto))
+    // .register(function!(create_createorupdatedto))
+    // .register(function!(create_ef_repository))
+    // .register(function!(create_exception))
+    // .register(function!(create_iservice))
+    // .register(function!(create_manager))
+    // .register(function!(create_mancreate_pagedandsortedandfilterresultdtoager))
+    // .register(function!(create_repository_interface))
+    // .register(function!(create_service))
+    // .register(function!(insert_mapper))
+    // .register(function!(format_all))
+    // .register(function!(dispose))
+    .register(pattern!(EntityGenerator))
     .inventory()
 }
 

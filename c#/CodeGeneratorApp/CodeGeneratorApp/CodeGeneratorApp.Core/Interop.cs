@@ -16,60 +16,319 @@ namespace My.Company
         }
 
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create")]
-        public static extern FFIError create(ref IntPtr context_ptr, string path);
+        /// Destroys the given instance.
+        ///
+        /// # Safety
+        ///
+        /// The passed parameter MUST have been created with the corresponding init function;
+        /// passing any other value results in undefined behavior.
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_destroy")]
+        public static extern AppFFIError entity_service_destroy(ref IntPtr context);
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_dto")]
-        public static extern FFIError create_dto(IntPtr context_ptr);
+        /// Destroys the given instance.
+        ///
+        /// # Safety
+        ///
+        /// The passed parameter MUST have been created with the corresponding init function;
+        /// passing any other value results in undefined behavior.
+        public static void entity_service_destroy_checked(ref IntPtr context)
+        {
+            var rval = entity_service_destroy(ref context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_createorupdatedto")]
-        public static extern FFIError create_createorupdatedto(IntPtr context_ptr);
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_new")]
+        public static extern AppFFIError entity_service_new(ref IntPtr context, string path);
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_ef_repository")]
-        public static extern FFIError create_ef_repository(IntPtr context_ptr);
+        public static void entity_service_new_checked(ref IntPtr context, string path)
+        {
+            var rval = entity_service_new(ref context, path); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_exception")]
-        public static extern FFIError create_exception(IntPtr context_ptr, ExceptionInfo exception);
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_dto")]
+        public static extern AppFFIError entity_service_create_dto(IntPtr context);
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_iservice")]
-        public static extern FFIError create_iservice(IntPtr context_ptr, ref bool custom);
+        public static void entity_service_create_dto_checked(IntPtr context)
+        {
+            var rval = entity_service_create_dto(context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_manager")]
-        public static extern FFIError create_manager(IntPtr context_ptr);
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_createorupdatedto")]
+        public static extern AppFFIError entity_service_create_createorupdatedto(IntPtr context);
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_mancreate_pagedandsortedandfilterresultdtoager")]
-        public static extern FFIError create_mancreate_pagedandsortedandfilterresultdtoager(IntPtr context_ptr);
+        public static void entity_service_create_createorupdatedto_checked(IntPtr context)
+        {
+            var rval = entity_service_create_createorupdatedto(context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_repository_interface")]
-        public static extern FFIError create_repository_interface(IntPtr context_ptr);
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_ef_repository")]
+        public static extern AppFFIError entity_service_create_ef_repository(IntPtr context);
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_service")]
-        public static extern FFIError create_service(IntPtr context_ptr, ref bool custom);
+        public static void entity_service_create_ef_repository_checked(IntPtr context)
+        {
+            var rval = entity_service_create_ef_repository(context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "insert_mapper")]
-        public static extern FFIError insert_mapper(IntPtr context_ptr);
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_exception")]
+        public static extern AppFFIError entity_service_create_exception(IntPtr context, string exception_name, string exception_code, string exception_displayname);
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "format_all")]
-        public static extern FFIError format_all(IntPtr context_ptr);
+        public static void entity_service_create_exception_checked(IntPtr context, string exception_name, string exception_code, string exception_displayname)
+        {
+            var rval = entity_service_create_exception(context, exception_name, exception_code, exception_displayname); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
 
-        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "dispose")]
-        public static extern FFIError dispose(ref IntPtr context_ptr);
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_iservice")]
+        public static extern AppFFIError entity_service_create_iservice(IntPtr context, bool custom);
+
+        public static void entity_service_create_iservice_checked(IntPtr context, bool custom)
+        {
+            var rval = entity_service_create_iservice(context, custom); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_manager")]
+        public static extern AppFFIError entity_service_create_manager(IntPtr context);
+
+        public static void entity_service_create_manager_checked(IntPtr context)
+        {
+            var rval = entity_service_create_manager(context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_pagedandsortedandfilterresultdto")]
+        public static extern AppFFIError entity_service_create_pagedandsortedandfilterresultdto(IntPtr context);
+
+        public static void entity_service_create_pagedandsortedandfilterresultdto_checked(IntPtr context)
+        {
+            var rval = entity_service_create_pagedandsortedandfilterresultdto(context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_repository_interface")]
+        public static extern AppFFIError entity_service_create_repository_interface(IntPtr context);
+
+        public static void entity_service_create_repository_interface_checked(IntPtr context)
+        {
+            var rval = entity_service_create_repository_interface(context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_service")]
+        public static extern AppFFIError entity_service_create_service(IntPtr context, bool custom);
+
+        public static void entity_service_create_service_checked(IntPtr context, bool custom)
+        {
+            var rval = entity_service_create_service(context, custom); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_insert_mapper")]
+        public static extern AppFFIError entity_service_insert_mapper(IntPtr context);
+
+        public static void entity_service_insert_mapper_checked(IntPtr context)
+        {
+            var rval = entity_service_insert_mapper(context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_insert_efcore_entity_config")]
+        public static extern AppFFIError entity_service_insert_efcore_entity_config(IntPtr context);
+
+        public static void entity_service_insert_efcore_entity_config_checked(IntPtr context)
+        {
+            var rval = entity_service_insert_efcore_entity_config(context); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_format_all")]
+        public static extern void entity_service_format_all(IntPtr context);
 
     }
 
-    public enum FFIError
+    public enum AppFFIError
     {
         Ok = 0,
-        NullPointerPassed = 10,
+        NullPassed = 1,
+        Panic = 2,
+        OtherError = 3,
     }
 
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
-    public partial struct ExceptionInfo
+
+    public partial class EntityGenerator : IDisposable
     {
-        public IntPtr excetpion_name;
-        public IntPtr excetpion_code;
-        public IntPtr excetpion_displayname;
+        private IntPtr _context;
+
+        private EntityGenerator() { }
+
+        public static EntityGenerator New(string path)
+        {
+            var self = new EntityGenerator();
+            var rval = Interop.entity_service_new(ref self._context, path);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+            return self;
+        }
+
+        public void Dispose()
+        {
+            var rval = Interop.entity_service_destroy(ref _context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreateDto()
+        {
+            var rval = Interop.entity_service_create_dto(_context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreateCreateorupdatedto()
+        {
+            var rval = Interop.entity_service_create_createorupdatedto(_context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreateEfRepository()
+        {
+            var rval = Interop.entity_service_create_ef_repository(_context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreateException(string exception_name, string exception_code, string exception_displayname)
+        {
+            var rval = Interop.entity_service_create_exception(_context, exception_name, exception_code, exception_displayname);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreateIservice(bool custom)
+        {
+            var rval = Interop.entity_service_create_iservice(_context, custom);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreateManager()
+        {
+            var rval = Interop.entity_service_create_manager(_context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreatePagedandsortedandfilterresultdto()
+        {
+            var rval = Interop.entity_service_create_pagedandsortedandfilterresultdto(_context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreateRepositoryInterface()
+        {
+            var rval = Interop.entity_service_create_repository_interface(_context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void CreateService(bool custom)
+        {
+            var rval = Interop.entity_service_create_service(_context, custom);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void InsertMapper()
+        {
+            var rval = Interop.entity_service_insert_mapper(_context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void InsertEfcoreEntityConfig()
+        {
+            var rval = Interop.entity_service_insert_efcore_entity_config(_context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public void FormatAll()
+        {
+            Interop.entity_service_format_all(_context);
+        }
+
+        public IntPtr Context => _context;
     }
 
 

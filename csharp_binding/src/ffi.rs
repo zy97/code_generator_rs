@@ -1,10 +1,7 @@
-use std::{ptr::null_mut, ffi::CStr, };
+use std::{ffi::CStr, ptr::null_mut};
 
 use code_generator::Entity;
-use interoptopus::{
-    ffi_function, ffi_type,
-    patterns::{string::AsciiPointer},
-};
+use interoptopus::{ffi_function, ffi_type, patterns::{string::AsciiPointer}};
 #[ffi_type(opaque)]
 pub struct Generator {
     generator: Entity,
@@ -14,6 +11,30 @@ pub struct Generator {
 pub enum FFIError {
     Ok,
     NullPointerPassed = 10,
+}
+#[ffi_type(patterns(ffi_error))]
+#[repr(C)]
+enum MyFFIError {
+    Ok = 0,
+    NullPassed = 1,
+    Panic = 2,
+    OtherError = 3,
+}
+// Gives special meaning to some of your error variants.
+impl interoptopus::patterns::result::FFIError for MyFFIError {
+    const SUCCESS: Self = Self::Ok;
+    const NULL: Self = Self::NullPassed;
+    const PANIC: Self = Self::Panic;
+}
+
+// How to map an `Error` to an `MyFFIError`.
+impl From<FFIError> for MyFFIError {
+    fn from(x: FFIError) -> Self {
+        match x {
+           FFIError::Ok => Self::Ok,
+           FFIError::NullPointerPassed => Self::Panic
+        }
+    }
 }
 // #[ffi_type]
 // #[repr(C)]
@@ -25,19 +46,23 @@ pub enum FFIError {
 #[repr(C)]
 pub struct ExceptionInfo {
     pub excetpion_name: *const u8,
-    pub excetpion_code:  *const u8,
-    pub excetpion_displayname:  *const u8,
+    pub excetpion_code: *const u8,
+    pub excetpion_displayname: *const u8,
 }
 
 #[ffi_function]
 #[no_mangle]
 pub extern "C" fn create(context_ptr: Option<&mut *mut Generator>, path: AsciiPointer) -> FFIError {
     let context = context_ptr.unwrap();
-    let entity = Box::new(Generator {
-        generator: Entity::new(path.as_str().unwrap().to_string()).unwrap(),
-    });
-    *context = Box::into_raw(entity);
-    FFIError::Ok
+    let entity = Entity::new(path.as_str().unwrap().to_string());
+    match entity {
+        Ok(t) => {
+            let entity = Box::new(Generator { generator: t });
+            *context = Box::into_raw(entity);
+            FFIError::Ok
+        }
+        Err(err) => FFIError::NullPointerPassed,
+    }
 }
 #[ffi_function]
 #[no_mangle]
@@ -70,12 +95,21 @@ pub extern "C" fn create_exception(
     let exception_name;
     let excetpion_code;
     let excetpion_displayname;
-   unsafe{
-     exception_name =CStr::from_ptr(exception.excetpion_name as *const i8).to_str().ok().map(|s|s.to_owned());
-     excetpion_code = CStr::from_ptr(exception.excetpion_code as *const i8).to_str().ok().map(|s|s.to_owned());
-     excetpion_displayname = CStr::from_ptr(exception.excetpion_displayname as *const i8).to_str().ok().map(|s|s.to_owned());
-   } 
-   
+    unsafe {
+        exception_name = CStr::from_ptr(exception.excetpion_name as *const i8)
+            .to_str()
+            .ok()
+            .map(|s| s.to_owned());
+        excetpion_code = CStr::from_ptr(exception.excetpion_code as *const i8)
+            .to_str()
+            .ok()
+            .map(|s| s.to_owned());
+        excetpion_displayname = CStr::from_ptr(exception.excetpion_displayname as *const i8)
+            .to_str()
+            .ok()
+            .map(|s| s.to_owned());
+    }
+
     context
         .generator
         .create_exception(exception_name, excetpion_code, excetpion_displayname)
@@ -89,10 +123,10 @@ pub extern "C" fn create_iservice(
     custom: Option<&bool>,
 ) -> FFIError {
     let context = context_ptr.unwrap();
-   let custom = match custom {
-       Some(x) =>*x,
-       None => false,
-   };
+    let custom = match custom {
+        Some(x) => *x,
+        None => false,
+    };
     context.generator.create_iservice(custom).unwrap();
     FFIError::Ok
 }
@@ -130,7 +164,7 @@ pub extern "C" fn create_service(
 ) -> FFIError {
     let context = context_ptr.unwrap();
     let custom = match custom {
-        Some(x) =>*x,
+        Some(x) => *x,
         None => false,
     };
     context.generator.create_service(custom).unwrap();
