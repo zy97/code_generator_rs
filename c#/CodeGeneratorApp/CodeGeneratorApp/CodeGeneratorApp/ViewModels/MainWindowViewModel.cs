@@ -1,15 +1,13 @@
-﻿using Prism.Mvvm;
+﻿using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace CodeGeneratorApp.ViewModels
 {
-    public class MainWindowViewModel : BindableBase
+    public class MainWindowViewModel : ReactiveObject
     {
-        private string _title = "Abp 代码生成器";
-        public string Title
-        {
-            get { return _title; }
-            set { SetProperty(ref _title, value); }
-        }
+        [Reactive]
+        public string Title { get; set; } = "Abp 代码生成器";
+
 
         public MainWindowViewModel()
         {

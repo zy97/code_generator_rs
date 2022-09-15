@@ -6,11 +6,11 @@ using Prism.Regions;
 
 namespace CodeGeneratorApp.Modules.ModuleName
 {
-    public class ModuleNameModule : IModule
+    public class EntityGenerateModule : IModule
     {
         private readonly IRegionManager _regionManager;
 
-        public ModuleNameModule(IRegionManager regionManager)
+        public EntityGenerateModule(IRegionManager regionManager)
         {
             _regionManager = regionManager;
         }

@@ -57,7 +57,7 @@ namespace CodeGeneratorApp
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
         {
-            moduleCatalog.AddModule<ModuleNameModule>();
+            moduleCatalog.AddModule<EntityGenerateModule>();
         }
     }
 }
