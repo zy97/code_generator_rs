@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\CodeGeneratorApp.Core\CodeGeneratorApp.Core.csproj" />
 		<ProjectReference Include="..\Modules\CodeGeneratorApp.Modules.EntityGenerate\CodeGeneratorApp.Modules.EntityGenerate.csproj" />
+		<ProjectReference Include="..\Modules\CodeGeneratorApp.Modules.ReactGenerate\CodeGeneratorApp.Modules.ReactGenerate.csproj" />
 		<ProjectReference Include="..\Services\CodeGeneratorApp.Services.Interfaces\CodeGeneratorApp.Services.Interfaces.csproj" />
 		<ProjectReference Include="..\Services\CodeGeneratorApp.Services\CodeGeneratorApp.Services.csproj" />
 	</ItemGroup>

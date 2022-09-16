@@ -1,9 +1,9 @@
-﻿using Prism.Mvvm;
-using Prism.Navigation;
+﻿using Prism.Navigation;
+using ReactiveUI;
 
 namespace CodeGeneratorApp.Core.Mvvm
 {
-    public abstract class ViewModelBase : BindableBase, IDestructible
+    public abstract class ViewModelBase : ReactiveObject, IDestructible
     {
         protected ViewModelBase()
         {

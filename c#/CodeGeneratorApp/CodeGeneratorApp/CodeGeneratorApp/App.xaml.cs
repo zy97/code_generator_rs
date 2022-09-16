@@ -1,4 +1,5 @@
 ﻿using CodeGeneratorApp.Modules.ModuleName;
+using CodeGeneratorApp.Modules.ReactGenerate;
 using CodeGeneratorApp.Services;
 using CodeGeneratorApp.Services.Interfaces;
 using CodeGeneratorApp.Views;
@@ -58,6 +59,7 @@ namespace CodeGeneratorApp
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
         {
             moduleCatalog.AddModule<EntityGenerateModule>();
+            moduleCatalog.AddModule<ReactGenerateModule>();
         }
     }
 }

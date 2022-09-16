@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeGeneratorApp.Core", "Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeGeneratorApp.Modules.EntityGenerate", "CodeGeneratorApp\Modules\CodeGeneratorApp.Modules.EntityGenerate\CodeGeneratorApp.Modules.EntityGenerate.csproj", "{C9BFA973-CD38-437A-8003-09F85181E64B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGeneratorApp.Modules.ReactGenerate", "CodeGeneratorApp\Modules\CodeGeneratorApp.Modules.ReactGenerate\CodeGeneratorApp.Modules.ReactGenerate.csproj", "{76FA8948-D983-4432-A498-E2552ABE4686}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{C9BFA973-CD38-437A-8003-09F85181E64B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9BFA973-CD38-437A-8003-09F85181E64B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9BFA973-CD38-437A-8003-09F85181E64B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76FA8948-D983-4432-A498-E2552ABE4686}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76FA8948-D983-4432-A498-E2552ABE4686}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76FA8948-D983-4432-A498-E2552ABE4686}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76FA8948-D983-4432-A498-E2552ABE4686}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,6 +59,7 @@ Global
 		{DA37FBCB-4232-447E-84B0-9234BA2F8ABE} = {896B72BD-53C0-4EB4-9A46-4CC85BA0EABF}
 		{10570F1D-A261-40F2-AD13-C5908823FCAA} = {896B72BD-53C0-4EB4-9A46-4CC85BA0EABF}
 		{C9BFA973-CD38-437A-8003-09F85181E64B} = {AE418855-2018-439D-8143-B00D59FB1E8E}
+		{76FA8948-D983-4432-A498-E2552ABE4686} = {AE418855-2018-439D-8143-B00D59FB1E8E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9BFE337A-4008-446D-962A-7F28EFEAFCCA}
