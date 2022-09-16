@@ -77,6 +77,10 @@ function {{entity}}() {
            <Form.Item name="{{query.0}}" label="{{query.0}}"><Input placeholder="请输入{{query.0}}" /></Form.Item>
         {%- endfor %}
       </AdvancedSearchForm>
+      {% else %}
+       <AdvancedSearchForm form={form} {...search} extraActions={[{ content: "添加", action: showModal }]}>
+           <Form.Item name="test" label="test"><Input placeholder="请输入test" /></Form.Item>
+      </AdvancedSearchForm>
       {% endif %}
       <div className="mt-4">
         <Table<{{dto}}> rowKey="id"
