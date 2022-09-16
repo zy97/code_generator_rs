@@ -16,8 +16,8 @@ function {{entity}}() {
   const [visible, setVisible] = useState(false);
   const [form] = Form.useForm();
   const [modalForm] = Form.useForm();
-  const { tableProps, search } = useAntdTable({{store}}.get{{entities}}, { defaultPageSize: 10, form, debounceWait: 500, });
-  const { runAsync } = useRequest({{store}}.get{{entity}}ById, { manual: true, });
+  const { tableProps, search } = useAntdTable({{store}}.get{{entities}}, { defaultPageSize: 10, form, debounceWait: 500 });
+  const { runAsync } = useRequest({{store}}.get{{entity}}ById, { manual: true });
   const delete{{entity}} = (record: {{dto}}) => {
     Modal.confirm({
       title: "删除标签", content: "确定删除吗？",

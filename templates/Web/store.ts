@@ -11,15 +11,8 @@ class {{entity}}Store {
   }
   get{{entities}} = async (data: { current: number; pageSize: number }, form: any) => {
     try {
-      const result = await {{snakeName}}Api.get{{entities}}({
-        skipCount: data.pageSize * (data.current - 1),
-        maxResultCount: data.pageSize,
-        ...form,
-      });
-      return {
-        total: result.data.totalCount,
-        list: result.data.items,
-      };
+      const result = await {{snakeName}}Api.get{{entities}}({skipCount: data.pageSize * (data.current - 1),maxResultCount: data.pageSize,...form,});
+      return {total: result.data.totalCount,list: result.data.items,};
     } catch (error) {
       return { total: 0, list: [] };
     }

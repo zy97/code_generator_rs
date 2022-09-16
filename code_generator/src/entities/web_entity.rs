@@ -1,4 +1,5 @@
 use std::{
+    cell::RefCell,
     collections::HashMap,
     error::Error,
     fs::{create_dir, File},
@@ -8,19 +9,14 @@ use std::{
     vec,
 };
 
-use encoding::{all::UTF_8, DecoderTrap, Encoding};
 use inflector::Inflector;
 use regex::Regex;
 use serde::Serialize;
 use tera::Context;
-use walkdir::DirEntry;
 
-use crate::{
-    error::{CodeGeneratorError},
-    TEMPLATES,
-};
+use crate::{error::CodeGeneratorError, TEMPLATES};
 
-use super::open_file;
+use super::{find, format_code, open_file, read_file};
 
 #[derive(Debug)]
 pub struct WebEntity {
@@ -28,6 +24,8 @@ pub struct WebEntity {
     url_prefix: String,
     src_dir: String,
     properties: Vec<(String, String)>,
+    solution_dir: String,
+    changed_files: RefCell<Vec<String>>,
 }
 
 impl WebEntity {
@@ -37,44 +35,27 @@ impl WebEntity {
 
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().rposition(|&i| i.contains("src")).unwrap();
+        let solution_dir = src_dir[..(src_index)].join("\\");
         let src_dir = src_dir[..(src_index + 1)].join("\\");
         let mut properties = vec![];
-        let mut file = File::open(&path)?;
-        let mut code = vec![];
-        file.read_to_end(&mut code)?;
-        let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
+        let code = read_file(&path)?;
         let re = Regex::new(r"([a-zA-Z]+): ([a-zA-Z]+);")?;
         for caps in re.captures_iter(code.as_str()) {
-            // properties.push(caps.get(1).unwrap().as_str().to_string());
             properties.push((
                 caps.get(1).unwrap().as_str().to_owned(),
                 caps.get(2).unwrap().as_str().to_owned(),
             ));
         }
-
         Ok(WebEntity {
             entity_name,
             url_prefix,
             src_dir,
             properties,
+            changed_files: RefCell::new(vec![]),
+            solution_dir,
         })
     }
-    fn find(&self, contain_name: &str, is_file: bool) -> DirEntry {
-        let result = walkdir::WalkDir::new(&self.src_dir)
-            .into_iter()
-            .filter_map(Result::ok)
-            .filter(|e| {
-                if is_file {
-                    e.file_type().is_file()
-                        && e.file_name().to_str().unwrap().contains(contain_name)
-                } else {
-                    e.file_type().is_dir() && e.file_name().to_str().unwrap().contains(contain_name)
-                }
-            })
-            .nth(0)
-            .unwrap();
-        return result;
-    }
+
     fn create_dir(&self, dir: &str) -> io::Result<()> {
         match create_dir(dir) {
             Ok(()) => Ok(()),
@@ -82,71 +63,74 @@ impl WebEntity {
             Err(err) => Err(err),
         }
     }
-    pub fn create_api(&self) {
+
+    pub fn create_api(&self) -> Result<(), CodeGeneratorError> {
         let mut kv = HashMap::new();
         kv.insert("entity", Box::new(&self.entity_name));
         kv.insert("url_prefix", Box::new(&self.url_prefix));
 
-        let api_dir = self
-            .find("apis", false)
+        let api_dir = find(&self.src_dir, "apis", false)
             .path()
-            .to_str()
-            .unwrap()
+            .display()
             .to_string();
 
-        self.create_dir(&api_dir).unwrap();
-        self.generate_template(
+        let path = self.generate_template(
             kv,
             "Web/api.ts",
             &api_dir,
             format!("{}.ts", self.entity_name),
-        );
+        )?;
+        self.add_file_change_log(path);
         self.export_api(&api_dir);
+        Ok(())
     }
-    fn export_api(&self, api_dir: &str) {
-        let file = api_dir.to_string() + "//index.ts";
-       
-        let mut file = open_file(&file).unwrap();
+
+    fn export_api(&self, api_dir: &str) -> Result<(), CodeGeneratorError> {
+        let file_path = api_dir.to_string() + "\\index.ts";
+
+        let mut file = open_file(&file_path)?;
         let mut code = String::new();
-        file.read_to_string(&mut code).unwrap();
+        file.read_to_string(&mut code)?;
         let insert_code = format!(
-            "export * as {}Api from './{}';\r\n",
+            "export * as {}Api from './{}';",
             self.entity_name.to_snake_case(),
             self.entity_name
         );
         if !code.contains(&insert_code) {
-            // code.push_str(&insert_code)
-            file.write(insert_code.as_bytes()).unwrap();
+            file.write(insert_code.as_bytes())?;
+            self.add_file_change_log(file_path);
         }
+        Ok(())
     }
-    pub fn create_store(&self) {
+    pub fn create_store(&self) -> Result<(), CodeGeneratorError> {
         let mut kv = HashMap::new();
         kv.insert("entity", Box::new(&self.entity_name));
 
-        let stores_dir = self
-            .find("stores", false)
+        let stores_dir = find(&self.src_dir, "stores", false)
             .path()
-            .to_str()
-            .unwrap()
+            .display()
             .to_string();
 
-        self.create_dir(&stores_dir).unwrap();
-        self.generate_template(
+        self.create_dir(&stores_dir)?;
+        let path = self.generate_template(
             kv,
             "Web/store.ts",
             &stores_dir,
             format!("{}.ts", self.entity_name),
-        );
-        self.export_store(&stores_dir);
+        )?;
+        self.add_file_change_log(path);
+        self.export_store(&stores_dir)?;
+        Ok(())
     }
-    fn export_store(&self, api_dir: &str) {
-        let file = api_dir.to_string() + "//index.ts";
-        
-        let mut file = open_file(&file).unwrap();
+
+    fn export_store(&self, api_dir: &str) -> Result<(), CodeGeneratorError> {
+        let file_path = api_dir.to_string() + "\\index.ts";
+
+        let mut file = open_file(&file_path)?;
         let mut code = String::new();
-        file.read_to_string(&mut code).unwrap();
+        file.read_to_string(&mut code)?;
         let import_code = format!(
-            "import {}Store from './{}';\r\n",
+            "import {}Store from './{}';",
             self.entity_name.to_snake_case(),
             self.entity_name
         );
@@ -156,26 +140,32 @@ impl WebEntity {
             let index = code.rfind("});").unwrap();
             code.insert_str(
                 index - 1,
-                format!("\t{}Store", self.entity_name.to_snake_case()).as_str(),
+                format!(",{}Store", self.entity_name.to_snake_case()).as_str(),
             );
-            file.seek_write(code.as_bytes(), 0).unwrap();
+            file.seek_write(code.as_bytes(), 0)?;
+            self.add_file_change_log(file_path);
         }
+        Ok(())
     }
-    pub fn create_page(&self) {
+    pub fn create_page(&self) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("entity", Box::new(&self.entity_name));
         kv.insert("properties", Box::new(&self.properties));
 
-        let pages = self
-            .find("Pages", false)
+        let pages = find(&self.src_dir, "Pages", false)
             .path()
-            .to_str()
-            .unwrap()
+            .display()
             .to_string();
 
         let page = format!("{}\\{}", pages, self.entity_name);
-        self.create_dir(&page).unwrap();
-        self.generate_template(kv, "Web/page.tsx", &page, String::from("index.tsx"));
+        self.create_dir(&page)?;
+        let path = self.generate_template(kv, "Web/page.tsx", &page, String::from("index.tsx"))?;
+        self.add_file_change_log(path);
+        Ok(())
+    }
+    fn add_file_change_log(&self, path: String) {
+        let mut changs = self.changed_files.borrow_mut();
+        changs.push(path);
     }
 }
 
@@ -186,18 +176,18 @@ impl WebEntity {
         template_name: &str,
         dir: &str,
         file_name: String,
-    ) where
+    ) -> Result<String, CodeGeneratorError>
+    where
         T: Serialize + ?Sized,
     {
         let file_path = vec![dir, file_name.as_str()].join("\\");
 
         let mut context = Context::new();
-        // context.insert("numbers", &vec![1, 2, 3]);
         for entity in kv {
             context.insert(entity.0, &entity.1);
         }
 
-        let file = File::create(&file_path).expect("create failed");
+        let file = File::create(&file_path)?;
         match TEMPLATES.render_to(template_name, &context, file) {
             Ok(()) => println!("{} write success", file_path),
             Err(e) => {
@@ -209,5 +199,13 @@ impl WebEntity {
                 }
             }
         };
+        Ok(file_path)
+    }
+}
+
+impl WebEntity {
+    pub fn format_all(&self) {
+        let files = self.changed_files.borrow().to_vec();
+        format_code(self.solution_dir.clone(), files)
     }
 }
