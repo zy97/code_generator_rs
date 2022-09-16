@@ -1,14 +1,22 @@
+{% if queries|length == 0 %}
+   {% set search = "PageRequest" %}
+import PageRequest from "../data/models/PageRequest";
+{% else %}
+    {% set search = "SearchTestDto" %}
+import { Search{{entity}}Dto } from "../data/models/{{entity}}";
+{% endif %}
 import axios from "axios";
 import { PagedList } from "../data/models/PagedList";
-import PageRequest from "../data/models/PageRequest";
 import { Add{{entity}}Dto, {{entity}}Dto } from "../data/models/{{entity}}";
+
+
 
 // 添加
 export const add{{entity}} = ({{entity|snake}}: Add{{entity}}Dto) =>
   axios.post<{{entity}}Dto>(`{{url_prefix}}`, { ...{{entity|snake}} });
 
 // 获取列表
-export const get{{entity}}s = (params: PageRequest) =>
+export const get{{entity}}s = (params: {{search}}) =>
   axios.get<PagedList<{{entity}}Dto>>(`{{url_prefix}}`, { params });
 
 // 删除

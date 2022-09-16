@@ -14,7 +14,7 @@ mod tests {
         let web_entity = WebEntity::new(web_entity_path, "/api/app/audit-log".to_string()).unwrap();
         web_entity.create_api().unwrap();
         web_entity.create_store().unwrap();
-        web_entity.create_page();
+        web_entity.create_page().unwrap();
         web_entity.format_all();
         println!("web entity:{:#?}", web_entity);
     }

@@ -1,3 +1,6 @@
+use inflector::Inflector;
+use regex::Regex;
+use serde::Serialize;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -8,10 +11,6 @@ use std::{
     path::Path,
     vec,
 };
-
-use inflector::Inflector;
-use regex::Regex;
-use serde::Serialize;
 use tera::Context;
 
 use crate::{error::CodeGeneratorError, TEMPLATES};
@@ -24,6 +23,7 @@ pub struct WebEntity {
     url_prefix: String,
     src_dir: String,
     properties: Vec<(String, String)>,
+    queries: Vec<(String, String)>,
     solution_dir: String,
     changed_files: RefCell<Vec<String>>,
 }
@@ -46,6 +46,31 @@ impl WebEntity {
                 caps.get(2).unwrap().as_str().to_owned(),
             ));
         }
+        let mut queries = vec![];
+        let search = format!(
+            r"export interface Search{}Dto extends PageRequest \{{([\s\S]+?)}}",
+            entity_name
+        );
+        let re = Regex::new(&search)?;
+        let captures = re.captures(code.as_str());
+        if let Some(captures) = captures {
+            let search = captures.get(1).unwrap().as_str();
+            let sdf = search.lines().filter(|s| !s.is_empty()).filter_map(|f| {
+                if f.contains(':') {
+                    let mut items = f.split(':');
+                    let x: &[_] = &[',', ' '];
+                    return Some((
+                        items.next().unwrap().trim().to_string(),
+                        items.next().unwrap().trim_matches(x).to_string(),
+                    ));
+                }
+                return None;
+            });
+            queries.append(sdf.collect::<Vec<(String, String)>>().as_mut());
+        }
+
+        println!("search_code:{:?}", queries);
+
         Ok(WebEntity {
             entity_name,
             url_prefix,
@@ -53,6 +78,7 @@ impl WebEntity {
             properties,
             changed_files: RefCell::new(vec![]),
             solution_dir,
+            queries,
         })
     }
 
@@ -65,9 +91,10 @@ impl WebEntity {
     }
 
     pub fn create_api(&self) -> Result<(), CodeGeneratorError> {
-        let mut kv = HashMap::new();
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("entity", Box::new(&self.entity_name));
         kv.insert("url_prefix", Box::new(&self.url_prefix));
+        kv.insert("queries", Box::new(&self.queries));
 
         let api_dir = find(&self.src_dir, "apis", false)
             .path()
@@ -81,7 +108,7 @@ impl WebEntity {
             format!("{}.ts", self.entity_name),
         )?;
         self.add_file_change_log(path);
-        self.export_api(&api_dir);
+        self.export_api(&api_dir)?;
         Ok(())
     }
 
@@ -151,6 +178,7 @@ impl WebEntity {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("entity", Box::new(&self.entity_name));
         kv.insert("properties", Box::new(&self.properties));
+        kv.insert("queries", Box::new(&self.queries));
 
         let pages = find(&self.src_dir, "Pages", false)
             .path()
