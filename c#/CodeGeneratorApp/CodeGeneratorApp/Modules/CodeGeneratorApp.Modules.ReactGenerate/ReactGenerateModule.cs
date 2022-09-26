@@ -13,7 +13,7 @@ namespace CodeGeneratorApp.Modules.ReactGenerate
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterForNavigation<ViewA>();
+            containerRegistry.RegisterForNavigation<ViewA>("ViewB");
         }
     }
 }

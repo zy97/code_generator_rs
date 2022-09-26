@@ -1,10 +1,5 @@
-﻿using Prism.Commands;
-using Prism.Mvvm;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Prism.Mvvm;
+using ReactiveUI.Fody.Helpers;
 
 namespace CodeGeneratorApp.Modules.ReactGenerate.ViewModels
 {
@@ -16,7 +11,8 @@ namespace CodeGeneratorApp.Modules.ReactGenerate.ViewModels
             get { return _message; }
             set { SetProperty(ref _message, value); }
         }
-
+        [Reactive]
+        public string Title { get; set; } = "Abp React生成";
         public ViewAViewModel()
         {
             Message = "View A from your Prism Module";

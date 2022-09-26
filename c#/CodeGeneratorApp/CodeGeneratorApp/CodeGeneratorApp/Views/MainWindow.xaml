@@ -9,7 +9,18 @@
     Width="525"
     Height="350"
     prism:ViewModelLocator.AutoWireViewModel="True">
+    <Window.Resources>
+        <Style
+            x:Key="TabItemStyle"
+            BasedOn="{StaticResource TabItemStyle}"
+            TargetType="TabItem">
+            <Setter Property="Header" Value="{Binding DataContext.Title}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type TabControl}}" TargetType="TabControl">
+            <Setter Property="ItemContainerStyle" Value="{StaticResource TabItemStyle}" />
+        </Style>
+    </Window.Resources>
     <Grid>
-        <ContentControl prism:RegionManager.RegionName="{x:Static core:RegionNames.ContentRegion}" />
+        <TabControl x:Name="tab" prism:RegionManager.RegionName="{x:Static core:RegionNames.ContentRegion}" />
     </Grid>
 </Window>

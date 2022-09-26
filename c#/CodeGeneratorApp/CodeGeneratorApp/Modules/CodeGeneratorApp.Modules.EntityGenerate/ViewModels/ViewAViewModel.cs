@@ -48,6 +48,8 @@ namespace CodeGeneratorApp.Modules.ModuleName.ViewModels
         public string Message { get; set; }
         [Reactive]
         public string EntityPath { get; set; }
+        [Reactive]
+        public string Title { get; set; } = "Abp 服务实体生成";
 
         public ReactiveCommand<Unit, Unit> SelectEntity { get; set; }
         public ReactiveCommand<Unit, Unit> Generate { get; set; }
