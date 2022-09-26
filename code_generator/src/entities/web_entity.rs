@@ -29,7 +29,7 @@ pub struct WebEntity {
 }
 
 impl WebEntity {
-    pub fn new(path: String, url_prefix: String) -> Result<Self, CodeGeneratorError> {
+    pub fn new(path: String) -> Result<Self, CodeGeneratorError> {
         let file = Path::new(&path);
         let entity_name = file.file_stem().unwrap().to_str().unwrap().to_string();
 
@@ -73,7 +73,7 @@ impl WebEntity {
 
         Ok(WebEntity {
             entity_name,
-            url_prefix,
+            url_prefix: "".to_owned(),
             src_dir,
             properties,
             changed_files: RefCell::new(vec![]),
@@ -90,10 +90,10 @@ impl WebEntity {
         }
     }
 
-    pub fn create_api(&self) -> Result<(), CodeGeneratorError> {
+    pub fn create_api(&self, url_prefix: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("entity", Box::new(&self.entity_name));
-        kv.insert("url_prefix", Box::new(&self.url_prefix));
+        kv.insert("url_prefix", Box::new(url_prefix));
         kv.insert("queries", Box::new(&self.queries));
 
         let api_dir = find(&self.src_dir, "apis", false)

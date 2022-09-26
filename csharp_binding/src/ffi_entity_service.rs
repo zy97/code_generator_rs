@@ -1,7 +1,7 @@
+use crate::AppFFIError;
 use code_generator::{CodeGeneratorError, Entity};
 use interoptopus::{
-    ffi_service, ffi_service_ctor, ffi_type,
-    patterns::{result::FFIError, string::AsciiPointer}, ffi_service_method,
+    ffi_service, ffi_service_ctor, ffi_service_method, ffi_type, patterns::string::AsciiPointer,
 };
 #[ffi_type(opaque)]
 pub struct EntityGenerator {
@@ -58,35 +58,8 @@ impl EntityGenerator {
     pub fn insert_efcore_entity_config(&self) -> Result<(), CodeGeneratorError> {
         self.generator.insert_efcore_entity_config()
     }
-    #[ffi_service_method(on_panic="return_default")]
+    #[ffi_service_method(on_panic = "return_default")]
     pub fn format_all(&self) {
         self.generator.format_all()
-    }
-}
-#[ffi_type(patterns(ffi_error))]
-#[repr(C)]
-pub enum AppFFIError {
-    Ok = 0,
-    NullPassed = 1,
-    Panic = 2,
-    OtherError = 3,
-   
-}
-// Gives special meaning to some of your error variants.
-impl FFIError for AppFFIError {
-    const SUCCESS: Self = Self::Ok;
-    const NULL: Self = Self::NullPassed;
-    const PANIC: Self = Self::Panic;
-}
-
-// How to map an `Error` to an `MyFFIError`.
-impl From<CodeGeneratorError> for AppFFIError {
-    fn from(x: CodeGeneratorError) -> Self {
-        match x {
-            CodeGeneratorError::FileError(_) => Self::OtherError,
-            CodeGeneratorError::RegexError(_) => Self::OtherError,
-            CodeGeneratorError::RegexNoMatchError(_) => Self::OtherError,
-            CodeGeneratorError::TeraError(_) => Self::OtherError,
-        }
     }
 }

@@ -188,13 +188,7 @@ namespace CodeGeneratorApp.Services
 
     }
 
-    public enum AppFFIError
-    {
-        Ok = 0,
-        NullPassed = 1,
-        Panic = 2,
-        OtherError = 3,
-    }
+
 
 
     public partial class EntityGenerator : IDisposable
@@ -329,17 +323,4 @@ namespace CodeGeneratorApp.Services
 
         public IntPtr Context => _context;
     }
-
-
-
-    public class InteropException<T> : Exception
-    {
-        public T Error { get; private set; }
-
-        public InteropException(T error) : base($"Something went wrong: {error}")
-        {
-            Error = error;
-        }
-    }
-
 }
