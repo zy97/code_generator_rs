@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
     xmlns:local="clr-namespace:CodeGeneratorApp.Modules.ReactGenerate.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
@@ -10,10 +11,48 @@
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
-    <Grid>
-        <TextBlock
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Text="{Binding Message}" />
-    </Grid>
+    <StackPanel Margin="5">
+        <DockPanel LastChildFill="True">
+            <Button
+                Margin="0,0,5,0"
+                Command="{Binding SelectEntity}"
+                DockPanel.Dock="Right"
+                Style="{StaticResource ButtonPrimary}">
+                选择
+            </Button>
+            <hc:TextBox
+                Margin="5,0"
+                hc:InfoElement.Placeholder="选择或拖入实体到输入框"
+                hc:TitleElement.Title="Web Model路径："
+                hc:TitleElement.TitlePlacement="Left"
+                IsReadOnly="True"
+                Text="{Binding EntityPath}" />
+        </DockPanel>
+        <CheckBox
+            x:Name="api"
+            Content="生成Web的Api代码"
+            IsChecked="{Binding CreateApi}" />
+        <StackPanel Margin="10,0" Visibility="{Binding ElementName=api, Path=IsChecked, Converter={StaticResource Boolean2VisibilityConverter}}">
+            <hc:TextBox
+                hc:InfoElement.Placeholder="如：/api/app/admin-Category"
+                hc:TitleElement.Title="api的前缀地址："
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ApiPrefix}" />
+        </StackPanel>
+        <CheckBox
+            Content="生成Store相关代码"
+            IsChecked="{Binding CreateStore}"
+            ToolTip="生成相应的Store代码，并暴露到store的context中" />
+        <CheckBox
+            Content="生成page代码"
+            IsChecked="{Binding CreatePage}"
+            ToolTip="生成常用的保护收索区域，以及展示列表的页" />
+        <CheckBox Content="格式化更新的文件" IsChecked="{Binding Format}" />
+        <Button
+            Margin="20,0"
+            HorizontalAlignment="Right"
+            Command="{Binding Generate}"
+            Content="执行"
+            Style="{StaticResource ButtonPrimary}" />
+    </StackPanel>
 </UserControl>
