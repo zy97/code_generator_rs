@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using CodeGeneratorApp.Modules.ReactGenerate.ViewModels;
+using Microsoft.Win32;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace CodeGeneratorApp.Modules.ReactGenerate.Views
 {
@@ -23,6 +12,19 @@ namespace CodeGeneratorApp.Modules.ReactGenerate.Views
         public ViewA()
         {
             InitializeComponent();
+            var viewModel = this.DataContext as ViewAViewModel;
+            viewModel.SelectEntityInteraction.RegisterHandler(interact =>
+            {
+                var openFileDialog = new OpenFileDialog()
+                {
+                    Filter = "TS文件(.ts)|*.ts"
+                };
+                if (openFileDialog.ShowDialog() is true)
+                {
+                    interact.SetOutput(openFileDialog.FileName);
+                    return;
+                }
+            });
         }
     }
 }

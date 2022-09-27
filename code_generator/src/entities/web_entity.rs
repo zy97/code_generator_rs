@@ -119,7 +119,7 @@ impl WebEntity {
         let mut code = String::new();
         file.read_to_string(&mut code)?;
         let insert_code = format!(
-            "export * as {}Api from './{}';",
+            r#"export * as {}Api from "./{}";"#,
             self.entity_name.to_snake_case(),
             self.entity_name
         );
@@ -157,7 +157,7 @@ impl WebEntity {
         let mut code = String::new();
         file.read_to_string(&mut code)?;
         let import_code = format!(
-            "import {}Store from './{}';",
+            r#"import {}Store from "./{}";"#,
             self.entity_name.to_snake_case(),
             self.entity_name
         );

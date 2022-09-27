@@ -52,8 +52,8 @@ namespace CodeGeneratorApp
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterSingleton<IMessageService, MessageService>();
             containerRegistry.RegisterSingleton<IEntityGenerateService, EntityGenerateService>();
+            containerRegistry.RegisterSingleton<IReactGenerateService, ReactGenerateService>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)

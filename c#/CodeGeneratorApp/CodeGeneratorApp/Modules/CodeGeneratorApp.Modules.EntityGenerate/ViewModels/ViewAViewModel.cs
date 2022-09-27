@@ -57,10 +57,9 @@ namespace CodeGeneratorApp.Modules.ModuleName.ViewModels
         public Interaction<Unit, string> SelectEntityInteraction { get; } = new Interaction<Unit, string>();
 
 
-        public ViewAViewModel(IRegionManager regionManager, IMessageService messageService, IEntityGenerateService entityGenerateService) :
+        public ViewAViewModel(IRegionManager regionManager, IEntityGenerateService entityGenerateService) :
             base(regionManager)
         {
-            Message = messageService.GetMessage();
             SelectEntity = ReactiveCommand.Create(() =>
             {
                 SelectEntityInteraction.Handle(Unit.Default)

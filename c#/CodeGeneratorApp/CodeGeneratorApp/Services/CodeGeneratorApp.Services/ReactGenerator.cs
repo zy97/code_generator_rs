@@ -9,7 +9,7 @@ namespace CodeGeneratorApp.Services
 {
     public static partial class Interop
     {
-        public const string NativeLib = "example_library";
+        public const string NativeLib = "C:\\Users\\Administrator\\Desktop\\code_generator_rs\\target\\debug\\csharp_binding.dll";
 
         static Interop()
         {

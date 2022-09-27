@@ -78,6 +78,7 @@ function {{entity}}() {
         {%- endfor %}
       </AdvancedSearchForm>
       {% else %}
+      {/* 此生成只是固定生成，如果想生成具体的，请在model里声明 export interface SearchXXXDto extends PageRequest*/}
        <AdvancedSearchForm form={form} {...search} extraActions={[{ content: "添加", action: showModal }]}>
            <Form.Item name="test" label="test"><Input placeholder="请输入test" /></Form.Item>
       </AdvancedSearchForm>
