@@ -1,35 +1,34 @@
 mod entity;
 mod permision;
 mod web_entity;
-use std::{
-    collections::HashMap,
-    process::{Command, Stdio}, fs::{File, OpenOptions}, io::{Read},
-};
-
-use encoding::{all::UTF_8, Encoding, DecoderTrap};
+use encoding::{all::UTF_8, DecoderTrap, Encoding};
 pub use entity::Entity;
+use lazy_static::lazy_static;
 pub use permision::Permission;
 use regex::Regex;
+use std::{
+    collections::HashMap,
+    fs::{File, OpenOptions},
+    io::Read,
+    process::{Command, Stdio},
+};
 
 use walkdir::DirEntry;
 pub use web_entity::WebEntity;
 
 use crate::error::{CodeGeneratorError, RegexNoMatchError};
 
-fn read_file(file:&str)-> Result<String, CodeGeneratorError>{
+fn read_file(file: &str) -> Result<String, CodeGeneratorError> {
     let mut file = File::open(file)?;
     let mut code = vec![];
     file.read_to_end(&mut code)?;
     let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
     Ok(code)
 }
-fn open_file(file:&str)-> Result<File, CodeGeneratorError>{
+fn open_file(file: &str) -> Result<File, CodeGeneratorError> {
     let mut options = OpenOptions::new();
-        let file = options
-            .write(true)
-            .read(true)
-            .open(&file)?;
-Ok(file)
+    let file = options.write(true).read(true).open(&file)?;
+    Ok(file)
 }
 fn find(src_dir: &str, contain_name: &str, is_file: bool) -> DirEntry {
     let result = walkdir::WalkDir::new(src_dir)
@@ -47,8 +46,10 @@ fn find(src_dir: &str, contain_name: &str, is_file: bool) -> DirEntry {
     return result;
 }
 fn get_class_name(content: &str) -> Result<String, CodeGeneratorError> {
-    let re = Regex::new(r"class ([a-zA-Z]+)")?;
-    let entity_name = re
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"class ([a-zA-Z]+)").unwrap();
+    }
+    let entity_name = RE
         .captures(content)
         .ok_or(RegexNoMatchError)?
         .get(1)
@@ -58,8 +59,10 @@ fn get_class_name(content: &str) -> Result<String, CodeGeneratorError> {
     Ok(entity_name)
 }
 fn get_generic_type(content: &str) -> Result<String, CodeGeneratorError> {
-    let re = Regex::new(r"<([a-zA-Z]+)>")?;
-    let t = re
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"<([a-zA-Z]+)>").unwrap();
+    }
+    let t = RE
         .captures(&content)
         .ok_or(RegexNoMatchError)?
         .get(1)
@@ -69,8 +72,10 @@ fn get_generic_type(content: &str) -> Result<String, CodeGeneratorError> {
     Ok(t)
 }
 fn get_namespace(content: &str) -> Result<String, CodeGeneratorError> {
-    let re = Regex::new(r"namespace ([a-zA-Z.]+)")?;
-    let namespace = re
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"namespace ([a-zA-Z.]+)").unwrap();
+    }
+    let namespace = RE
         .captures(&content)
         .ok_or(RegexNoMatchError)?
         .get(1)
@@ -80,9 +85,11 @@ fn get_namespace(content: &str) -> Result<String, CodeGeneratorError> {
     Ok(namespace)
 }
 fn get_properties(content: &str) -> Result<HashMap<String, String>, CodeGeneratorError> {
-    let re = Regex::new(r"public ([a-zA-Z\\ ]+) \{")?;
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"public ([a-zA-Z\\ ]+) \{").unwrap();
+    }
     let mut kv = HashMap::new();
-    for property in re.captures_iter(&content) {
+    for property in RE.captures_iter(&content) {
         let mut sdf = property
             .get(1)
             .ok_or(RegexNoMatchError)?
@@ -95,7 +102,7 @@ fn get_properties(content: &str) -> Result<HashMap<String, String>, CodeGenerato
     Ok(kv)
 }
 fn format_code(work_dir: String, files: Vec<String>) {
-    if files.len() == 0{
+    if files.len() == 0 {
         return;
     }
     let output = Command::new("cmd")
@@ -107,25 +114,4 @@ fn format_code(work_dir: String, files: Vec<String>) {
         .expect("cmd exec error!");
     println!("{}", &output.status);
     println!("{}", String::from_utf8_lossy(&output.stderr));
-}
-#[cfg(test)]
-mod tests {
-    use std::process::{Command, Stdio};
-
-    #[test]
-    fn format_csharp1() {
-        {
-            let relative_file_path = r"Permissions\BlogPermissionDefinitionProvider.cs";
-            let output = Command::new("cmd")
-                // .creation_flags(0x08000000)
-                .arg("/c")
-                .current_dir(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts")
-                .arg(format!(r"dotnet format --include {}", relative_file_path))
-                .stdout(Stdio::piped())
-                .output()
-                .expect("cmd exec error!");
-            println!("{}", &output.status);
-            println!("{}", String::from_utf8_lossy(&output.stderr));
-        };
-    }
 }
