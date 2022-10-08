@@ -11,8 +11,10 @@ mod tests {
     fn init_web_entity() {
         let web_entity_path =
             r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\data\models\Test.ts".to_owned();
-        let web_entity = WebEntity::new(web_entity_path, "/api/app/audit-log".to_string()).unwrap();
-        web_entity.create_api().unwrap();
+        let web_entity = WebEntity::new(web_entity_path).unwrap();
+        web_entity
+            .create_api("/api/app/audit-log".to_string())
+            .unwrap();
         web_entity.create_store().unwrap();
         web_entity.create_page().unwrap();
         web_entity.format_all();
@@ -60,7 +62,7 @@ mod tests {
         let entity = Entity::new(entity_path).unwrap();
         println!("entity:{:#?}", entity);
         let custom = true;
-        entity.create_dto().unwrap();
+        // entity.create_dto().unwrap();
         // entity.create_createorupdatedto().unwrap();
         // entity.create_pagedandsortedandfilterresultdto().unwrap();
         // entity.create_iservice(custom).unwrap();

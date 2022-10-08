@@ -1,4 +1,3 @@
-
 use code_generator::WebEntity;
 
 use crate::app::{preview_file_being_dropped, App};
@@ -63,8 +62,7 @@ impl AppComponent for WebPage {
                         if data.entity_path == String::default() {
                             warn!("请选择abp entity文件！");
                         } else {
-                            let entity =
-                                WebEntity::new(data.entity_path.clone(), data.url_prefix.clone());
+                            let entity = WebEntity::new(data.entity_path.clone());
                             match entity {
                                 core::result::Result::Ok(entity) => {
                                     data.entity = Some(entity);
@@ -78,7 +76,7 @@ impl AppComponent for WebPage {
                                     let data = &data.service;
                                     debug!("开始执行生成操作：");
                                     if data.api {
-                                        entity.create_api();
+                                        entity.create_api("");
                                     }
                                     if data.store {
                                         entity.create_store();
