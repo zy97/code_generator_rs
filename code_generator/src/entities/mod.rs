@@ -1,29 +1,38 @@
 mod entity;
 mod permision;
 mod web_entity;
-use encoding::{all::UTF_8, DecoderTrap, Encoding};
+use encoding_rs::UTF_8;
 pub use entity::Entity;
 use lazy_static::lazy_static;
+
 pub use permision::Permission;
 use regex::Regex;
+use serde::Serialize;
 use std::{
     collections::HashMap,
+    error::Error,
     fs::{File, OpenOptions},
     io::Read,
-    process::{Command, Stdio},
+    os::windows::process::ExitStatusExt,
+    path::Path,
+    process::{Command, ExitStatus, Stdio},
 };
+use tera::Context;
 
 use walkdir::DirEntry;
 pub use web_entity::WebEntity;
 
-use crate::error::{CodeGeneratorError, RegexNoMatchError};
+use crate::{
+    error::{CodeGeneratorError, RegexNoMatchError},
+    TEMPLATES,
+};
 
 fn read_file(file: &str) -> Result<String, CodeGeneratorError> {
     let mut file = File::open(file)?;
     let mut code = vec![];
     file.read_to_end(&mut code)?;
-    let code = UTF_8.decode(&code, DecoderTrap::Strict).unwrap();
-    Ok(code)
+    let (code, ..) = UTF_8.decode(&code);
+    Ok(code.to_string())
 }
 fn open_file(file: &str) -> Result<File, CodeGeneratorError> {
     let mut options = OpenOptions::new();
@@ -114,4 +123,48 @@ fn format_code(work_dir: String, files: Vec<String>) {
         .expect("cmd exec error!");
     println!("{}", &output.status);
     println!("{}", String::from_utf8_lossy(&output.stderr));
+}
+fn format_single_file(file: String) -> Result<(), CodeGeneratorError> {
+    let work_dir = Path::new(&file).parent().unwrap().display().to_string();
+    let output = Command::new("cmd")
+        .arg("/c")
+        .current_dir(work_dir)
+        .arg(format!(r"dprint fmt {}", file))
+        .stdout(Stdio::piped())
+        .output()
+        .expect("cmd exec error!");
+    if &output.status == &ExitStatus::from_raw(1) {
+        let (output, ..) = UTF_8.decode(&output.stderr);
+        return Err(CodeGeneratorError::DprintError(output.to_string()));
+    }
+    eprintln!("{} format successful!", file);
+    Ok(())
+}
+
+fn generate_template<T>(
+    kv: HashMap<&str, Box<T>>,
+    template_name: &str,
+    file_full_name: &str,
+) -> Result<String, CodeGeneratorError>
+where
+    T: Serialize + ?Sized,
+{
+    let mut context = Context::new();
+    for entity in kv {
+        context.insert(entity.0, &entity.1);
+    }
+
+    let file = File::create(file_full_name)?;
+    match TEMPLATES.render_to(template_name, &context, file) {
+        Ok(()) => eprintln!("{} create successful!", file_full_name),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            let mut cause = e.source();
+            while let Some(e) = cause {
+                eprintln!("Reason: {}", e);
+                cause = e.source();
+            }
+        }
+    };
+    Ok(file_full_name.to_string())
 }

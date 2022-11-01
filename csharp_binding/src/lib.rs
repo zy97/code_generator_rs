@@ -45,6 +45,7 @@ impl From<CodeGeneratorError> for AppFFIError {
             CodeGeneratorError::RegexError(_) => Self::OtherError,
             CodeGeneratorError::RegexNoMatchError(_) => Self::OtherError,
             CodeGeneratorError::TeraError(_) => Self::OtherError,
+            CodeGeneratorError::DprintError(_) => Self::OtherError,
         }
     }
 }

@@ -1,9 +1,9 @@
 use std::{
-    fmt,
+    error, fmt,
     io::{self},
 };
-
-#[derive(thiserror::Error, Debug)]
+use thiserror::Error;
+#[derive(Error, Debug)]
 pub enum CodeGeneratorError {
     #[error(transparent)]
     FileError(#[from] std::io::Error),
@@ -13,6 +13,8 @@ pub enum CodeGeneratorError {
     RegexError(#[from] regex::Error),
     #[error("regex no match")]
     RegexNoMatchError(#[from] RegexNoMatchError),
+    #[error("{0}")]
+    DprintError(String),
 }
 #[derive(Debug)]
 pub struct RegexNoMatchError;
@@ -23,7 +25,7 @@ impl fmt::Display for RegexNoMatchError {
 }
 impl From<io::Error> for RegexNoMatchError {
     fn from(error: io::Error) -> Self {
-        println!("{}",error);
+        println!("{}", error);
         RegexNoMatchError {}
     }
 }

@@ -5,6 +5,7 @@ use std::{
     fs::{create_dir, File},
     io::{ErrorKind, Read},
     os::windows::prelude::FileExt,
+    path::Path,
 };
 extern crate inflector;
 use inflector::Inflector;
@@ -19,7 +20,7 @@ use crate::{
     TEMPLATES,
 };
 
-use super::{find, format_code, open_file};
+use super::{find, format_code, format_single_file, generate_template, open_file};
 
 #[derive(Debug)]
 pub struct Entity {
@@ -31,6 +32,26 @@ pub struct Entity {
     plural_name: String, //复数名字
     properties: HashMap<String, String>,
     changed_files: RefCell<Vec<String>>,
+}
+//创建实体文件
+impl Entity {
+    pub fn create_entity(
+        namespace: String,
+        id_type: String,
+        name: String,
+        dir: String,
+    ) -> Result<(), Box<dyn Error>> {
+        let name = name.to_title_case();
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv.insert("namespace", Box::new(namespace));
+        kv.insert("entityName", Box::new(&name));
+        kv.insert("type", Box::new(id_type));
+        let file_full_path =
+            vec![dir.trim_end_matches('\\'), format!("{}.cs", name).as_str()].join("\\");
+        let file_full_path = generate_template(kv, "Domain/Entity.cs", &file_full_path)?;
+        format_single_file(file_full_path)?;
+        Ok(())
+    }
 }
 
 impl Entity {
@@ -439,6 +460,7 @@ impl Entity {
     }
 }
 
+//生成模板
 impl Entity {
     fn generate_template<T>(
         &self,
@@ -472,6 +494,7 @@ impl Entity {
         Ok(file_path)
     }
 }
+// 格式化
 impl Entity {
     pub fn format_all(&self) {
         let files = self.changed_files.borrow().to_vec();

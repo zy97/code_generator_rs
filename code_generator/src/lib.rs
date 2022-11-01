@@ -1,8 +1,6 @@
 use std::collections::HashMap;
-
 use inflector::Inflector;
 use tera::{to_value, try_get_value, Tera, Value};
-extern crate encoding;
 mod entities;
 mod error;
 pub use entities::Entity;
