@@ -301,7 +301,7 @@ struct PermissionDetail {
     permission_name: Vec<String>,
 }
 impl Permission {
-    pub fn format_all(&self) {
+    pub fn format_all(&self) -> Result<(), CodeGeneratorError> {
         let files = self.changed_files.borrow().to_vec();
         format_code(self.solution_dir.clone(), files)
     }

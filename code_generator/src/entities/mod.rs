@@ -110,9 +110,9 @@ fn get_properties(content: &str) -> Result<HashMap<String, String>, CodeGenerato
     }
     Ok(kv)
 }
-fn format_code(work_dir: String, files: Vec<String>) {
+fn format_code(work_dir: String, files: Vec<String>) -> Result<(), CodeGeneratorError> {
     if files.len() == 0 {
-        return;
+        return Ok(());
     }
     let output = Command::new("cmd")
         .arg("/c")
@@ -121,8 +121,12 @@ fn format_code(work_dir: String, files: Vec<String>) {
         .stdout(Stdio::piped())
         .output()
         .expect("cmd exec error!");
-    println!("{}", &output.status);
-    println!("{}", String::from_utf8_lossy(&output.stderr));
+    if &output.status == &ExitStatus::from_raw(1) {
+        let (output, ..) = UTF_8.decode(&output.stderr);
+        return Err(CodeGeneratorError::DprintError(output.to_string()));
+    }
+    eprintln!("{:?} format successful!", files);
+    Ok(())
 }
 fn format_single_file(file: String) -> Result<(), CodeGeneratorError> {
     let work_dir = Path::new(&file).parent().unwrap().display().to_string();

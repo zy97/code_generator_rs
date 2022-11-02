@@ -5,7 +5,6 @@ use std::{
     fs::{create_dir, File},
     io::{ErrorKind, Read},
     os::windows::prelude::FileExt,
-    path::Path,
 };
 extern crate inflector;
 use inflector::Inflector;
@@ -40,7 +39,7 @@ impl Entity {
         id_type: String,
         name: String,
         dir: String,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<String, Box<dyn Error>> {
         let name = name.to_title_case();
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(namespace));
@@ -49,8 +48,8 @@ impl Entity {
         let file_full_path =
             vec![dir.trim_end_matches('\\'), format!("{}.cs", name).as_str()].join("\\");
         let file_full_path = generate_template(kv, "Domain/Entity.cs", &file_full_path)?;
-        format_single_file(file_full_path)?;
-        Ok(())
+        format_single_file(file_full_path.clone())?;
+        Ok(file_full_path)
     }
 }
 
@@ -94,112 +93,73 @@ impl Entity {
             Err(err) => Err(err.into()),
         }
     }
-    pub fn create_dto(&self) -> Result<(), CodeGeneratorError> {
+    pub fn create_dto(&self, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("properties", Box::new(&self.properties));
-
-        let application_contracts_dir = find(&self.src_dir, ".Application.Contracts", false)
-            .path()
-            .display()
-            .to_string();
-
-        self.create_dir(&application_contracts_dir)?;
-        let path = self.generate_template(
-            kv,
-            "Application.Contracts/Dto.cs",
-            &application_contracts_dir,
-            format!("{}Dto.cs", self.name),
-        )?;
+        let dto_path = format!("{}\\{}Dto.cs", dir.trim_end_matches('\\'), self.name);
+        let path = generate_template(kv, "Application.Contracts/Dto.cs", &dto_path)?;
         self.add_file_change_log(path);
         Ok(())
     }
 
-    pub fn create_repository_interface(&self) -> Result<(), CodeGeneratorError> {
+    pub fn create_repository_interface(&self, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("entities", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("generic_type", Box::new(&self.id_type));
 
-        let domain_dir = find(&self.src_dir, ".Domain", false)
-            .path()
-            .display()
-            .to_string();
-
-        self.create_dir(&domain_dir)?;
-        let path = self.generate_template(
-            kv,
-            "Domain/IRepository.cs",
-            &domain_dir,
-            format!("I{}Repository.cs", self.name),
-        )?;
+        let irepository_dir = format!(
+            "{}\\I{}Repository.cs",
+            dir.trim_end_matches('\\'),
+            self.name
+        );
+        let path = generate_template(kv, "Domain/IRepository.cs", &irepository_dir)?;
         self.add_file_change_log(path);
         Ok(())
     }
 
-    pub fn create_manager(&self) -> Result<(), CodeGeneratorError> {
+    pub fn create_manager(&self, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("entities", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
 
-        let domain_dir = find(&self.src_dir, ".Domain", false)
-            .path()
-            .display()
-            .to_string();
-
-        self.create_dir(&domain_dir)?;
-        let path = self.generate_template(
-            kv,
-            "Domain/Manager.cs",
-            &domain_dir,
-            format!("{}Manager.cs", self.name),
-        )?;
+        let imanager_dir = format!("{}\\{}Manager.cs", dir.trim_end_matches('\\'), self.name);
+        let path = generate_template(kv, "Domain/Manager.cs", &imanager_dir)?;
         self.add_file_change_log(path);
         Ok(())
     }
 
     pub fn create_exception(
         &self,
-        exception_name: Option<String>,
-        exception_code: Option<String>,
-        exception_display_text: Option<String>,
+        exception_name: String,
+        dir: String,
     ) -> Result<(), CodeGeneratorError> {
-        let exception_name = exception_name.unwrap_or("Template".to_owned());
-        let exception_code = exception_code.unwrap_or("TemplateCode".to_owned());
-        let exception_display_text =
-            exception_display_text.unwrap_or("TemplateDiaplayText".to_owned());
+        let mut exception_name = exception_name;
+        if !exception_name.ends_with("Exception") {
+            exception_name.push_str("Exception");
+        }
+        if !exception_name.starts_with(&self.name) {
+            exception_name.insert_str(0, &self.name);
+        }
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("entities", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("exception_name", Box::new(&exception_name));
-        let error_code_file = find(&self.src_dir, "DomainErrorCodes.cs", true)
-            .path()
-            .display()
-            .to_string();
-        let code = read_file(&error_code_file)?;
-        let class_name = get_class_name(&code)?;
-        kv.insert("error_codes", Box::new(class_name));
+        kv.insert(
+            "project_name",
+            Box::new(self.namespace.split('.').last().unwrap()),
+        );
 
-        let domain_dir = find(&self.src_dir, ".Domain", false)
-            .path()
-            .display()
-            .to_string();
+        let exception_dir = format!("{}\\{}.cs", dir.trim_end_matches('\\'), exception_name);
 
-        self.create_dir(&domain_dir)?;
-        let path = self.generate_template(
-            kv,
-            "Domain/Exception.cs",
-            &domain_dir,
-            format!("{}{}Exception.cs", self.name, exception_name),
-        )?;
-        self.insert_error_code(&exception_name, exception_code.clone())?;
-        self.insert_dispaly_text(exception_code.clone(), exception_display_text)?;
+        let path = generate_template(kv, "Domain/Exception.cs", &exception_dir)?;
         self.add_file_change_log(path);
         Ok(())
     }
@@ -250,74 +210,61 @@ impl Entity {
         self.add_file_change_log(json_file.to_owned());
         Ok(())
     }
-    pub fn create_createorupdatedto(&self) -> Result<(), CodeGeneratorError> {
+    pub fn create_createorupdatedto(&self, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("properties", Box::new(&self.properties));
-        let application_contracts_dir = find(&self.src_dir, ".Application.Contracts", false)
-            .path()
-            .display()
-            .to_string();
-
-        self.create_dir(&application_contracts_dir)?;
-        let path = self.generate_template(
+        let create_or_update_dto_path = format!(
+            "{}\\CreateOrUpdate{}Dto.cs",
+            dir.trim_end_matches('\\'),
+            self.name
+        );
+        let path = generate_template(
             kv,
             "Application.Contracts/CreateOrUpdateDto.cs",
-            &application_contracts_dir,
-            format!("CreateOrUpdate{}Dto.cs", self.name),
+            &create_or_update_dto_path,
         )?;
         self.add_file_change_log(path);
         Ok(())
     }
 
-    pub fn create_pagedandsortedandfilterresultdto(&self) -> Result<(), CodeGeneratorError> {
+    pub fn create_pagedandsortedandfilterresultdto(
+        &self,
+        dir: String,
+    ) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("properties", Box::new(&self.properties));
-        let application_contracts_dir = find(&self.src_dir, ".Application.Contracts", false)
-            .path()
-            .display()
-            .to_string();
-
-        self.create_dir(&application_contracts_dir)?;
-        let path = self.generate_template(
+        let page_request_dto = format!(
+            "{}\\PagedAndSortedAndFilteredResultRequestDto.cs",
+            dir.trim_end_matches('\\'),
+        );
+        let path = generate_template(
             kv,
             "Application.Contracts/PagedAndSortedAndFilteredResultRequestDto.cs",
-            &application_contracts_dir,
-            String::from("PagedAndSortedAndFilteredResultRequestDto.cs"),
+            &page_request_dto,
         )?;
         self.add_file_change_log(path);
         Ok(())
     }
 
-    pub fn create_iservice(&self, custom: bool) -> Result<(), CodeGeneratorError> {
+    pub fn create_iservice(&self, custom: bool, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("custom", Box::new(custom));
-        let application_contracts_dir = find(&self.src_dir, ".Application.Contracts", false)
-            .path()
-            .display()
-            .to_string();
-
-        self.create_dir(&application_contracts_dir)?;
-
-        let path = self.generate_template(
-            kv,
-            "Application.Contracts/IService.cs",
-            &application_contracts_dir,
-            format!("I{}Service.cs", self.name),
-        )?;
+        let iservice_dir = format!("{}\\I{}Service.cs", dir.trim_end_matches('\\'), self.name);
+        let path = generate_template(kv, "Application.Contracts/IService.cs", &iservice_dir)?;
         self.add_file_change_log(path);
         Ok(())
     }
 
-    pub fn create_service(&self, custom: bool) -> Result<(), CodeGeneratorError> {
+    pub fn create_service(&self, custom: bool, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("entity", Box::new(&self.name));
@@ -325,23 +272,13 @@ impl Entity {
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("properties", Box::new(&self.properties));
         kv.insert("custom", Box::new(custom));
-        let application_dir = find(&self.src_dir, ".Application", false)
-            .path()
-            .display()
-            .to_string();
-
-        self.create_dir(&application_dir)?;
-        let path = self.generate_template(
-            kv,
-            "Application/Service.cs",
-            &application_dir,
-            format!("{}Service.cs", &self.name),
-        )?;
+        let service_dir = format!("{}\\{}Service.cs", dir.trim_end_matches('\\'), self.name);
+        let path = generate_template(kv, "Application/Service.cs", &service_dir)?;
         self.add_file_change_log(path);
         Ok(())
     }
 
-    pub fn create_ef_repository(&self) -> Result<(), CodeGeneratorError> {
+    pub fn create_ef_repository(&self, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("entity", Box::new(&self.name));
@@ -354,28 +291,19 @@ impl Entity {
         let dbcontext_code = read_file(&dbcontext_path)?;
         let dbconetxt_class_name = get_class_name(&dbcontext_code)?;
         kv.insert("dbcontext", Box::new(dbconetxt_class_name));
-        let ef_core_dir = find(&self.src_dir, ".EntityFrameworkCore", false)
-            .path()
-            .display()
-            .to_string();
 
-        self.create_dir(&ef_core_dir)?;
-        let path = self.generate_template(
-            kv,
-            "EfCore/EfCoreRepository.cs",
-            &ef_core_dir,
-            format!("EfCore{}Repository.cs", &self.name),
-        )?;
+        let ef_core_dir = format!(
+            "{}\\EfCore{}Repository.cs",
+            dir.trim_end_matches('\\'),
+            self.name
+        );
+        let path = generate_template(kv, "EfCore/EfCoreRepository.cs", &ef_core_dir)?;
         self.add_file_change_log(path);
         Ok(())
     }
 
-    pub fn insert_mapper(&self) -> Result<(), CodeGeneratorError> {
-        let mapper_file_path = find(&self.src_dir, "ApplicationAutoMapperProfile.cs", true);
-
-        let mapper_file_path = mapper_file_path.path().to_str().unwrap();
-
-        let mut file = open_file(mapper_file_path)?;
+    pub fn insert_mapper(&self, mapper_file_path: String) -> Result<(), CodeGeneratorError> {
+        let mut file = open_file(&mapper_file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
@@ -398,12 +326,11 @@ impl Entity {
         Ok(())
     }
 
-    pub fn insert_efcore_entity_config(&self) -> Result<(), CodeGeneratorError> {
-        let dbcontext_path = find(&self.src_dir, "DbContext.cs", true)
-            .path()
-            .display()
-            .to_string();
-        let mut file = open_file(&dbcontext_path)?;
+    pub fn insert_efcore_entity_config(
+        &self,
+        db_context_file: String,
+    ) -> Result<(), CodeGeneratorError> {
+        let mut file = open_file(&db_context_file)?;
         let mut code = String::new();
         file.read_to_string(&mut code)?;
         let insert_dbset_property = format!(
@@ -424,16 +351,10 @@ impl Entity {
             format!("{}\r\n", insert_dbset_property).as_str(),
         );
         let config_index = code.rfind(';').unwrap();
-        let domain_dir = find(&self.src_dir, ".Domain", false)
-            .path()
-            .display()
-            .to_string();
-        let consts_path = find(&domain_dir, "Consts.cs", true)
-            .path()
-            .display()
-            .to_string();
-        let consts_code = read_file(&consts_path)?;
-        let consts_class_name = get_class_name(&consts_code)?;
+        let db_context_consts_class_name = format!(
+            "{}Consts",
+            &self.namespace.split('.').into_iter().last().unwrap()
+        );
         let insert_config = format!(
             r###"
             builder.Entity<{}>(b =>
@@ -446,11 +367,11 @@ impl Entity {
                         //b.Property(i => i.Url).IsRequired().HasMaxLength(FriendLinkConst.MaxUrlLength);
             }});
                  "###,
-            self.name, self.plural_name, consts_class_name
+            self.name, self.plural_name, db_context_consts_class_name
         );
         code.insert_str(config_index + 2, format!("\r\n{}", insert_config).as_str());
         file.seek_write(code.as_bytes(), 0)?;
-        self.add_file_change_log(dbcontext_path);
+        self.add_file_change_log(db_context_file);
         Ok(())
     }
 
@@ -494,9 +415,10 @@ impl Entity {
         Ok(file_path)
     }
 }
+
 // 格式化
 impl Entity {
-    pub fn format_all(&self) {
+    pub fn format_all(&self) -> Result<(), CodeGeneratorError> {
         let files = self.changed_files.borrow().to_vec();
         format_code(self.solution_dir.clone(), files)
     }

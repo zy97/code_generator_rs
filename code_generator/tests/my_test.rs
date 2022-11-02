@@ -56,31 +56,56 @@ mod tests {
 
     #[test]
     fn csharp_entity_test() {
-        let dir = std::env::current_dir().unwrap();
-        eprintln!("dir: {}", dir.display());
-        //不能运行测试，只能运行调试，不然找不到模板
-        Entity::create_entity(
+        //调试测试是运行在工作空间根目录，运行测试则是在code_generator目录下,所有运行测试会找不到模板
+        let entity_dir = String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Domain\Tests");
+        let entity_dto_dir =
+            String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Tests");
+        let service_dir = String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\Tests");
+        let mapper_file_path = String::from(
+            r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\BlogApplicationAutoMapperProfile.cs",
+        );
+        let ef_core_repository_file_path =
+            String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.EntityFrameworkCore\Tests");
+
+        let db_context_file_path = String::from(
+            r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.EntityFrameworkCore\EntityFrameworkCore\BlogDbContext.cs",
+        );
+
+        let entity_path = Entity::create_entity(
             "Bom.Blog.Tests".to_string(),
             "Guid".to_string(),
             "Test".to_string(),
-            r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Domain\Tests\".to_string(),
+            entity_dir.clone(),
         )
         .unwrap();
-        // let entity_path = r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Domain\Tests\Test.cs".to_owned();
-        // let entity = Entity::new(entity_path).unwrap();
-        // println!("entity:{:#?}", entity);
-        // let custom = true;
-        // entity.create_dto().unwrap();
-        // entity.create_createorupdatedto().unwrap();
-        // entity.create_pagedandsortedandfilterresultdto().unwrap();
-        // entity.create_iservice(custom).unwrap();
-        // entity.create_service(custom).unwrap();
-        // entity.insert_mapper().unwrap();
-        // entity.create_repository_interface().unwrap();
-        // entity.create_manager().unwrap();
-        // entity.create_exception(Some("AlreadyExist".to_owned()),Some("xxxxxx".to_owned()),Some("tttttttttt".to_owned())).unwrap();
-        // entity.create_ef_repository().unwrap();
-        // entity.insert_efcore_entity_config().unwrap();
-        // entity.format_all();
+        let entity = Entity::new(entity_path).unwrap();
+        println!("entity:{:#?}", entity);
+        entity.create_dto(entity_dto_dir.clone()).unwrap();
+        entity
+            .create_createorupdatedto(entity_dto_dir.clone())
+            .unwrap();
+        entity
+            .create_pagedandsortedandfilterresultdto(entity_dto_dir.clone())
+            .unwrap();
+        let custom = false;
+        entity
+            .create_iservice(custom, entity_dto_dir.clone())
+            .unwrap();
+        entity.create_service(custom, service_dir).unwrap();
+        entity.insert_mapper(mapper_file_path).unwrap();
+        entity
+            .create_repository_interface(entity_dir.clone())
+            .unwrap();
+        entity.create_manager(entity_dir.clone()).unwrap();
+        entity
+            .create_exception("Some".to_owned(), entity_dir.clone())
+            .unwrap();
+        entity
+            .create_ef_repository(ef_core_repository_file_path)
+            .unwrap();
+        entity
+            .insert_efcore_entity_config(db_context_file_path)
+            .unwrap();
+        entity.format_all();
     }
 }
