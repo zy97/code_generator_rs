@@ -20,7 +20,6 @@ use super::{find, format_code, open_file, read_file};
 #[derive(Debug)]
 pub struct WebEntity {
     entity_name: String,
-    url_prefix: String,
     src_dir: String,
     properties: Vec<(String, String)>,
     queries: Vec<(String, String)>,
@@ -73,7 +72,6 @@ impl WebEntity {
 
         Ok(WebEntity {
             entity_name,
-            url_prefix: "".to_owned(),
             src_dir,
             properties,
             changed_files: RefCell::new(vec![]),

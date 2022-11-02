@@ -3,8 +3,6 @@ mod tests {
     use code_generator::Entity;
     use code_generator::Permission;
     use code_generator::WebEntity;
-    use std::process::Command;
-    use std::process::Stdio;
 
     #[test]
     fn init_web_entity() {
@@ -40,18 +38,6 @@ mod tests {
         //         "permission",
         //     )
         //     .unwrap();
-    }
-
-    #[test]
-    fn cmd() {
-        let output = Command::new("cmd")
-            // .creation_flags(0x08000000)
-            .arg("/c")
-            .arg("ping baidu.com")
-            .stdout(Stdio::piped())
-            .output()
-            .expect("cmd exec error!");
-        println!("{}", String::from_utf8_lossy(&output.stdout));
     }
 
     #[test]
