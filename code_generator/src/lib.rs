@@ -1,5 +1,6 @@
-use std::collections::HashMap;
 use inflector::Inflector;
+use log::info;
+use std::collections::HashMap;
 use tera::{to_value, try_get_value, Tera, Value};
 mod entities;
 mod error;
@@ -15,7 +16,7 @@ lazy_static! {
         let mut tera = match Tera::new("templates/**/*") {
             Ok(t) => t,
             Err(e) => {
-                println!("Parsing error(s): {}", e);
+                eprintln!("Parsing error(s): {}", e);
                 ::std::process::exit(1);
             }
         };
@@ -23,7 +24,7 @@ lazy_static! {
         // tera.autoescape_on(vec![".ts", ".tsx"]);
         tera.register_filter("snake", snake);
         tera.register_filter("plural", plural);
-        println!("{:?}",tera);
+       info!("{:?}",tera);
         tera
     };
 }

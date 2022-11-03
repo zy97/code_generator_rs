@@ -7,17 +7,19 @@ mod tests {
     #[test]
     fn init_web_entity() {
         let dto_dir = String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\data\models");
-        WebEntity::create_dto("testAppledto".to_owned(), dto_dir).unwrap();
-        // let web_entity_path =
-        //     r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\data\models\Test.ts".to_owned();
-        // let web_entity = WebEntity::new(web_entity_path).unwrap();
+        let dto_path = String::from(
+            r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\data\models\testApple.ts",
+        );
+        // WebEntity::create_dto("testAppledto".to_owned(), dto_dir).unwrap();
+
+        let web_entity = WebEntity::new(dto_path).unwrap();
         // web_entity
         //     .crteate_api("/api/app/audit-log".to_string())
         //     .unwrap();
         // web_entity.create_store().unwrap();
         // web_entity.create_page().unwrap();
         // web_entity.format_all();
-        // println!("web entity:{:#?}", web_entity);
+        println!("web entity:{:#?}", web_entity);
     }
 
     #[test]

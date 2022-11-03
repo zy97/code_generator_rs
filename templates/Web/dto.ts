@@ -9,9 +9,9 @@ export interface {{dto_name}}CreateDto extends {{dto_name}}CreateOrUpdateDtoBase
 
 }
 export interface {{dto_name}}UpdateDto extends {{dto_name}}CreateOrUpdateDtoBase {
-    concurrencyStamp?: string;
+                concurrencyStamp?: string;
 }
 export interface Get{{dto_name}}Input extends PagedAndSortedResultRequestDto {
-    filter?: string;
+                                filter?: string;
 }
 

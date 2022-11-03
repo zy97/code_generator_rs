@@ -21,8 +21,11 @@ use super::{find, format_code, format_single_file, generate_template, open_file,
 pub struct WebEntity {
     entity_name: String,
     src_dir: String,
-    properties: Vec<(String, String)>,
+    dto: Vec<(String, String)>,
     queries: Vec<(String, String)>,
+    create_or_update_base: Vec<(String, String)>,
+    create: Vec<(String, String)>,
+    update: Vec<(String, String)>,
     solution_dir: String,
     changed_files: RefCell<Vec<String>>,
 }
@@ -36,7 +39,6 @@ impl WebEntity {
         kv.insert("dto_name", Box::new(name));
         let path = generate_template(kv, "Web/dto.ts", &file_path)?;
         format_single_file(path)?;
-
         Ok(())
     }
 }
@@ -44,50 +46,57 @@ impl WebEntity {
 impl WebEntity {
     pub fn new(path: String) -> Result<Self, CodeGeneratorError> {
         let file = Path::new(&path);
-        let entity_name = file.file_stem().unwrap().to_str().unwrap().to_string();
+        let entity_name = file
+            .file_stem()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
+            .to_pascal_case();
 
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().rposition(|&i| i.contains("src")).unwrap();
         let solution_dir = src_dir[..(src_index)].join("\\");
         let src_dir = src_dir[..(src_index + 1)].join("\\");
-        let mut properties = vec![];
         let code = read_file(&path)?;
-        let re = Regex::new(r"([a-zA-Z]+): ([a-zA-Z]+);")?;
-        for caps in re.captures_iter(code.as_str()) {
-            properties.push((
-                caps.get(1).unwrap().as_str().to_owned(),
-                caps.get(2).unwrap().as_str().to_owned(),
-            ));
-        }
-        let mut queries = vec![];
-        let search = format!(
-            r"export interface Search{}Dto extends PageRequest \{{([\s\S]+?)}}",
+
+        let dto = format!(
+            r"export interface {}Dto extends ExtensibleEntityDto<string>",
             entity_name
         );
-        let re = Regex::new(&search)?;
-        let captures = re.captures(code.as_str());
-        if let Some(captures) = captures {
-            let search = captures.get(1).unwrap().as_str();
-            let sdf = search.lines().filter(|s| !s.is_empty()).filter_map(|f| {
-                if f.contains(':') {
-                    let mut items = f.split(':');
-                    let x: &[_] = &[',', ' '];
-                    return Some((
-                        items.next().unwrap().trim().to_string(),
-                        items.next().unwrap().trim_matches(x).to_string(),
-                    ));
-                }
-                return None;
-            });
-            queries.append(sdf.collect::<Vec<(String, String)>>().as_mut());
-        }
+        let dto = get_range_propperties(code.clone(), dto)?;
 
-        println!("search_code:{:?}", queries);
+        let queries = format!(
+            r"export interface Get{}Input extends PagedAndSortedResultRequestDto",
+            entity_name
+        );
+        let queries = get_range_propperties(code.clone(), queries)?;
+
+        let create = format!(
+            r"export interface {}CreateDto extends TestAppleCreateOrUpdateDtoBase",
+            entity_name
+        );
+        let create = get_range_propperties(code.clone(), create)?;
+
+        let update = format!(
+            r"export interface {}UpdateDto extends TestAppleCreateOrUpdateDtoBase",
+            entity_name
+        );
+        let update = get_range_propperties(code.clone(), update)?;
+
+        let create_or_update_base = format!(
+            r"export interface {}CreateOrUpdateDtoBase extends ExtensibleObject",
+            entity_name
+        );
+        let create_or_update_base = get_range_propperties(code.clone(), create_or_update_base)?;
 
         Ok(WebEntity {
             entity_name,
+            create,
+            update,
+            create_or_update_base,
             src_dir,
-            properties,
+            dto,
             changed_files: RefCell::new(vec![]),
             solution_dir,
             queries,
@@ -189,7 +198,7 @@ impl WebEntity {
     pub fn create_page(&self) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<String, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("entity".to_string(), Box::new(&self.entity_name));
-        kv.insert("properties".to_string(), Box::new(&self.properties));
+        kv.insert("properties".to_string(), Box::new(&self.dto));
         kv.insert("queries".to_string(), Box::new(&self.queries));
 
         let pages = find(&self.src_dir, "Pages", false)
@@ -248,4 +257,30 @@ impl WebEntity {
         let files = self.changed_files.borrow().to_vec();
         format_code(self.solution_dir.clone(), files)
     }
+}
+
+fn get_range_propperties(
+    code: String,
+    prefix_code: String,
+) -> Result<Vec<(String, String)>, CodeGeneratorError> {
+    let mut queries = vec![];
+    let search = format!(r"{} \{{([\s\S]+?)}}", prefix_code);
+    let re = Regex::new(&search)?;
+    let captures = re.captures(code.as_str());
+    if let Some(captures) = captures {
+        let search = captures.get(1).unwrap().as_str();
+        let sdf = search.lines().filter(|s| !s.is_empty()).filter_map(|f| {
+            if f.contains(':') {
+                let mut items = f.split(':');
+                let x: &[_] = &[',', ' '];
+                return Some((
+                    items.next().unwrap().trim().to_string(),
+                    items.next().unwrap().trim_matches(x).to_string(),
+                ));
+            }
+            return None;
+        });
+        queries.append(sdf.collect::<Vec<(String, String)>>().as_mut());
+    }
+    Ok(queries)
 }
