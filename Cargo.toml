@@ -1,7 +1,7 @@
 [workspace]
-members = ["code_generator", "csharp_binding"]
+members = ["code_generator"]
 default-members = ["code_generator"]
-
+# "csharp_binding"
 [profile.release]
 strip = true
 opt-level = "z"

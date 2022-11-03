@@ -15,7 +15,7 @@ use tera::Context;
 
 use crate::{error::CodeGeneratorError, TEMPLATES};
 
-use super::{find, format_code, open_file, read_file};
+use super::{find, format_code, format_single_file, generate_template, open_file, read_file};
 
 #[derive(Debug)]
 pub struct WebEntity {
@@ -25,6 +25,20 @@ pub struct WebEntity {
     queries: Vec<(String, String)>,
     solution_dir: String,
     changed_files: RefCell<Vec<String>>,
+}
+impl WebEntity {
+    pub fn create_dto(dto_name: String, dir: String) -> Result<(), CodeGeneratorError> {
+        let name = dto_name.to_pascal_case();
+        let name = name.trim_end_matches("Dto").trim_end_matches("dto");
+        let file_name = format!("{}.ts", name.to_camel_case());
+        let file_path = format!("{}/{}", dir.trim_end_matches('\\'), file_name);
+        let mut kv = HashMap::new();
+        kv.insert("dto_name", Box::new(name));
+        let path = generate_template(kv, "Web/dto.ts", &file_path)?;
+        format_single_file(path)?;
+
+        Ok(())
+    }
 }
 
 impl WebEntity {
@@ -89,10 +103,10 @@ impl WebEntity {
     }
 
     pub fn create_api(&self, url_prefix: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("entity", Box::new(&self.entity_name));
-        kv.insert("url_prefix", Box::new(url_prefix));
-        kv.insert("queries", Box::new(&self.queries));
+        let mut kv: HashMap<String, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv.insert("entity".to_string(), Box::new(&self.entity_name));
+        kv.insert("url_prefix".to_string(), Box::new(url_prefix));
+        kv.insert("queries".to_string(), Box::new(&self.queries));
 
         let api_dir = find(&self.src_dir, "apis", false)
             .path()
@@ -129,7 +143,7 @@ impl WebEntity {
     }
     pub fn create_store(&self) -> Result<(), CodeGeneratorError> {
         let mut kv = HashMap::new();
-        kv.insert("entity", Box::new(&self.entity_name));
+        kv.insert("entity".to_string(), Box::new(&self.entity_name));
 
         let stores_dir = find(&self.src_dir, "stores", false)
             .path()
@@ -173,10 +187,10 @@ impl WebEntity {
         Ok(())
     }
     pub fn create_page(&self) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("entity", Box::new(&self.entity_name));
-        kv.insert("properties", Box::new(&self.properties));
-        kv.insert("queries", Box::new(&self.queries));
+        let mut kv: HashMap<String, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv.insert("entity".to_string(), Box::new(&self.entity_name));
+        kv.insert("properties".to_string(), Box::new(&self.properties));
+        kv.insert("queries".to_string(), Box::new(&self.queries));
 
         let pages = find(&self.src_dir, "Pages", false)
             .path()
@@ -198,7 +212,7 @@ impl WebEntity {
 impl WebEntity {
     fn generate_template<T>(
         &self,
-        kv: HashMap<&str, Box<T>>,
+        kv: HashMap<String, Box<T>>,
         template_name: &str,
         dir: &str,
         file_name: String,

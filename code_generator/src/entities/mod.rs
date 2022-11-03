@@ -26,7 +26,6 @@ use crate::{
     error::{CodeGeneratorError, RegexNoMatchError},
     TEMPLATES,
 };
-
 fn read_file(file: &str) -> Result<String, CodeGeneratorError> {
     let mut file = File::open(file)?;
     let mut code = vec![];
