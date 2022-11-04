@@ -1,4 +1,4 @@
-use super::{find, format_code, get_class_name, read_file};
+use super::{format_code, get_class_name, read_file};
 use crate::{
     entities::open_file,
     error::{CodeGeneratorError, RegexNoMatchError},
@@ -9,14 +9,7 @@ use std::{cell::RefCell, io::Read, os::windows::prelude::FileExt, vec};
 
 #[derive(Debug)]
 pub struct Permission {
-    // namespace: String,
-    // id_type: String,
-    // name: String,
-    src_dir: String,
     solution_dir: String,
-    // //复数名字
-    // plural_name: String,
-    // properties: String,
     groups: Vec<PermissionGroup>,
     permissions_class_name: String,
     changed_files: RefCell<Vec<String>>,
@@ -27,7 +20,6 @@ impl Permission {
         let src_dir = path.split('\\').collect::<Vec<&str>>();
         let src_index = src_dir.iter().rposition(|&i| i.contains("src")).unwrap();
         let solution_dir = src_dir[..(src_index)].join("\\");
-        let src_dir = src_dir[..(src_index + 1)].join("\\");
 
         let code = read_file(&path)?;
 
@@ -93,17 +85,17 @@ impl Permission {
         Ok(Permission {
             changed_files: RefCell::new(vec![]),
             groups,
-            src_dir,
             solution_dir,
             permissions_class_name,
         })
     }
 
-    pub fn add_group(&self, group: &str) -> Result<(), CodeGeneratorError> {
-        let permission_file_path = find(&self.src_dir, "Permissions.cs", true).unwrap();
-
-        let permission_file_path = permission_file_path.path().display().to_string();
-        let mut file = open_file(&permission_file_path)?;
+    pub fn add_group(
+        &self,
+        group_name: String,
+        file_path: String,
+    ) -> Result<(), CodeGeneratorError> {
+        let mut file = open_file(&file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
@@ -115,24 +107,23 @@ impl Permission {
             .get(0)
             .unwrap()
             .range();
-        let insert_code = format!(r#"public const string {0}GroupName = "{0}";"#, group);
+        let insert_code = format!(r#"public const string {0}GroupName = "{0}";"#, group_name);
         if code.contains(&insert_code) {
             return Ok(());
         }
         code.insert_str(range.end + 2, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;
-        self.add_file_change_log(permission_file_path);
+        self.add_file_change_log(file_path);
         Ok(())
     }
 
-    pub fn add_permission(&self, group: &str, permission: &str) -> Result<(), CodeGeneratorError> {
-        let permission_file_path = find(&self.src_dir, "Permissions.cs", true)
-            .unwrap()
-            .path()
-            .display()
-            .to_string();
-
-        let mut file = open_file(&permission_file_path)?;
+    pub fn add_permission(
+        &self,
+        file_path: String,
+        group: String,
+        permission: String,
+    ) -> Result<(), CodeGeneratorError> {
+        let mut file = open_file(&file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
@@ -164,20 +155,17 @@ impl Permission {
         }
         code.insert_str(range.end + 2, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;
-        self.add_file_change_log(permission_file_path);
+        self.add_file_change_log(file_path);
         Ok(())
     }
 
     pub fn add_permission_to_provider(
         &self,
-        group: &str,
-        permission: &str,
+        file_path: String,
+        group: String,
+        permission: String,
     ) -> Result<(), CodeGeneratorError> {
-        let provider_file_path =
-            find(&self.src_dir, "PermissionDefinitionProvider.cs", true).unwrap();
-
-        let provider_file_path = provider_file_path.path().to_str().unwrap();
-        let mut file = open_file(provider_file_path)?;
+        let mut file = open_file(&file_path)?;
         let mut code = String::new();
 
         file.read_to_string(&mut code)?;
@@ -188,33 +176,30 @@ impl Permission {
         let insert_range = re.captures(&code).unwrap().get(1).unwrap().range();
 
         let insert_index = insert_range.end;
-
+        let group_code = format!(
+            "context.GetGroupOrNull({0}.{1});",
+            self.permissions_class_name, group
+        );
+        dbg!(group_code);
+        let group_var_name = self
+            .groups
+            .iter()
+            .find(|e| e.group_property_name == group)
+            .unwrap()
+            .group_property_value
+            .clone()
+            .to_camel_case()
+            + "Group";
         let group = format!(
             "var {2} = context.GetGroupOrNull({0}.{1});",
-            self.permissions_class_name,
-            group,
-            self.groups
-                .iter()
-                .find(|e| e.group_property_name == group)
-                .unwrap()
-                .group_property_value
-                .clone()
-                .to_camel_case()
-                + "Group"
+            self.permissions_class_name, group, group_var_name
         );
         match code.find(&group) {
             Some(group_index) => {
                 let default_permission = format!(
                     "var {3} = {1}.GetPermissionOrNull({0}.{2}.Default);",
                     self.permissions_class_name,
-                    self.groups
-                        .iter()
-                        .find(|e| e.group_property_name == group)
-                        .unwrap()
-                        .group_property_value
-                        .clone()
-                        .to_camel_case()
-                        + "Group",
+                    group_var_name,
                     permission,
                     permission.to_camel_case() + "DefaultPermission"
                 );
@@ -241,45 +226,9 @@ impl Permission {
         }}"###,
             self.permissions_class_name,
             group,
-            self.groups
-                .iter()
-                .find(|e| e.group_property_name == group)
-                .unwrap()
-                .group_property_value
-                .clone()
-                .to_camel_case()
-                + "Group",
+            group_var_name,
             permission,
             permission.to_camel_case() + "DefaultPermission"
-        );
-        code.insert_str(insert_index, &insert_code);
-        file.seek_write(code.as_bytes(), 0)?;
-        Ok(())
-    }
-
-    pub fn add_permission_to_service(
-        &self,
-        service_file: &str,
-        group: &str,
-        permission: &str,
-    ) -> Result<(), CodeGeneratorError> {
-        // let provider_file_path = find(&self.src_dir, "PermissionDefinitionProvider.cs", true);
-        println!("{},{}", group, permission);
-        // let provider_file_path = provider_file_path.path().to_str().unwrap();
-        let mut file = open_file(service_file)?;
-        let mut code = String::new();
-        file.read_to_string(&mut code)?;
-        let re = Regex::new(r#"public ([a-zA-Z])([\s\S]+?)}"#).unwrap();
-        let insert_index = re.captures(&code).unwrap().get(0).unwrap().range().end - 2;
-
-        let insert_code = format!(
-            r###"
-            this.UpdatePolicyName = BlogPermissions.Admin.Update;
-            this.DeletePolicyName = BlogPermissions.Admin.Delete;
-            this.CreatePolicyName = BlogPermissions.Admin.Create;
-            this.GetPolicyName = BlogPermissions.Admin.Default;
-            this.GetListPolicyName = BlogPermissions.Admin.Default;
-        "###
         );
         code.insert_str(insert_index, &insert_code);
         file.seek_write(code.as_bytes(), 0)?;

@@ -28,24 +28,28 @@ mod tests {
 
     #[test]
     fn read_permission_file() {
-        let permission = Permission::new(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Permissions\BlogPermissions.cs".to_owned()).unwrap();
+        let permission_provider_file = r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Permissions\BlogPermissionDefinitionProvider.cs".to_owned();
+        let permission_define_file = r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application.Contracts\Permissions\BlogPermissions.cs".to_owned();
+        let permission = Permission::new(permission_define_file.clone()).unwrap();
         println!("{:#?}", permission);
-        permission.add_group("Hello").unwrap();
         permission
-            .add_permission(format!("{}GroupName", "Hello").as_str(), "TestPermission")
+            .add_group("Hello".to_owned(), permission_define_file.clone())
             .unwrap();
         permission
-            .add_permission_to_provider("GroupName", "Admin")
+            .add_permission(
+                permission_define_file.clone(),
+                format!("{}GroupName", "Hello"),
+                "TestPermission".to_owned(),
+            )
             .unwrap();
-        permission.format_all().unwrap();
-
         // permission
-        //     .add_permission_to_service(
-        //         r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Application\Tags\TagService.cs",
-        //         "group",
-        //         "permission",
+        //     .add_permission_to_provider(
+        //         permission_provider_file,
+        //         "GroupName".to_owned(),
+        //         "Admin".to_owned(),
         //     )
         //     .unwrap();
+        permission.format_all().unwrap();
     }
 
     #[test]
