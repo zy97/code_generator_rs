@@ -1,25 +1,14 @@
 use std::{
-    cell::RefCell,
-    collections::HashMap,
-    error::Error,
-    fs::{create_dir, File},
-    io::{ErrorKind, Read},
-    os::windows::prelude::FileExt,
+    cell::RefCell, collections::HashMap, error::Error, io::Read, os::windows::prelude::FileExt,
 };
 extern crate inflector;
-use inflector::Inflector;
-use log::info;
-
-use serde::Serialize;
-use tera::Context;
-
+use super::{find, format_code, format_single_file, generate_template, open_file};
 use crate::{
     entities::{get_class_name, get_generic_type, get_namespace, get_properties, read_file},
     error::CodeGeneratorError,
-    TEMPLATES,
 };
-
-use super::{find, format_code, format_single_file, generate_template, open_file};
+use inflector::Inflector;
+use log::info;
 
 #[derive(Debug)]
 pub struct Entity {
@@ -85,14 +74,6 @@ impl Entity {
         })
     }
 
-    fn create_dir(&self, dir: &str) -> Result<(), CodeGeneratorError> {
-        let dir = format!("{}\\{}", dir, &self.plural_name);
-        match create_dir(dir) {
-            Ok(()) => Ok(()),
-            Err(err) if err.kind() == ErrorKind::AlreadyExists => Ok(()),
-            Err(err) => Err(err.into()),
-        }
-    }
     pub fn create_dto(&self, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
@@ -379,41 +360,6 @@ impl Entity {
     fn add_file_change_log(&self, path: String) {
         let mut changs = self.changed_files.borrow_mut();
         changs.push(path);
-    }
-}
-
-//生成模板
-impl Entity {
-    fn generate_template<T>(
-        &self,
-        kv: HashMap<&str, Box<T>>,
-        template_name: &str,
-        dir: &str,
-        file_name: String,
-    ) -> Result<String, CodeGeneratorError>
-    where
-        T: Serialize + ?Sized,
-    {
-        let file_path = vec![dir, self.plural_name.as_str(), file_name.as_str()].join("\\");
-
-        let mut context = Context::new();
-        for entity in kv {
-            context.insert(entity.0, &entity.1);
-        }
-
-        let file = File::create(&file_path)?;
-        match TEMPLATES.render_to(template_name, &context, file) {
-            Ok(()) => eprintln!("{} create successful!", file_path),
-            Err(e) => {
-                println!("Error: {}", e);
-                let mut cause = e.source();
-                while let Some(e) = cause {
-                    println!("Reason: {}", e);
-                    cause = e.source();
-                }
-            }
-        };
-        Ok(file_path)
     }
 }
 

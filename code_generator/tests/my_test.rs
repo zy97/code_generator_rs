@@ -37,7 +37,7 @@ mod tests {
         permission
             .add_permission_to_provider("GroupName", "Admin")
             .unwrap();
-        permission.format_all();
+        permission.format_all().unwrap();
 
         // permission
         //     .add_permission_to_service(
@@ -100,6 +100,6 @@ mod tests {
         entity
             .insert_efcore_entity_config(db_context_file_path)
             .unwrap();
-        entity.format_all();
+        entity.format_all().unwrap();
     }
 }

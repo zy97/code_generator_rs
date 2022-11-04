@@ -1,23 +1,15 @@
+use super::{find_index, format_code, format_single_file, generate_template, open_file, read_file};
+use crate::error::CodeGeneratorError;
 use inflector::Inflector;
 use regex::Regex;
-use serde::Serialize;
 use std::{
     cell::RefCell,
     collections::HashMap,
-    error::Error,
     fs::{create_dir, File},
     io::{self, ErrorKind, Read, Write},
     os::windows::prelude::FileExt,
     path::Path,
     vec,
-};
-use tera::Context;
-
-use crate::{error::CodeGeneratorError, TEMPLATES};
-
-use super::{
-    find, find_current_dir, find_index, format_code, format_single_file, generate_template,
-    open_file, read_file,
 };
 
 #[derive(Debug)]
@@ -201,40 +193,6 @@ impl WebEntity {
     fn add_file_change_log(&self, path: String) {
         let mut changs = self.changed_files.borrow_mut();
         changs.push(path);
-    }
-}
-
-impl WebEntity {
-    fn generate_template<T>(
-        &self,
-        kv: HashMap<String, Box<T>>,
-        template_name: &str,
-        dir: &str,
-        file_name: String,
-    ) -> Result<String, CodeGeneratorError>
-    where
-        T: Serialize + ?Sized,
-    {
-        let file_path = vec![dir, file_name.as_str()].join("\\");
-
-        let mut context = Context::new();
-        for entity in kv {
-            context.insert(entity.0, &entity.1);
-        }
-
-        let file = File::create(&file_path)?;
-        match TEMPLATES.render_to(template_name, &context, file) {
-            Ok(()) => println!("{} write success", file_path),
-            Err(e) => {
-                println!("Error: {}", e);
-                let mut cause = e.source();
-                while let Some(e) = cause {
-                    println!("Reason: {}", e);
-                    cause = e.source();
-                }
-            }
-        };
-        Ok(file_path)
     }
 }
 

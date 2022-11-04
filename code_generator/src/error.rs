@@ -1,5 +1,5 @@
 use std::{
-    error, fmt,
+    fmt,
     io::{self},
 };
 use thiserror::Error;
