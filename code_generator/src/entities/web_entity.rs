@@ -111,25 +111,20 @@ impl WebEntity {
         }
     }
 
-    pub fn create_api(&self, url_prefix: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<String, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("entity".to_string(), Box::new(&self.entity_name));
-        kv.insert("url_prefix".to_string(), Box::new(url_prefix));
-        kv.insert("queries".to_string(), Box::new(&self.queries));
+    pub fn create_api(&self, url_prefix: String, dir: String) -> Result<(), CodeGeneratorError> {
+        let mut kv = HashMap::new();
+        kv.insert("entity", Box::new(&self.entity_name));
+        kv.insert("url_prefix", Box::new(&url_prefix));
 
-        let api_dir = find(&self.src_dir, "apis", false)
-            .path()
-            .display()
-            .to_string();
+        let api_path = format!(
+            "{}/{}.ts",
+            dir.trim_end_matches('\\'),
+            self.entity_name.to_camel_case()
+        );
 
-        let path = self.generate_template(
-            kv,
-            "Web/api.ts",
-            &api_dir,
-            format!("{}.ts", self.entity_name),
-        )?;
+        let path = generate_template(kv, "Web/api.ts", &api_path)?;
         self.add_file_change_log(path);
-        self.export_api(&api_dir)?;
+        // self.export_api(&api_dir)?;
         Ok(())
     }
 
