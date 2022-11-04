@@ -12,6 +12,8 @@ mod tests {
         );
         let api_dir = String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\apis");
         let store_dir = String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\stores");
+        let page_dir =
+            String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\pages\BlogManage");
         // WebEntity::create_dto("testAppledto".to_owned(), dto_dir).unwrap();
 
         let web_entity = WebEntity::new(dto_path).unwrap();
@@ -19,7 +21,7 @@ mod tests {
             .create_api("/api/app/audit-log".to_string(), api_dir)
             .unwrap();
         web_entity.create_store(store_dir).unwrap();
-        // web_entity.create_page().unwrap();
+        web_entity.create_page(page_dir).unwrap();
         web_entity.format_all().unwrap();
         println!("web entity:{:#?}", web_entity);
     }

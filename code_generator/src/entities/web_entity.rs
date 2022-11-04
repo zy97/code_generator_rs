@@ -184,21 +184,17 @@ impl WebEntity {
         }
         Ok(())
     }
-    pub fn create_page(&self) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<String, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("entity".to_string(), Box::new(&self.entity_name));
-        kv.insert("properties".to_string(), Box::new(&self.dto));
-        kv.insert("queries".to_string(), Box::new(&self.queries));
-
-        let pages = find(&self.src_dir, "Pages", false)
-            .unwrap()
-            .path()
-            .display()
-            .to_string();
-
-        let page = format!("{}\\{}", pages, self.entity_name);
-        self.create_dir(&page)?;
-        let path = self.generate_template(kv, "Web/page.tsx", &page, String::from("index.tsx"))?;
+    pub fn create_page(&self, dir: String) -> Result<(), CodeGeneratorError> {
+        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv.insert("entity", Box::new(&self.entity_name));
+        kv.insert("properties", Box::new(&self.dto));
+        kv.insert("queries", Box::new(&self.queries));
+        let page_dir = format!("{}/{}", dir.trim_end_matches('\\'), self.entity_name);
+        let page_file_path = format!("{}/index.tsx", page_dir);
+        let less_file = format!("{}/index.module.less", page_dir);
+        self.create_dir(&page_dir)?;
+        let path = generate_template(kv, "Web/page.tsx", &page_file_path)?;
+        File::create(less_file)?;
         self.add_file_change_log(path);
         Ok(())
     }

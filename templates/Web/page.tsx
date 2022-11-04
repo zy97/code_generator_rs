@@ -1,14 +1,13 @@
 {% set dto = entity ~ "Dto" -%}
-{% set snakeName = entity|snake -%}
-{% set store = snakeName ~ "Store" -%}
+{% set camelName = entity|camel -%}
+{% set store = camelName ~ "Store" -%}
 {% set entities = entity|plural -%}
 
 import { useAntdTable, useRequest } from "ahooks";
 import { Button, Form, Input, message, Modal, Table } from "antd";
 import { useState } from "react";
-import AdvancedSearchForm from "../../../../components/AdvanceSearchForm";
-import { {{entity}}Dto } from "../../../../data/models/{{entity}}";
-import useStores from "../../../../hooks/useStore";
+import AdvancedSearchForm from "";
+import useStores from "";
 
 function {{entity}}() {
   const { {{store}} } = useStores();
@@ -39,11 +38,11 @@ function {{entity}}() {
   };
   const get{{entity}} = async (record: {{dto}}) => {
     try {
-      const {{snakeName}} = await runAsync(record.id);
-      if ({{snakeName}}) {
+      const {{camelName}} = await runAsync(record.id);
+      if ({{camelName}}) {
         setModalTitle("编辑{{entity}}");
-        modalForm.setFieldsValue({{snakeName}});
-        console.log({{snakeName}});
+        modalForm.setFieldsValue({{camelName}});
+        console.log({{camelName}});
         setVisible(true);
       }
     } catch (error) { return; }
@@ -51,16 +50,16 @@ function {{entity}}() {
   const addOrUpdate{{entity}} = async (data: {{dto}}) => {
     try {
       if (data.id) {
-        const {{snakeName}} = await {{store}}.update{{entity}}(data.id, data);
-        if ({{snakeName}}) {
+        const {{camelName}} = await {{store}}.update{{entity}}(data.id, data);
+        if ({{camelName}}) {
           modalForm.resetFields();
           message.success("更新成功");
           setVisible(false);
           search.submit();
         }
       } else {
-        const {{snakeName}} = await {{store}}.add{{entity}}(data);
-        if ({{snakeName}}) {
+        const {{camelName}} = await {{store}}.add{{entity}}(data);
+        if ({{camelName}}) {
           modalForm.resetFields();
           message.success("添加成功");
           setVisible(false);

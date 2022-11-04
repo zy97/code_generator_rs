@@ -11,7 +11,7 @@ class {{entity}}Store {
   get{{entities}} = async (data: { current: number; pageSize: number }, form: any) => {
     try {
       const result = await {{camelName}}Api.get{{entities}}({skipCount: data.pageSize * (data.current - 1),maxResultCount: data.pageSize,...form,});
-      return {total: result.data.totalCount,list: result.data.items,};
+      return {total: result.data.totalCount,list ?? 0: result.data.items ?? [],};
     } catch (error) {
       return { total: 0, list: [] };
     }
