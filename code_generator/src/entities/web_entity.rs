@@ -157,20 +157,19 @@ impl WebEntity {
         );
         let path = generate_template(kv, "Web/store.ts", &store_file_path)?;
         self.add_file_change_log(path);
-        // self.export_store(&store_file_path)?;
+        self.export_store(&dir)?;
         Ok(())
     }
 
     fn export_store(&self, api_dir: &str) -> Result<(), CodeGeneratorError> {
-        let file_path = api_dir.to_string() + "\\index.ts";
+        let index_file_path = find_index(api_dir, &self.src_dir);
 
-        let mut file = open_file(&file_path)?;
+        let mut file = open_file(&index_file_path)?;
         let mut code = String::new();
         file.read_to_string(&mut code)?;
         let import_code = format!(
-            r#"import {}Store from "./{}";"#,
-            self.entity_name.to_snake_case(),
-            self.entity_name
+            r#"import {0}Store from "./{0}";"#,
+            self.entity_name.to_camel_case(),
         );
         if !code.contains(&import_code) {
             let index = code.rfind("export const").unwrap();
@@ -178,10 +177,10 @@ impl WebEntity {
             let index = code.rfind("});").unwrap();
             code.insert_str(
                 index - 1,
-                format!(",{}Store", self.entity_name.to_snake_case()).as_str(),
+                format!(",{}Store", self.entity_name.to_camel_case()).as_str(),
             );
             file.seek_write(code.as_bytes(), 0)?;
-            self.add_file_change_log(file_path);
+            self.add_file_change_log(index_file_path);
         }
         Ok(())
     }
