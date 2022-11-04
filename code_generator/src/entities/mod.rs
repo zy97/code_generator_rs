@@ -61,6 +61,24 @@ fn find_current_dir(src_dir: &str, contain_name: &str) -> Option<DirEntry> {
         })
         .nth(0)
 }
+fn find_index(start_dir: &str, end_dir: &str) -> String {
+    let mut dir = start_dir;
+    let mut index_file_path = String::new();
+    while end_dir != dir {
+        let index_file = find_current_dir(dir, "index.ts");
+        match index_file {
+            Some(dir) => {
+                index_file_path = dir.path().display().to_string();
+                break;
+            }
+            None => dir = &dir[0..dir.rfind('\\').unwrap()],
+        }
+    }
+    if index_file_path.len() == 0 {
+        panic!("整个路径未找到index.ts文件");
+    }
+    index_file_path
+}
 fn get_class_name(content: &str) -> Result<String, CodeGeneratorError> {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"class ([a-zA-Z]+)").unwrap();

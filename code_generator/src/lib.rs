@@ -24,6 +24,7 @@ lazy_static! {
         // tera.autoescape_on(vec![".ts", ".tsx"]);
         tera.register_filter("snake", snake);
         tera.register_filter("plural", plural);
+        tera.register_filter("camel", camel);
        info!("{:?}",tera);
         tera
     };
@@ -35,4 +36,8 @@ fn snake(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error
 fn plural(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
     let s = try_get_value!("plural", "value", String, value);
     Ok(to_value(&s.to_plural()).unwrap())
+}
+fn camel(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error> {
+    let s = try_get_value!("camel", "value", String, value);
+    Ok(to_value(&s.to_camel_case()).unwrap())
 }

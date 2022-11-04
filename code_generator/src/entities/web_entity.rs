@@ -16,8 +16,8 @@ use tera::Context;
 use crate::{error::CodeGeneratorError, TEMPLATES};
 
 use super::{
-    find, find_current_dir, format_code, format_single_file, generate_template, open_file,
-    read_file,
+    find, find_current_dir, find_index, format_code, format_single_file, generate_template,
+    open_file, read_file,
 };
 
 #[derive(Debug)]
@@ -132,22 +132,7 @@ impl WebEntity {
     }
 
     fn export_api(&self, api_dir: &str) -> Result<(), CodeGeneratorError> {
-        let mut dir = api_dir;
-        let mut index_file_path = String::new();
-        while &self.src_dir != dir {
-            let index_file = find_current_dir(dir, "index.ts");
-            match index_file {
-                Some(dir) => {
-                    index_file_path = dir.path().display().to_string();
-                    break;
-                }
-                None => dir = &dir[0..dir.rfind('\\').unwrap()],
-            }
-        }
-        if index_file_path.len() == 0 {
-            panic!("整个路径未找到index.ts文件");
-        }
-
+        let index_file_path = find_index(api_dir, &self.src_dir);
         let mut file = open_file(&index_file_path)?;
         let mut code = String::new();
         file.read_to_string(&mut code)?;
@@ -161,25 +146,18 @@ impl WebEntity {
         }
         Ok(())
     }
-    pub fn create_store(&self) -> Result<(), CodeGeneratorError> {
+    pub fn create_store(&self, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv = HashMap::new();
-        kv.insert("entity".to_string(), Box::new(&self.entity_name));
+        kv.insert("entity", Box::new(&self.entity_name));
 
-        let stores_dir = find(&self.src_dir, "stores", false)
-            .unwrap()
-            .path()
-            .display()
-            .to_string();
-
-        self.create_dir(&stores_dir)?;
-        let path = self.generate_template(
-            kv,
-            "Web/store.ts",
-            &stores_dir,
-            format!("{}.ts", self.entity_name),
-        )?;
+        let store_file_path = format!(
+            "{}/{}.ts",
+            dir.trim_end_matches('\\'),
+            self.entity_name.to_camel_case()
+        );
+        let path = generate_template(kv, "Web/store.ts", &store_file_path)?;
         self.add_file_change_log(path);
-        self.export_store(&stores_dir)?;
+        // self.export_store(&store_file_path)?;
         Ok(())
     }
 

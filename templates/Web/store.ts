@@ -1,17 +1,16 @@
 {% set dto = entity ~ "Dto" -%}
-{% set snakeName = entity|snake -%}
+{% set camelName = entity|camel -%}
 {% set entities = entity|plural -%}
 
 import { makeAutoObservable } from "mobx";
-import { {{snakeName}}Api } from "../apis";
-import { Add{{entity}}Dto } from "../data/models/{{entity}}";
+import { {{camelName}}Api } from "../apis";
 class {{entity}}Store {
   constructor() {
     makeAutoObservable(this);
   }
   get{{entities}} = async (data: { current: number; pageSize: number }, form: any) => {
     try {
-      const result = await {{snakeName}}Api.get{{entities}}({skipCount: data.pageSize * (data.current - 1),maxResultCount: data.pageSize,...form,});
+      const result = await {{camelName}}Api.get{{entities}}({skipCount: data.pageSize * (data.current - 1),maxResultCount: data.pageSize,...form,});
       return {total: result.data.totalCount,list: result.data.items,};
     } catch (error) {
       return { total: 0, list: [] };
@@ -19,15 +18,15 @@ class {{entity}}Store {
   };
   async delete{{entity}}(id: string) {
     try {
-      await {{snakeName}}Api.delete{{entity}}(id);
+      await {{camelName}}Api.delete{{entity}}(id);
       return true;
     } catch (error) {
       return false;
     }
   }
-  async add{{entity}}({{snakeName}}: Add{{entity}}Dto) {
+  async add{{entity}}({{camelName}}: {{entity}}CreateDto) {
     try {
-      const data = await {{snakeName}}Api.add{{entity}}({{snakeName}});
+      const data = await {{camelName}}Api.add{{entity}}({{camelName}});
       return data.data;
     } catch (error) {
       return;
@@ -35,15 +34,15 @@ class {{entity}}Store {
   }
   async get{{entity}}ById(id: string) {
     try {
-      const {{snakeName}} = await {{snakeName}}Api.get{{entity}}ById(id);
-      return {{snakeName}}.data;
+      const {{camelName}} = await {{camelName}}Api.get{{entity}}ById(id);
+      return {{camelName}}.data;
     } catch (error) {
       return;
     }
   }
-  async update{{entity}}(id: string, {{snakeName}}: Add{{entity}}Dto) {
+  async update{{entity}}(id: string, {{camelName}}: {{entity}}UpdateDto) {
     try {
-      const result = await {{snakeName}}Api.update{{entity}}(id, {{snakeName}});
+      const result = await {{camelName}}Api.update{{entity}}(id, {{camelName}});
       return result.data;
     } catch (error) {
       return;
