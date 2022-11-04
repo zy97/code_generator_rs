@@ -38,8 +38,8 @@ fn open_file(file: &str) -> Result<File, CodeGeneratorError> {
     let file = options.write(true).read(true).open(&file)?;
     Ok(file)
 }
-fn find(src_dir: &str, contain_name: &str, is_file: bool) -> DirEntry {
-    let result = walkdir::WalkDir::new(src_dir)
+fn find(src_dir: &str, contain_name: &str, is_file: bool) -> Option<DirEntry> {
+    walkdir::WalkDir::new(src_dir)
         .into_iter()
         .filter_map(Result::ok)
         .filter(|e| {
@@ -50,8 +50,16 @@ fn find(src_dir: &str, contain_name: &str, is_file: bool) -> DirEntry {
             }
         })
         .nth(0)
-        .unwrap();
-    return result;
+}
+fn find_current_dir(src_dir: &str, contain_name: &str) -> Option<DirEntry> {
+    walkdir::WalkDir::new(src_dir)
+        .max_depth(1)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_type().is_file() && e.file_name().to_str().unwrap().contains(contain_name)
+        })
+        .nth(0)
 }
 fn get_class_name(content: &str) -> Result<String, CodeGeneratorError> {
     lazy_static! {

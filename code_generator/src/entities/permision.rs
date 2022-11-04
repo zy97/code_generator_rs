@@ -100,7 +100,7 @@ impl Permission {
     }
 
     pub fn add_group(&self, group: &str) -> Result<(), CodeGeneratorError> {
-        let permission_file_path = find(&self.src_dir, "Permissions.cs", true);
+        let permission_file_path = find(&self.src_dir, "Permissions.cs", true).unwrap();
 
         let permission_file_path = permission_file_path.path().display().to_string();
         let mut file = open_file(&permission_file_path)?;
@@ -127,6 +127,7 @@ impl Permission {
 
     pub fn add_permission(&self, group: &str, permission: &str) -> Result<(), CodeGeneratorError> {
         let permission_file_path = find(&self.src_dir, "Permissions.cs", true)
+            .unwrap()
             .path()
             .display()
             .to_string();
@@ -172,7 +173,8 @@ impl Permission {
         group: &str,
         permission: &str,
     ) -> Result<(), CodeGeneratorError> {
-        let provider_file_path = find(&self.src_dir, "PermissionDefinitionProvider.cs", true);
+        let provider_file_path =
+            find(&self.src_dir, "PermissionDefinitionProvider.cs", true).unwrap();
 
         let provider_file_path = provider_file_path.path().to_str().unwrap();
         let mut file = open_file(provider_file_path)?;

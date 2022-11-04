@@ -15,7 +15,10 @@ use tera::Context;
 
 use crate::{error::CodeGeneratorError, TEMPLATES};
 
-use super::{find, format_code, format_single_file, generate_template, open_file, read_file};
+use super::{
+    find, find_current_dir, format_code, format_single_file, generate_template, open_file,
+    read_file,
+};
 
 #[derive(Debug)]
 pub struct WebEntity {
@@ -124,24 +127,37 @@ impl WebEntity {
 
         let path = generate_template(kv, "Web/api.ts", &api_path)?;
         self.add_file_change_log(path);
-        // self.export_api(&api_dir)?;
+        self.export_api(&dir)?;
         Ok(())
     }
 
     fn export_api(&self, api_dir: &str) -> Result<(), CodeGeneratorError> {
-        let file_path = api_dir.to_string() + "\\index.ts";
+        let mut dir = api_dir;
+        let mut index_file_path = String::new();
+        while &self.src_dir != dir {
+            let index_file = find_current_dir(dir, "index.ts");
+            match index_file {
+                Some(dir) => {
+                    index_file_path = dir.path().display().to_string();
+                    break;
+                }
+                None => dir = &dir[0..dir.rfind('\\').unwrap()],
+            }
+        }
+        if index_file_path.len() == 0 {
+            panic!("整个路径未找到index.ts文件");
+        }
 
-        let mut file = open_file(&file_path)?;
+        let mut file = open_file(&index_file_path)?;
         let mut code = String::new();
         file.read_to_string(&mut code)?;
         let insert_code = format!(
-            r#"export * as {}Api from "./{}";"#,
-            self.entity_name.to_snake_case(),
-            self.entity_name
+            r#"export * as {0}Api from "./{0}";"#,
+            self.entity_name.to_camel_case(),
         );
         if !code.contains(&insert_code) {
             file.write(insert_code.as_bytes())?;
-            self.add_file_change_log(file_path);
+            self.add_file_change_log(index_file_path);
         }
         Ok(())
     }
@@ -150,6 +166,7 @@ impl WebEntity {
         kv.insert("entity".to_string(), Box::new(&self.entity_name));
 
         let stores_dir = find(&self.src_dir, "stores", false)
+            .unwrap()
             .path()
             .display()
             .to_string();
@@ -197,6 +214,7 @@ impl WebEntity {
         kv.insert("queries".to_string(), Box::new(&self.queries));
 
         let pages = find(&self.src_dir, "Pages", false)
+            .unwrap()
             .path()
             .display()
             .to_string();

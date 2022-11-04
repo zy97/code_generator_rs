@@ -168,7 +168,7 @@ impl Entity {
         exception_name: &str,
         exception_code: String,
     ) -> Result<(), CodeGeneratorError> {
-        let error_code_file_path = find(&self.src_dir, "ErrorCodes.cs", true);
+        let error_code_file_path = find(&self.src_dir, "ErrorCodes.cs", true).unwrap();
 
         let mapper_file_path = error_code_file_path.path().to_str().unwrap();
         let mut file = open_file(mapper_file_path)?;
@@ -192,7 +192,7 @@ impl Entity {
         exception_code: String,
         exception_display_text: String,
     ) -> Result<(), CodeGeneratorError> {
-        let json_path = find(&self.src_dir, "zh-Hans.json", true);
+        let json_path = find(&self.src_dir, "zh-Hans.json", true).unwrap();
 
         let json_file = json_path.path().to_str().unwrap();
 
@@ -285,6 +285,7 @@ impl Entity {
         kv.insert("entities", Box::new(&self.plural_name));
         kv.insert("generic_type", Box::new(&self.id_type));
         let dbcontext_path = find(&self.src_dir, "DbContext.cs", true)
+            .unwrap()
             .path()
             .display()
             .to_string();
