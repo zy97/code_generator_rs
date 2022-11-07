@@ -191,23 +191,25 @@ impl Entity {
         self.add_file_change_log(json_file.to_owned());
         Ok(())
     }
-    pub fn create_createorupdatedto(&self, dir: String) -> Result<(), CodeGeneratorError> {
+    pub fn create_create_and_update_dto(&self, dir: String) -> Result<(), CodeGeneratorError> {
         let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
         kv.insert("namespace", Box::new(&self.namespace));
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("entity", Box::new(&self.name));
         kv.insert("properties", Box::new(&self.properties));
-        let create_or_update_dto_path = format!(
-            "{}\\CreateOrUpdate{}Dto.cs",
-            dir.trim_end_matches('\\'),
-            self.name
-        );
-        let path = generate_template(
-            kv,
-            "Application.Contracts/CreateOrUpdateDto.cs",
-            &create_or_update_dto_path,
-        )?;
-        self.add_file_change_log(path);
+        let mut kv1: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
+        kv1.insert("namespace", Box::new(&self.namespace));
+        kv1.insert("folder", Box::new(&self.plural_name));
+        kv1.insert("entity", Box::new(&self.name));
+        kv1.insert("properties", Box::new(&self.properties));
+        let create_dto_path = format!("{}\\Create{}Dto.cs", dir.trim_end_matches('\\'), self.name);
+        let update_dto_path = format!("{}\\Update{}Dto.cs", dir.trim_end_matches('\\'), self.name);
+        let create_dto_path =
+            generate_template(kv, "Application.Contracts/CreateDto.cs", &create_dto_path)?;
+        let update_dto_path =
+            generate_template(kv1, "Application.Contracts/UpdateDto.cs", &update_dto_path)?;
+        self.add_file_change_log(create_dto_path);
+        self.add_file_change_log(update_dto_path);
         Ok(())
     }
 
@@ -239,7 +241,11 @@ impl Entity {
         kv.insert("folder", Box::new(&self.plural_name));
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("custom", Box::new(custom));
-        let iservice_dir = format!("{}\\I{}Service.cs", dir.trim_end_matches('\\'), self.name);
+        let iservice_dir = format!(
+            "{}\\I{}AppService.cs",
+            dir.trim_end_matches('\\'),
+            self.name
+        );
         let path = generate_template(kv, "Application.Contracts/IService.cs", &iservice_dir)?;
         self.add_file_change_log(path);
         Ok(())
@@ -253,7 +259,7 @@ impl Entity {
         kv.insert("id", Box::new(&self.id_type));
         kv.insert("properties", Box::new(&self.properties));
         kv.insert("custom", Box::new(custom));
-        let service_dir = format!("{}\\{}Service.cs", dir.trim_end_matches('\\'), self.name);
+        let service_dir = format!("{}\\{}AppService.cs", dir.trim_end_matches('\\'), self.name);
         let path = generate_template(kv, "Application/Service.cs", &service_dir)?;
         self.add_file_change_log(path);
         Ok(())
@@ -290,14 +296,19 @@ impl Entity {
 
         file.read_to_string(&mut code)?;
         let map_to_dto = format!("CreateMap<{0}, {0}Dto>();", self.name);
-        let map_to_entity = format!("CreateMap<CreateOrUpdate{0}Dto, {0}>();", self.name);
+        let map_to_entity1 = format!("CreateMap<Create{0}Dto, {0}>();", self.name);
+        let map_to_entity2 = format!("CreateMap<Update{0}Dto, {0}>();", self.name);
         if code.contains(map_to_dto.as_str()) {
             return Ok(());
         }
         let index = code.rfind(';').unwrap();
         code.insert_str(
             index + 1,
-            format!("\r\n{}\r\n{}", map_to_dto, map_to_entity).as_str(),
+            format!(
+                "\r\n{}\r\n{}\r\n{}",
+                map_to_dto, map_to_entity1, map_to_entity2
+            )
+            .as_str(),
         );
         code.insert_str(
             0,

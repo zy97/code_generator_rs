@@ -80,12 +80,12 @@ mod tests {
         println!("entity:{:#?}", entity);
         entity.create_dto(entity_dto_dir.clone()).unwrap();
         entity
-            .create_createorupdatedto(entity_dto_dir.clone())
+            .create_create_and_update_dto(entity_dto_dir.clone())
             .unwrap();
         entity
             .create_pagedandsortedandfilterresultdto(entity_dto_dir.clone())
             .unwrap();
-        let custom = false;
+        let custom = true;
         entity
             .create_iservice(custom, entity_dto_dir.clone())
             .unwrap();

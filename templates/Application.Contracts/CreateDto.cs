@@ -1,10 +1,9 @@
 using System;
-using Volo.Abp.Application.Dtos;
-
+using Volo.Abp.ObjectExtending;
 namespace {{namespace}}.{{folder}}
 {
     [Serializable]
-    public class {{entity}}Dto : ExtensibleFullAuditedEntityDto<{{id}}>
+    public class Create{{entity}}Dto : ExtensibleObject
     {
       {%- for name,type in properties %}
       public {{type}} {{name}} { get; set; }
