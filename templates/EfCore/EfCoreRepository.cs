@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
-
+using System.Linq;
 namespace {{namespace}}.{{entities}}
 {
     public class EfCore{{entity}}Repository : EfCoreRepository<{{dbcontext}}, {{entity}}, {{generic_type}}>, I{{entity}}Repository
@@ -33,7 +33,7 @@ namespace {{namespace}}.{{entities}}
         }
     }
     // 如果聚合根有子集合，那么创建一个扩展方法获取详情
-    public static class {{entity}}
+    public static class {{entity}}Extends
     {
         public static IQueryable<{{entity}}> IncludeDetails(this IQueryable<{{entity}}> queryable, bool include = true)
         {

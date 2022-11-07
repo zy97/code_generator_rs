@@ -5,21 +5,24 @@ using Volo.Abp.Domain.Repositories;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp.Application.Dtos;
 namespace {{namespace}}.{{folder}}
 {
 {%- if custom %}
-    public class {{entity}}AppService : I{{entity}}AppService
+    public class {{entity}}AppService : ApplicationService, I{{entity}}AppService
     {
         private readonly I{{entity}}Repository {{snakeName}}Repository;
-        public {{entity}}AppService(ITestRepository {{snakeName}}Repository)
+        private readonly {{entity}}Manager {{snakeName}}Manager;
+        public {{entity}}AppService(ITestRepository {{snakeName}}Repository, {{entity}}Manager {{snakeName}}Manager)
         {
             this.{{snakeName}}Repository = {{snakeName}}Repository;
+            this.{{snakeName}}Manager = {{snakeName}}Manager;
         }
         public Task<{{entity}}Dto> GetAsync(Guid id)
         {
             throw new NotImplementedException();
         }
-        public Task<List<{{entity}}Dto>> GetListAsync(PagedAndSortedAndFilteredResultRequestDto queryDto)
+        public Task<PagedResultDto<{{entity}}Dto>> GetListAsync(PagedAndSortedAndFilteredResultRequestDto queryDto)
         {
             throw new NotImplementedException();
         }
@@ -37,9 +40,9 @@ namespace {{namespace}}.{{folder}}
         }
     }
 {%- else %}
-    public class {{entity}}AppService : CrudAppService<{{entity}}, {{entity}}Dto, {{id}}, PagedAndSortedAndFilteredResultRequestDto, CreateOrUpdate{{entity}}Dto>, I{{entity}}AppService
+    public class {{entity}}AppService : CrudAppService<{{entity}}, {{entity}}Dto, {{id}}, PagedAndSortedAndFilteredResultRequestDto, Create{{entity}}Dto, Update{{entity}}Dto>, I{{entity}}AppService
     {
-         public {{entity}}AppService(I{{entity}}Repository repository, {{entity}}Manager {{entity|snake}}Manage) : base(repository)
+         public {{entity}}AppService(I{{entity}}Repository repository, {{entity}}Manager {{entity|snake}}Manage) : base((IRepository<{{entity}}, Guid>)repository)
          {
          }
          //如果不需要过滤删除这个重载，属性判断根据自己的情况酌情调整
