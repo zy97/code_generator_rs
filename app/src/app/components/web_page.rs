@@ -76,13 +76,13 @@ impl AppComponent for WebPage {
                                     let data = &data.service;
                                     debug!("开始执行生成操作：");
                                     if data.api {
-                                        entity.create_api("");
+                                        entity.create_api("".to_string(), "".to_string());
                                     }
                                     if data.store {
-                                        entity.create_store();
+                                        entity.create_store("".to_string());
                                     }
                                     if data.page {
-                                        entity.create_page();
+                                        entity.create_page("".to_string());
                                     }
                                     debug!("执行生成操作完成！");
                                 }

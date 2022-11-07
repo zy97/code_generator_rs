@@ -1,4 +1,3 @@
-
 use code_generator::Entity;
 
 use crate::app::{preview_file_being_dropped, toggle_switch::toggle, App};
@@ -86,22 +85,26 @@ impl AppComponent for ServicePage {
                                     let data = &data.service;
                                     debug!("开始执行生成操作：");
                                     if data.create_dto {
-                                        entity.create_dto().unwrap();
+                                        entity.create_dto("".to_string()).unwrap();
                                     }
                                     if data.create_createorupdatedto {
-                                        entity.create_createorupdatedto().unwrap();
+                                        entity.create_createorupdatedto("".to_string()).unwrap();
                                     }
                                     if data.create_pagedandsortedandfilterresultdto {
-                                        entity.create_pagedandsortedandfilterresultdto().unwrap();
+                                        entity
+                                            .create_pagedandsortedandfilterresultdto("".to_string())
+                                            .unwrap();
                                     }
                                     if data.create_iservice {
-                                        entity.create_iservice(data.custom).unwrap();
+                                        entity
+                                            .create_iservice(data.custom, "".to_string())
+                                            .unwrap();
                                     }
                                     if data.create_service {
-                                        entity.create_service(data.custom).unwrap();
+                                        entity.create_service(data.custom, "".to_string()).unwrap();
                                     }
                                     if data.insert_mapper {
-                                        entity.insert_mapper().unwrap();
+                                        entity.insert_mapper("".to_string()).unwrap();
                                     }
                                     debug!("执行生成操作完成！");
                                 }
