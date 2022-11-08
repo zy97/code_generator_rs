@@ -150,7 +150,7 @@ fn format_code(work_dir: String, files: Vec<String>) -> Result<(), CodeGenerator
         let (output, ..) = UTF_8.decode(&output.stderr);
         return Err(CodeGeneratorError::DprintError(output.to_string()));
     }
-    eprintln!("{:?} format successful!", files);
+    println!("{:#?} format successful!", files);
     Ok(())
 }
 fn format_single_file(file: String) -> Result<(), CodeGeneratorError> {
