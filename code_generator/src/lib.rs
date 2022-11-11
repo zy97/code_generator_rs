@@ -41,3 +41,15 @@ fn camel(value: &Value, _: &HashMap<String, Value>) -> Result<Value, tera::Error
     let s = try_get_value!("camel", "value", String, value);
     Ok(to_value(&s.to_camel_case()).unwrap())
 }
+#[macro_export]
+macro_rules! dynamicDic {
+( $( $x:expr ),* ) => {
+    {
+        let mut kv: std::collections::HashMap<&str, Box<dyn erased_serde::Serialize>> = std::collections::HashMap::new();
+        $(
+            kv.insert($x.0, Box::new($x.1));
+        )*
+        kv
+    }
+};
+}

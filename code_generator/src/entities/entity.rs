@@ -4,6 +4,7 @@ use std::{
 extern crate inflector;
 use super::{find, format_code, format_single_file, generate_template, open_file};
 use crate::{
+    dynamicDic,
     entities::{get_class_name, get_generic_type, get_namespace, get_properties, read_file},
     error::CodeGeneratorError,
 };
@@ -30,10 +31,11 @@ impl Entity {
         dir: String,
     ) -> Result<String, Box<dyn Error>> {
         let name = name.to_title_case();
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(namespace));
-        kv.insert("entityName", Box::new(&name));
-        kv.insert("type", Box::new(id_type));
+        let kv = dynamicDic![
+            ("namespace", &namespace),
+            ("entityName", &name),
+            ("type", &id_type)
+        ];
         let file_full_path =
             vec![dir.trim_end_matches('\\'), format!("{}.cs", name).as_str()].join("\\");
         let file_full_path = generate_template(kv, "Domain/Entity.cs", &file_full_path)?;
@@ -75,12 +77,13 @@ impl Entity {
     }
 
     pub fn create_dto(&self, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("folder", Box::new(&self.plural_name));
-        kv.insert("entity", Box::new(&self.name));
-        kv.insert("id", Box::new(&self.id_type));
-        kv.insert("properties", Box::new(&self.properties));
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("folder", &self.plural_name),
+            ("entity", &self.name),
+            ("id", &self.id_type),
+            ("properties", &self.properties)
+        ];
         let dto_path = format!("{}\\{}Dto.cs", dir.trim_end_matches('\\'), self.name);
         let path = generate_template(kv, "Application.Contracts/Dto.cs", &dto_path)?;
         self.add_file_change_log(path);
@@ -88,12 +91,12 @@ impl Entity {
     }
 
     pub fn create_repository_interface(&self, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("entities", Box::new(&self.plural_name));
-        kv.insert("entity", Box::new(&self.name));
-        kv.insert("generic_type", Box::new(&self.id_type));
-
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("entities", &self.plural_name),
+            ("entity", &self.name),
+            ("generic_type", &self.id_type)
+        ];
         let irepository_dir = format!(
             "{}\\I{}Repository.cs",
             dir.trim_end_matches('\\'),
@@ -105,11 +108,11 @@ impl Entity {
     }
 
     pub fn create_manager(&self, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("entities", Box::new(&self.plural_name));
-        kv.insert("entity", Box::new(&self.name));
-
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("entities", &self.plural_name),
+            ("entity", &self.name)
+        ];
         let imanager_dir = format!("{}\\{}Manager.cs", dir.trim_end_matches('\\'), self.name);
         let path = generate_template(kv, "Domain/Manager.cs", &imanager_dir)?;
         self.add_file_change_log(path);
@@ -128,15 +131,13 @@ impl Entity {
         if !exception_name.starts_with(&self.name) {
             exception_name.insert_str(0, &self.name);
         }
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("entities", Box::new(&self.plural_name));
-        kv.insert("entity", Box::new(&self.name));
-        kv.insert("exception_name", Box::new(&exception_name));
-        kv.insert(
-            "project_name",
-            Box::new(self.namespace.split('.').last().unwrap()),
-        );
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("entities", &self.plural_name),
+            ("entity", &self.name),
+            ("exception_name", &exception_name),
+            ("project_name", self.namespace.split('.').last().unwrap())
+        ];
 
         let exception_dir = format!("{}\\{}.cs", dir.trim_end_matches('\\'), exception_name);
 
@@ -192,16 +193,18 @@ impl Entity {
         Ok(())
     }
     pub fn create_create_and_update_dto(&self, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("folder", Box::new(&self.plural_name));
-        kv.insert("entity", Box::new(&self.name));
-        kv.insert("properties", Box::new(&self.properties));
-        let mut kv1: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv1.insert("namespace", Box::new(&self.namespace));
-        kv1.insert("folder", Box::new(&self.plural_name));
-        kv1.insert("entity", Box::new(&self.name));
-        kv1.insert("properties", Box::new(&self.properties));
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("folder", &self.plural_name),
+            ("entity", &self.name),
+            ("properties", &self.properties)
+        ];
+        let kv1 = dynamicDic![
+            ("namespace", &self.namespace),
+            ("folder", &self.plural_name),
+            ("entity", &self.name),
+            ("properties", &self.properties)
+        ];
         let create_dto_path = format!("{}\\Create{}Dto.cs", dir.trim_end_matches('\\'), self.name);
         let update_dto_path = format!("{}\\Update{}Dto.cs", dir.trim_end_matches('\\'), self.name);
         let create_dto_path =
@@ -217,10 +220,11 @@ impl Entity {
         &self,
         dir: String,
     ) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("folder", Box::new(&self.plural_name));
-        kv.insert("properties", Box::new(&self.properties));
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("folder", &self.plural_name),
+            ("properties", &self.properties)
+        ];
         let page_request_dto = format!(
             "{}\\PagedAndSortedAndFilteredResultRequestDto.cs",
             dir.trim_end_matches('\\'),
@@ -235,12 +239,13 @@ impl Entity {
     }
 
     pub fn create_iservice(&self, custom: bool, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("entity", Box::new(&self.name));
-        kv.insert("folder", Box::new(&self.plural_name));
-        kv.insert("id", Box::new(&self.id_type));
-        kv.insert("custom", Box::new(custom));
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("entity", &self.name),
+            ("folder", &self.plural_name),
+            ("id", &self.id_type),
+            ("custom", custom)
+        ];
         let iservice_dir = format!(
             "{}\\I{}AppService.cs",
             dir.trim_end_matches('\\'),
@@ -252,13 +257,14 @@ impl Entity {
     }
 
     pub fn create_service(&self, custom: bool, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("entity", Box::new(&self.name));
-        kv.insert("folder", Box::new(&self.plural_name));
-        kv.insert("id", Box::new(&self.id_type));
-        kv.insert("properties", Box::new(&self.properties));
-        kv.insert("custom", Box::new(custom));
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("entity", &self.name),
+            ("folder", &self.plural_name),
+            ("id", &self.id_type),
+            ("properties", &self.properties),
+            ("custom", custom)
+        ];
         let service_dir = format!("{}\\{}AppService.cs", dir.trim_end_matches('\\'), self.name);
         let path = generate_template(kv, "Application/Service.cs", &service_dir)?;
         self.add_file_change_log(path);
@@ -266,11 +272,6 @@ impl Entity {
     }
 
     pub fn create_ef_repository(&self, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("namespace", Box::new(&self.namespace));
-        kv.insert("entity", Box::new(&self.name));
-        kv.insert("entities", Box::new(&self.plural_name));
-        kv.insert("generic_type", Box::new(&self.id_type));
         let dbcontext_path = find(&self.src_dir, "DbContext.cs", true)
             .unwrap()
             .path()
@@ -278,7 +279,13 @@ impl Entity {
             .to_string();
         let dbcontext_code = read_file(&dbcontext_path)?;
         let dbconetxt_class_name = get_class_name(&dbcontext_code)?;
-        kv.insert("dbcontext", Box::new(dbconetxt_class_name));
+        let kv = dynamicDic![
+            ("namespace", &self.namespace),
+            ("entity", &self.name),
+            ("entities", &self.plural_name),
+            ("generic_type", &self.id_type),
+            ("dbcontext", &dbconetxt_class_name)
+        ];
 
         let ef_core_dir = format!(
             "{}\\EfCore{}Repository.cs",

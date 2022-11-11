@@ -1,5 +1,5 @@
 use super::{find_index, format_code, format_single_file, generate_template, open_file, read_file};
-use crate::error::CodeGeneratorError;
+use crate::{dynamicDic, error::CodeGeneratorError};
 use inflector::Inflector;
 use regex::Regex;
 use std::{
@@ -107,16 +107,12 @@ impl WebEntity {
     }
 
     pub fn create_api(&self, url_prefix: String, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv = HashMap::new();
-        kv.insert("entity", Box::new(&self.entity_name));
-        kv.insert("url_prefix", Box::new(&url_prefix));
-
+        let kv = dynamicDic![("entity", &self.entity_name), ("url_prefix", &url_prefix)];
         let api_path = format!(
             "{}/{}.ts",
             dir.trim_end_matches('\\'),
             self.entity_name.to_camel_case()
         );
-
         let path = generate_template(kv, "Web/api.ts", &api_path)?;
         self.add_file_change_log(path);
         self.export_api(&dir)?;
@@ -139,8 +135,7 @@ impl WebEntity {
         Ok(())
     }
     pub fn create_store(&self, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv = HashMap::new();
-        kv.insert("entity", Box::new(&self.entity_name));
+        let kv = dynamicDic![("entity", &self.entity_name)];
 
         let store_file_path = format!(
             "{}/{}.ts",
@@ -177,10 +172,11 @@ impl WebEntity {
         Ok(())
     }
     pub fn create_page(&self, dir: String) -> Result<(), CodeGeneratorError> {
-        let mut kv: HashMap<&str, Box<dyn erased_serde::Serialize>> = HashMap::new();
-        kv.insert("entity", Box::new(&self.entity_name));
-        kv.insert("properties", Box::new(&self.dto));
-        kv.insert("queries", Box::new(&self.queries));
+        let kv = dynamicDic![
+            ("entity", &self.entity_name),
+            ("properties", &self.dto),
+            ("queries", &self.queries)
+        ];
         let page_dir = format!("{}/{}", dir.trim_end_matches('\\'), self.entity_name);
         let page_file_path = format!("{}/index.tsx", page_dir);
         let less_file = format!("{}/index.module.less", page_dir);
