@@ -88,7 +88,7 @@ impl AppComponent for ServicePage {
                                         entity.create_dto("".to_string()).unwrap();
                                     }
                                     if data.create_createorupdatedto {
-                                        entity.create_createorupdatedto("".to_string()).unwrap();
+                                        // entity.create_createorupdatedto("".to_string()).unwrap();
                                     }
                                     if data.create_pagedandsortedandfilterresultdto {
                                         entity
