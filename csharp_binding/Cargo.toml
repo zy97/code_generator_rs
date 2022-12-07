@@ -11,3 +11,4 @@ crate-type = ["cdylib","rlib"]
 code_generator = { path = "../code_generator" }
 interoptopus = "0.14.15"
 interoptopus_backend_csharp = "0.14.15"
+thiserror = "1.0.37"

@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use code_generator::dynamicDic;
     use code_generator::Entity;
     use code_generator::Permission;
     use code_generator::WebEntity;
@@ -15,7 +14,7 @@ mod tests {
         let store_dir = String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\stores");
         let page_dir =
             String::from(r"C:\repo\Abp.Bom.Blog\src\Bom.Blog.Web.Admin\src\pages\BlogManage");
-        // WebEntity::create_dto("testAppledto".to_owned(), dto_dir).unwrap();
+        WebEntity::create_dto("testAppledto".to_owned(), dto_dir).unwrap();
 
         let web_entity = WebEntity::new(dto_path).unwrap();
         web_entity
@@ -43,13 +42,13 @@ mod tests {
                 "TestPermission".to_owned(),
             )
             .unwrap();
-        // permission
-        //     .add_permission_to_provider(
-        //         permission_provider_file,
-        //         "GroupName".to_owned(),
-        //         "Admin".to_owned(),
-        //     )
-        //     .unwrap();
+        permission
+            .add_permission_to_provider(
+                permission_provider_file,
+                "GroupName".to_owned(),
+                "Admin".to_owned(),
+            )
+            .unwrap();
         permission.format_all().unwrap();
     }
 

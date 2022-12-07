@@ -18,8 +18,11 @@ pub struct WebEntity {
     src_dir: String,
     dto: Vec<(String, String)>,
     queries: Vec<(String, String)>,
+    #[allow(dead_code)]
     create_or_update_base: Vec<(String, String)>,
+    #[allow(dead_code)]
     create: Vec<(String, String)>,
+    #[allow(dead_code)]
     update: Vec<(String, String)>,
     solution_dir: String,
     changed_files: RefCell<Vec<String>>,

@@ -1,6 +1,3 @@
-use std::borrow::Cow;
-
-use egui::{FontId, TextStyle};
 // https://github.com/emilk/egui/issues/64
 pub fn setup_custom_fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();

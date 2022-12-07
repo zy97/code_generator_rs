@@ -1,18 +1,12 @@
-mod ffi;
 mod ffi_entity_service;
 mod ffi_react_service;
-
 use code_generator::CodeGeneratorError;
 use ffi_entity_service::EntityGenerator;
 use ffi_react_service::ReactGenerator;
 use interoptopus::{ffi_type, pattern, patterns::result::FFIError, Inventory, InventoryBuilder};
-
+use thiserror::Error;
 pub fn entity_inventory() -> Inventory {
     InventoryBuilder::new()
-        // .register(function!(create))
-        // .register(function!(create_dto))
-        // .register(function!(format_all))
-        // .register(function!(dispose))
         .register(pattern!(EntityGenerator))
         .inventory()
 }
@@ -21,14 +15,21 @@ pub fn react_inventory() -> Inventory {
         .register(pattern!(ReactGenerator))
         .inventory()
 }
-
+#[derive(Debug, Error)]
+pub enum FFIPatternsError {
+    #[error(transparent)]
+    CodeGeneratorError(#[from] CodeGeneratorError),
+    #[error(transparent)]
+    InteropError(#[from] interoptopus::Error),
+}
 #[ffi_type(patterns(ffi_error))]
 #[repr(C)]
 pub enum AppFFIError {
     Ok = 0,
     NullPassed = 1,
     Panic = 2,
-    OtherError = 3,
+    CodeGeneratorError = 3,
+    FFIPaternsError = 4,
 }
 // Gives special meaning to some of your error variants.
 impl FFIError for AppFFIError {
@@ -36,16 +37,12 @@ impl FFIError for AppFFIError {
     const NULL: Self = Self::NullPassed;
     const PANIC: Self = Self::Panic;
 }
-
 // How to map an `Error` to an `MyFFIError`.
-impl From<CodeGeneratorError> for AppFFIError {
-    fn from(x: CodeGeneratorError) -> Self {
+impl From<FFIPatternsError> for AppFFIError {
+    fn from(x: FFIPatternsError) -> Self {
         match x {
-            CodeGeneratorError::FileError(_) => Self::OtherError,
-            CodeGeneratorError::RegexError(_) => Self::OtherError,
-            CodeGeneratorError::RegexNoMatchError(_) => Self::OtherError,
-            CodeGeneratorError::TeraError(_) => Self::OtherError,
-            CodeGeneratorError::DprintError(_) => Self::OtherError,
+            FFIPatternsError::CodeGeneratorError(_) => Self::CodeGeneratorError,
+            FFIPatternsError::InteropError(_) => Self::FFIPaternsError,
         }
     }
 }

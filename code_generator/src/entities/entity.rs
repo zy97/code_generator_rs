@@ -145,7 +145,8 @@ impl Entity {
         self.add_file_change_log(path);
         Ok(())
     }
-    fn insert_error_code(
+    #[allow(dead_code)]
+    fn _insert_error_code(
         &self,
         exception_name: &str,
         exception_code: String,
@@ -169,6 +170,7 @@ impl Entity {
         self.add_file_change_log(mapper_file_path.to_owned());
         Ok(())
     }
+    #[allow(dead_code)]
     fn insert_dispaly_text(
         &self,
         exception_code: String,

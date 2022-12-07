@@ -1,8 +1,6 @@
-use crate::AppFFIError;
-use code_generator::{CodeGeneratorError, WebEntity};
-use interoptopus::{
-    ffi_service, ffi_service_ctor, ffi_service_method, ffi_type, patterns::string::AsciiPointer,
-};
+use crate::{AppFFIError, FFIPatternsError};
+use code_generator::WebEntity;
+use interoptopus::{ffi_service, ffi_service_ctor, ffi_type, patterns::string::AsciiPointer};
 #[ffi_type(opaque)]
 pub struct ReactGenerator {
     generator: WebEntity,
@@ -10,23 +8,30 @@ pub struct ReactGenerator {
 #[ffi_service(error = "AppFFIError", prefix = "react_service_")]
 impl ReactGenerator {
     #[ffi_service_ctor]
-    pub fn new(path: AsciiPointer) -> Result<Self, CodeGeneratorError> {
+    pub fn new(path: AsciiPointer) -> Result<Self, FFIPatternsError> {
         Ok(Self {
-            generator: WebEntity::new(path.as_str().unwrap().to_owned())?,
+            generator: WebEntity::new(path.as_str()?.to_owned())?,
         })
     }
-    pub fn create_api(&self, url_prefix: AsciiPointer) -> Result<(), CodeGeneratorError> {
+    pub fn create_api(
+        &self,
+        url_prefix: AsciiPointer,
+        dir: AsciiPointer,
+    ) -> Result<(), FFIPatternsError> {
         self.generator
-            .create_api(url_prefix.as_str().unwrap().to_owned())
+            .create_api(url_prefix.as_str()?.to_owned(), dir.as_str()?.to_owned())?;
+        Ok(())
     }
-    pub fn create_store(&self) -> Result<(), CodeGeneratorError> {
-        self.generator.create_store()
+    pub fn create_store(&self, dir: AsciiPointer) -> Result<(), FFIPatternsError> {
+        self.generator.create_store(dir.as_str()?.to_owned())?;
+        Ok(())
     }
-    pub fn create_page(&self) -> Result<(), CodeGeneratorError> {
-        self.generator.create_page()
+    pub fn create_page(&self, dir: AsciiPointer) -> Result<(), FFIPatternsError> {
+        self.generator.create_page(dir.as_str()?.to_owned())?;
+        Ok(())
     }
-    #[ffi_service_method(on_panic = "return_default")]
-    pub fn format_all(&self) {
-        self.generator.format_all()
+    pub fn format_all(&self) -> Result<(), FFIPatternsError> {
+        self.generator.format_all()?;
+        Ok(())
     }
 }

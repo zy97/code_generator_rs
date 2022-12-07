@@ -203,6 +203,7 @@ impl Permission {
                     permission,
                     permission.to_camel_case() + "DefaultPermission"
                 );
+                println!("{},{}", default_permission, group_index);
             }
             None => {
                 code.insert_str(insert_index, &group);
@@ -248,7 +249,9 @@ struct PermissionGroup {
 }
 #[derive(Debug)]
 struct PermissionDetail {
+    #[allow(dead_code)]
     class_name: String,
+    #[allow(dead_code)]
     permission_name: Vec<String>,
 }
 impl Permission {
