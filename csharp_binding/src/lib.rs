@@ -49,6 +49,7 @@ impl From<FFIPatternsError> for AppFFIError {
 #[cfg(test)]
 mod tests {
     use interoptopus::{util::NamespaceMappings, Error, Interop};
+    use interoptopus_backend_csharp::WriteTypes;
 
     use super::*;
 
@@ -58,8 +59,11 @@ mod tests {
         use interoptopus_backend_csharp::{Config, Generator};
 
         let config = Config {
-            dll_name: "example_library".to_string(),
-            namespace_mappings: NamespaceMappings::new("My.Company"),
+            dll_name: "C:\\Users\\Administrator\\Desktop\\code_generator_rs\\target\\debug\\csharp_binding.dll".to_string(),
+            namespace_mappings: NamespaceMappings::new("CodeGeneratorApp.Services"),
+            class: "RawEntityGenerator".to_string(),
+            rename_symbols:true,
+            write_types:WriteTypes::NamespaceAndInteroptopusGlobal,
             ..Config::default()
         };
 
@@ -67,10 +71,8 @@ mod tests {
             .add_overload_writer(DotNet::new())
             //.add_overload_writer(Unity::new())
             .write_file(
-                r"../c#/CodeGeneratorApp/CodeGeneratorApp/CodeGeneratorApp.Core/Interop.cs",
+                r"../c#/CodeGeneratorApp/CodeGeneratorApp/Services/CodeGeneratorApp.Services/EntityGenerator.cs",
             )?;
-        // .write_file("../c#/Interop.cs")?;
-
         Ok(())
     }
     #[test]
