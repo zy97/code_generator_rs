@@ -5,6 +5,7 @@
         Ok = 0,
         NullPassed = 1,
         Panic = 2,
-        OtherError = 3,
+        CodeGeneratorError = 3,
+        FFIPaternsError = 4,
     }
 }

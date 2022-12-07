@@ -49,7 +49,7 @@ impl From<FFIPatternsError> for AppFFIError {
 #[cfg(test)]
 mod tests {
     use interoptopus::{util::NamespaceMappings, Error, Interop};
-    use interoptopus_backend_csharp::WriteTypes;
+    use interoptopus_backend_csharp::{CSharpVisibility, Unsafe, WriteTypes};
 
     use super::*;
 
@@ -64,6 +64,8 @@ mod tests {
             class: "RawEntityGenerator".to_string(),
             rename_symbols:true,
             write_types:WriteTypes::NamespaceAndInteroptopusGlobal,
+            visibility_types:CSharpVisibility::ForceInternal,
+            use_unsafe:Unsafe::UnsafePlatformMemCpy,
             ..Config::default()
         };
 

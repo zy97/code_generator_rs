@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace CodeGeneratorApp.Services
 {
-    public static partial class RawEntityGenerator
+    internal static partial class RawEntityGenerator
     {
         public const string NativeLib = @"C:\Users\Administrator\Desktop\code_generator_rs\target\debug\csharp_binding.dll";
 
@@ -200,7 +200,7 @@ namespace CodeGeneratorApp.Services
 
 
 
-    public partial class EntityGenerator : IDisposable
+    internal partial class EntityGenerator : IDisposable
     {
         private IntPtr _context;
 
