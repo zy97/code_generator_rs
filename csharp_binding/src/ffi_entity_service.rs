@@ -20,6 +20,8 @@ impl EntityGenerator {
         name: AsciiPointer,
         dir: AsciiPointer,
     ) -> Result<(), FFIPatternsError> {
+        println!("2");
+        eprintln!("1");
         Entity::create_entity(
             namespace.as_str()?.to_owned(),
             id_type.as_str()?.to_owned(),

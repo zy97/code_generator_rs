@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System.IO;
+using System.Reactive;
 using System.Reactive.Linq;
 using CodeGeneratorApp.Core.Mvvm;
 using CodeGeneratorApp.Modules.EntityGenerate.Services;
@@ -12,28 +13,35 @@ namespace CodeGeneratorApp.Modules.ModuleName.ViewModels
     {
         #region entity
         [Reactive]
-        public bool CreateDto { get; set; }
+        public string Namespace { get; set; } = "YourProjectNamespace";
         [Reactive]
-        public bool CreateUpdateOrCreateDto { get; set; }
+        public string IdType { get; set; } = "Guid";
         [Reactive]
-        public bool CreateEfCoreRepository { get; set; }
+        public string EntityName { get; set; } = "Book";
         [Reactive]
-        public bool CreateException { get; set; }
+        public string EntityDir { get; set; }
         [Reactive]
-        public string ExceptionName { get; set; }
+        public string DtoDir { get; set; }
         [Reactive]
-        public string ExceptionCode { get; set; }
+        public string AppServiceDir { get; set; }
         [Reactive]
-        public string ExceptionDisplayName { get; set; }
+        public string IAppServiceDir { get; set; }
+        [Reactive]
+        public bool IsCustomService { get; set; } = false;
+        [Reactive]
+        public string EfCoreRepositoryDir { get; set; }
+        [Reactive]
+        public string IRepositoryDir { get; set; }
+        [Reactive]
+        public string DomainServiceDir { get; set; }
+        [Reactive]
+        public string ExceptionName { get; set; } = "BookNotFound";
+        [Reactive]
+        public string ExceptionDir { get; set; }
 
-        [Reactive]
-        public bool CreateService { get; set; }
-        [Reactive]
-        public bool IsCustomService { get; set; }
-        [Reactive]
-        public bool CreateManager { get; set; }
-        [Reactive]
-        public bool CratePageAndFilter { get; set; }
+
+
+
         [Reactive]
         public bool InsertMapper { get; set; }
         [Reactive]
@@ -44,46 +52,56 @@ namespace CodeGeneratorApp.Modules.ModuleName.ViewModels
         private readonly IEntityGeneratorService entityGenerateService;
 
         [Reactive]
-        public string Message { get; set; }
-        [Reactive]
         public string EntityPath { get; set; }
         [Reactive]
         public string Title { get; set; } = "Abp 服务实体生成";
 
         public ReactiveCommand<Unit, Unit> Generate { get; set; }
+        public ReactiveCommand<Unit, Unit> GenerateEntity { get; set; }
 
 
 
         public ViewAViewModel(IRegionManager regionManager, IEntityGeneratorService entityGenerateService) :
             base(regionManager)
         {
+            GenerateEntity = ReactiveCommand.Create(() =>
+            {
+                if (CheckAndCreateDir(EntityDir))
+                    this.entityGenerateService.CreateEntity(Namespace, IdType, EntityName, EntityDir);
+            });
             Generate = ReactiveCommand.Create(() =>
             {
                 this.entityGenerateService.SetEntity(EntityPath);
-                if (CreateDto)
-                    this.entityGenerateService.CreateDto("");
-                if (CreateUpdateOrCreateDto)
-                    this.entityGenerateService.CreateCreateOrUpdateDto("");
-                if (CratePageAndFilter)
-                    this.entityGenerateService.CreatePagedAndSortedAndFilterResultDto("");
-                if (CreateManager)
-                    this.entityGenerateService.CreateManager("");
-                if (CreateEfCoreRepository)
+                if (CheckAndCreateDir(DtoDir))
                 {
-                    this.entityGenerateService.CreateEfRepository("");
-                    this.entityGenerateService.CreateRepositoryInterface("");
+                    this.entityGenerateService.CreateDto(DtoDir);
+                    this.entityGenerateService.CreateCreateOrUpdateDto(DtoDir);
+                    this.entityGenerateService.CreatePagedAndSortedAndFilterResultDto(DtoDir);
                 }
-                if (this.CreateService)
+                if (CheckAndCreateDir(AppServiceDir))
                 {
-                    var isCustom = false;
-                    if (this.IsCustomService)
-                        isCustom = true;
-                    this.entityGenerateService.CreateIService(isCustom, "");
-                    this.entityGenerateService.CreateService(isCustom, "");
+                    this.entityGenerateService.CreateService(IsCustomService, AppServiceDir);
                 }
-                if (this.CreateException)
+                if (CheckAndCreateDir(IAppServiceDir))
                 {
-                    this.entityGenerateService.CreateException(ExceptionName, "");
+                    this.entityGenerateService.CreateIService(IsCustomService, IAppServiceDir);
+                }
+                if (CheckAndCreateDir(IRepositoryDir))
+                {
+                    this.entityGenerateService.CreateRepositoryInterface(IRepositoryDir);
+                }
+                if (CheckAndCreateDir(EfCoreRepositoryDir))
+                {
+                    this.entityGenerateService.CreateEfRepository(EfCoreRepositoryDir);
+                }
+                if (CheckAndCreateDir(DomainServiceDir))
+                {
+                    this.entityGenerateService.CreateManager(DomainServiceDir);
+                }
+
+                if (CheckAndCreateDir(ExceptionDir))
+                {
+                    this.entityGenerateService.CreateException(ExceptionName, ExceptionDir);
                 }
                 if (this.InsertMapper)
                 {
@@ -104,6 +122,15 @@ namespace CodeGeneratorApp.Modules.ModuleName.ViewModels
         public override void OnNavigatedTo(NavigationContext navigationContext)
         {
             //do something
+        }
+        private bool CheckAndCreateDir(string dir)
+        {
+            if (string.IsNullOrWhiteSpace(dir))
+                return false;
+            if (Directory.Exists(dir))
+                return true;
+            Directory.CreateDirectory(dir);
+            return true;
         }
     }
 }

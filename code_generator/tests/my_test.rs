@@ -76,6 +76,7 @@ mod tests {
             entity_dir.clone(),
         )
         .unwrap();
+        return;
         let entity = Entity::new(entity_path).unwrap();
         println!("entity:{:#?}", entity);
         entity.create_dto(entity_dto_dir.clone()).unwrap();

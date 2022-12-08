@@ -9,104 +9,90 @@
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewmodels="clr-namespace:CodeGeneratorApp.Modules.ModuleName.ViewModels"
     d:DataContext="{d:DesignInstance Type=viewmodels:ViewAViewModel}"
+    d:DesignWidth="720"
     prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
     <StackPanel Margin="5">
 
+        <UniformGrid Columns="2">
+            <hc:TextBox
+                Grid.Row="0"
+                Grid.Column="0"
+                hc:TitleElement.Title="实体名"
+                hc:TitleElement.TitlePlacement="Top"
+                Text="{Binding EntityName}" />
+            <hc:TextBox
+                Grid.Row="0"
+                Grid.Column="1"
+                hc:TitleElement.Title="实体主键类型"
+                hc:TitleElement.TitlePlacement="Top"
+                Text="{Binding IdType}" />
+            <hc:TextBox
+                Grid.Row="1"
+                Grid.Column="0"
+                hc:TitleElement.Title="实体命名空间"
+                hc:TitleElement.TitlePlacement="Top"
+                Text="{Binding Namespace}" />
+            <hc:TextBox
+                Grid.Row="1"
+                Grid.Column="1"
+                hc:TitleElement.Title="实体目录"
+                hc:TitleElement.TitlePlacement="Top"
+                Text="{Binding EntityDir}" />
+        </UniformGrid>
+        <Button Command="{Binding GenerateEntity}" Style="{StaticResource ButtonPrimary}">生成实体</Button>
+
+        <hc:TextBox
+            hc:InfoElement.Placeholder="实体文件路径"
+            hc:TitleElement.Title="实体文件路径"
+            hc:TitleElement.TitlePlacement="Top"
+            Text="{Binding EntityPath}" />
+        <hc:TextBox
+            hc:InfoElement.Placeholder="DTO文件目录"
+            hc:TitleElement.Title="DTO文件目录"
+            hc:TitleElement.TitlePlacement="Top"
+            Text="{Binding DtoDir}" />
+
+        <StackPanel Margin="10">
+            <CheckBox Content="是否自定义AppService" IsChecked="{Binding IsCustomService}" />
+            <hc:TextBox
+                hc:InfoElement.Placeholder="AppService文件目录"
+                hc:TitleElement.Title="AppService文件目录"
+                hc:TitleElement.TitlePlacement="Top"
+                Text="{Binding AppServiceDir}" />
+            <hc:TextBox
+                hc:InfoElement.Placeholder="AppService接口文件目录"
+                hc:TitleElement.Title="AppService接口文件目录"
+                hc:TitleElement.TitlePlacement="Top"
+                Text="{Binding IAppServiceDir}" />
+        </StackPanel>
+        <hc:TextBox
+            hc:InfoElement.Placeholder="仓库接口文件目录"
+            hc:TitleElement.Title="仓库接口文件目录"
+            hc:TitleElement.TitlePlacement="Top"
+            Text="{Binding IRepositoryDir}" />
+        <hc:TextBox
+            hc:InfoElement.Placeholder="EF仓库实现文件目录"
+            hc:TitleElement.Title="仓库实现文件目录"
+            hc:TitleElement.TitlePlacement="Top"
+            Text="{Binding EfCoreRepositoryDir}" />
+        <hc:TextBox
+            hc:InfoElement.Placeholder="域服务实现文件目录"
+            hc:TitleElement.Title="域服务实现文件目录"
+            hc:TitleElement.TitlePlacement="Top"
+            Text="{Binding DomainServiceDir}" />
         <UniformGrid>
             <hc:TextBox
-                hc:TitleElement.Title="实体名"
-                hc:TitleElement.TitlePlacement="Left"
+                hc:InfoElement.Placeholder="异常名"
+                hc:TitleElement.Title="异常名"
+                hc:TitleElement.TitlePlacement="Top"
                 Text="{Binding ExceptionName}" />
             <hc:TextBox
-                hc:TitleElement.Title="实体主键类型"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
-            <hc:TextBox
-                hc:TitleElement.Title="实体命名空间"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
-            <hc:TextBox
-                hc:TitleElement.Title="实体目录"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
+                hc:InfoElement.Placeholder="异常实现文件目录"
+                hc:TitleElement.Title="异常实现文件目录"
+                hc:TitleElement.TitlePlacement="Top"
+                Text="{Binding ExceptionDir}" />
         </UniformGrid>
-        <DockPanel>
-            <TextBlock
-                VerticalAlignment="Center"
-                Foreground="Black"
-                Text="实体路径：" />
-            <hc:TextBox
-                hc:InfoElement.Placeholder="拖入实体到输入框"
-                AllowDrop="True"
-                PreviewDragOver="EntityFilePreviewDragOver"
-                PreviewDrop="EntityFilePreviewDrop"
-                Text="{Binding EntityPath}" />
-        </DockPanel>
-        <DockPanel>
-            <CheckBox Content="生成Dto文件" IsChecked="{Binding CreateDto}" />
-            <hc:TextBox hc:InfoElement.Placeholder="生成DTO的目录" IsEnabled="{Binding CreateDto}" />
-        </DockPanel>
-        <DockPanel>
-            <CheckBox Content="生成EfCore仓库文件与仓库接口" IsChecked="{Binding CreateEfCoreRepository}" />
-            <hc:TextBox hc:InfoElement.Placeholder="生成DTO的目录" IsEnabled="{Binding CreateDto}" />
-        </DockPanel>
-        <DockPanel>
-            <CheckBox
-                x:Name="exception"
-                Content="生成异常相关文件"
-                IsChecked="{Binding CreateException}"
-                ToolTip="主要生成实体相关的异常，插入异常定义常量，以及插入json的展示字符串" />
-            <hc:TextBox
-                hc:TitleElement.Title="异常名"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
-        </DockPanel>
-
-        <DockPanel>
-            <CheckBox
-                x:Name="service"
-                Content="生成服务相关文件"
-                IsChecked="{Binding CreateService}"
-                ToolTip="主要生成ApplicationService与协定接口" />
-            <CheckBox
-                Content="是否生成自定义服务"
-                IsChecked="{Binding IsCustomService}"
-                ToolTip="自定义服务就是：完全自己实现基本接口；非自定义：就是继承abp的CrudAppService，基本的增删查改根据情况自行重载" />
-            <hc:TextBox
-                hc:TitleElement.Title="异常名"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
-        </DockPanel>
-
-        <DockPanel>
-            <CheckBox Content="生成域服务管理文件" IsChecked="{Binding CreateManager}" />
-            <hc:TextBox
-                hc:TitleElement.Title="异常名"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
-        </DockPanel>
-        <DockPanel>
-            <CheckBox Content="生成分页查询Dto文件" IsChecked="{Binding CratePageAndFilter}" />
-            <hc:TextBox
-                hc:TitleElement.Title="异常名"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
-        </DockPanel>
-        <DockPanel>
-            <CheckBox Content="插入实体映射代码" IsChecked="{Binding InsertMapper}" />
-            <hc:TextBox
-                hc:TitleElement.Title="异常名"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
-        </DockPanel>
-        <DockPanel>
-            <CheckBox Content="插入EfCore实体配置代码" IsChecked="{Binding InsertEfCoreEntityConfig}" />
-            <hc:TextBox
-                hc:TitleElement.Title="异常名"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionName}" />
-        </DockPanel>
         <CheckBox Content="格式化更新的文件" IsChecked="{Binding Format}" />
         <Button
             Margin="20,0"

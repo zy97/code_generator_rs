@@ -184,17 +184,6 @@ where
     }
 
     let file = File::create(file_full_name)?;
-    match TEMPLATES.render_to(template_name, &context, file) {
-        Ok(()) => eprintln!("{} create successful!", file_full_name),
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            let mut cause = e.source();
-            while let Some(e) = cause {
-                eprintln!("Reason: {}", e);
-                cause = e.source();
-            }
-        }
-    };
+    TEMPLATES.render_to(template_name, &context, file)?;
     Ok(file_full_name.to_string())
 }
-
