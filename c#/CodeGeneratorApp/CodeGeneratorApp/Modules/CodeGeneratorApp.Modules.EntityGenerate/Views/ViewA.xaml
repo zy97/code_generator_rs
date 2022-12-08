@@ -9,66 +9,104 @@
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewmodels="clr-namespace:CodeGeneratorApp.Modules.ModuleName.ViewModels"
     d:DataContext="{d:DesignInstance Type=viewmodels:ViewAViewModel}"
-    d:Height="300"
-    d:Width="400"
     prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
     <StackPanel Margin="5">
-        <DockPanel LastChildFill="True">
+
+        <UniformGrid>
+            <hc:TextBox
+                hc:TitleElement.Title="实体名"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+            <hc:TextBox
+                hc:TitleElement.Title="实体主键类型"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+            <hc:TextBox
+                hc:TitleElement.Title="实体命名空间"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+            <hc:TextBox
+                hc:TitleElement.Title="实体目录"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+        </UniformGrid>
+        <DockPanel>
             <TextBlock
                 VerticalAlignment="Center"
                 Foreground="Black"
                 Text="实体路径：" />
-            <Button
-                Margin="0,0,5,0"
-                Command="{Binding SelectEntity}"
-                DockPanel.Dock="Right"
-                Style="{StaticResource ButtonPrimary}">
-                选择
-            </Button>
             <hc:TextBox
-                Margin="5,0"
-                hc:InfoElement.Placeholder="选择或拖入实体到输入框"
-                IsReadOnly="True"
+                hc:InfoElement.Placeholder="拖入实体到输入框"
+                AllowDrop="True"
+                PreviewDragOver="EntityFilePreviewDragOver"
+                PreviewDrop="EntityFilePreviewDrop"
                 Text="{Binding EntityPath}" />
         </DockPanel>
-        <CheckBox Content="生成一般Dto文件" IsChecked="{Binding CreateDto}" />
-        <CheckBox Content="生成更新或创建Dto文件" IsChecked="{Binding CreateUpdateOrCreateDto}" />
-        <CheckBox Content="生成EfCore仓库文件与仓库接口" IsChecked="{Binding CreateEfCoreRepository}" />
-        <CheckBox
-            x:Name="exception"
-            Content="生成异常相关文件"
-            IsChecked="{Binding CreateException}"
-            ToolTip="主要生成实体相关的异常，插入异常定义常量，以及插入json的展示字符串" />
-        <StackPanel Margin="10,0" Visibility="{Binding ElementName=exception, Path=IsChecked, Converter={StaticResource Boolean2VisibilityConverter}}">
+        <DockPanel>
+            <CheckBox Content="生成Dto文件" IsChecked="{Binding CreateDto}" />
+            <hc:TextBox hc:InfoElement.Placeholder="生成DTO的目录" IsEnabled="{Binding CreateDto}" />
+        </DockPanel>
+        <DockPanel>
+            <CheckBox Content="生成EfCore仓库文件与仓库接口" IsChecked="{Binding CreateEfCoreRepository}" />
+            <hc:TextBox hc:InfoElement.Placeholder="生成DTO的目录" IsEnabled="{Binding CreateDto}" />
+        </DockPanel>
+        <DockPanel>
+            <CheckBox
+                x:Name="exception"
+                Content="生成异常相关文件"
+                IsChecked="{Binding CreateException}"
+                ToolTip="主要生成实体相关的异常，插入异常定义常量，以及插入json的展示字符串" />
             <hc:TextBox
                 hc:TitleElement.Title="异常名"
                 hc:TitleElement.TitlePlacement="Left"
                 Text="{Binding ExceptionName}" />
-            <hc:TextBox
-                hc:TitleElement.Title="异常码"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionCode}" />
-            <hc:TextBox
-                hc:TitleElement.Title="异常显示文本"
-                hc:TitleElement.TitlePlacement="Left"
-                Text="{Binding ExceptionDisplayName}" />
-        </StackPanel>
-        <CheckBox
-            x:Name="service"
-            Content="生成服务相关文件"
-            IsChecked="{Binding CreateService}"
-            ToolTip="主要生成ApplicationService与协定接口" />
-        <Grid Margin="10,0" Visibility="{Binding ElementName=service, Path=IsChecked, Converter={StaticResource Boolean2VisibilityConverter}}">
+        </DockPanel>
+
+        <DockPanel>
+            <CheckBox
+                x:Name="service"
+                Content="生成服务相关文件"
+                IsChecked="{Binding CreateService}"
+                ToolTip="主要生成ApplicationService与协定接口" />
             <CheckBox
                 Content="是否生成自定义服务"
                 IsChecked="{Binding IsCustomService}"
                 ToolTip="自定义服务就是：完全自己实现基本接口；非自定义：就是继承abp的CrudAppService，基本的增删查改根据情况自行重载" />
-        </Grid>
-        <CheckBox Content="生成域服务管理文件" IsChecked="{Binding CreateManager}" />
-        <CheckBox Content="生成分页查询Dto文件" IsChecked="{Binding CratePageAndFilter}" />
-        <CheckBox Content="插入实体映射代码" IsChecked="{Binding InsertMapper}" />
-        <CheckBox Content="插入EfCore实体配置代码" IsChecked="{Binding InsertEfCoreEntityConfig}" />
+            <hc:TextBox
+                hc:TitleElement.Title="异常名"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+        </DockPanel>
+
+        <DockPanel>
+            <CheckBox Content="生成域服务管理文件" IsChecked="{Binding CreateManager}" />
+            <hc:TextBox
+                hc:TitleElement.Title="异常名"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+        </DockPanel>
+        <DockPanel>
+            <CheckBox Content="生成分页查询Dto文件" IsChecked="{Binding CratePageAndFilter}" />
+            <hc:TextBox
+                hc:TitleElement.Title="异常名"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+        </DockPanel>
+        <DockPanel>
+            <CheckBox Content="插入实体映射代码" IsChecked="{Binding InsertMapper}" />
+            <hc:TextBox
+                hc:TitleElement.Title="异常名"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+        </DockPanel>
+        <DockPanel>
+            <CheckBox Content="插入EfCore实体配置代码" IsChecked="{Binding InsertEfCoreEntityConfig}" />
+            <hc:TextBox
+                hc:TitleElement.Title="异常名"
+                hc:TitleElement.TitlePlacement="Left"
+                Text="{Binding ExceptionName}" />
+        </DockPanel>
         <CheckBox Content="格式化更新的文件" IsChecked="{Binding Format}" />
         <Button
             Margin="20,0"

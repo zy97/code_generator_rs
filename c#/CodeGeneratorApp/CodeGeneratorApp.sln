@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{469A6580-188D-4BC3-8D99-DE3CF439193B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{AE418855-2018-439D-8143-B00D59FB1E8E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{896B72BD-53C0-4EB4-9A46-4CC85BA0EABF}"
@@ -19,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeGeneratorApp.Core", "Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeGeneratorApp.Modules.EntityGenerate", "CodeGeneratorApp\Modules\CodeGeneratorApp.Modules.EntityGenerate\CodeGeneratorApp.Modules.EntityGenerate.csproj", "{C9BFA973-CD38-437A-8003-09F85181E64B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGeneratorApp.Modules.ReactGenerate", "CodeGeneratorApp\Modules\CodeGeneratorApp.Modules.ReactGenerate\CodeGeneratorApp.Modules.ReactGenerate.csproj", "{76FA8948-D983-4432-A498-E2552ABE4686}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeGeneratorApp.Modules.ReactGenerate", "CodeGeneratorApp\Modules\CodeGeneratorApp.Modules.ReactGenerate\CodeGeneratorApp.Modules.ReactGenerate.csproj", "{76FA8948-D983-4432-A498-E2552ABE4686}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

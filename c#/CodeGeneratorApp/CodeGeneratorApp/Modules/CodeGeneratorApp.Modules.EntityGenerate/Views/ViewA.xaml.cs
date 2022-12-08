@@ -1,6 +1,6 @@
-﻿using CodeGeneratorApp.Modules.ModuleName.ViewModels;
-using Microsoft.Win32;
+﻿using System.Windows;
 using System.Windows.Controls;
+using CodeGeneratorApp.Modules.ModuleName.ViewModels;
 
 namespace CodeGeneratorApp.Modules.ModuleName.Views
 {
@@ -9,22 +9,26 @@ namespace CodeGeneratorApp.Modules.ModuleName.Views
     /// </summary>
     public partial class ViewA : UserControl
     {
+        private readonly ViewAViewModel viewModel;
+
         public ViewA()
         {
             InitializeComponent();
-            var viewModel = this.DataContext as ViewAViewModel;
-            viewModel.SelectEntityInteraction.RegisterHandler(interact =>
+            viewModel = this.DataContext as ViewAViewModel;
+        }
+        private void EntityFilePreviewDrop(object sender, DragEventArgs e)
+        {
+            var f = e.Data.GetData(DataFormats.FileDrop) as string[];
+            if (f?.Length > 0)
             {
-                var openFileDialog = new OpenFileDialog()
-                {
-                    Filter = "C# 文件(.cs)|*.cs"
-                };
-                if (openFileDialog.ShowDialog() is true)
-                {
-                    interact.SetOutput(openFileDialog.FileName);
-                    return;
-                }
-            });
+                this.viewModel.EntityPath = f[0];
+            }
+        }
+
+        private void EntityFilePreviewDragOver(object sender, DragEventArgs e)
+        {
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
         }
     }
 }

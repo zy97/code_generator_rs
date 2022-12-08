@@ -1,11 +1,10 @@
-﻿using CodeGeneratorApp.Core.Mvvm;
-using CodeGeneratorApp.Services.Interfaces;
+﻿using System.Reactive;
+using System.Reactive.Linq;
+using CodeGeneratorApp.Core.Mvvm;
+using CodeGeneratorApp.Modules.EntityGenerate.Services;
 using Prism.Regions;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using System;
-using System.Reactive;
-using System.Reactive.Linq;
 
 namespace CodeGeneratorApp.Modules.ModuleName.ViewModels
 {
@@ -42,7 +41,7 @@ namespace CodeGeneratorApp.Modules.ModuleName.ViewModels
         [Reactive]
         public bool Format { get; set; }
         #endregion
-        private readonly IEntityGenerateService entityGenerateService;
+        private readonly IEntityGeneratorService entityGenerateService;
 
         [Reactive]
         public string Message { get; set; }
@@ -51,58 +50,48 @@ namespace CodeGeneratorApp.Modules.ModuleName.ViewModels
         [Reactive]
         public string Title { get; set; } = "Abp 服务实体生成";
 
-        public ReactiveCommand<Unit, Unit> SelectEntity { get; set; }
         public ReactiveCommand<Unit, Unit> Generate { get; set; }
 
-        public Interaction<Unit, string> SelectEntityInteraction { get; } = new Interaction<Unit, string>();
 
 
-        public ViewAViewModel(IRegionManager regionManager, IEntityGenerateService entityGenerateService) :
+        public ViewAViewModel(IRegionManager regionManager, IEntityGeneratorService entityGenerateService) :
             base(regionManager)
         {
-            SelectEntity = ReactiveCommand.Create(() =>
-            {
-                SelectEntityInteraction.Handle(Unit.Default)
-                .Subscribe(entityPath =>
-                {
-                    EntityPath = entityPath;
-                }, ex => { });
-            });
             Generate = ReactiveCommand.Create(() =>
             {
                 this.entityGenerateService.SetEntity(EntityPath);
                 if (CreateDto)
-                    this.entityGenerateService.CreateDto();
+                    this.entityGenerateService.CreateDto("");
                 if (CreateUpdateOrCreateDto)
-                    this.entityGenerateService.CreateCreateOrUpdateDto();
+                    this.entityGenerateService.CreateCreateOrUpdateDto("");
                 if (CratePageAndFilter)
-                    this.entityGenerateService.CreatePagedAndSortedAndFilterResultDto();
+                    this.entityGenerateService.CreatePagedAndSortedAndFilterResultDto("");
                 if (CreateManager)
-                    this.entityGenerateService.CreateManager();
+                    this.entityGenerateService.CreateManager("");
                 if (CreateEfCoreRepository)
                 {
-                    this.entityGenerateService.CreateEfRepository();
-                    this.entityGenerateService.CreateRepositoryInterface();
+                    this.entityGenerateService.CreateEfRepository("");
+                    this.entityGenerateService.CreateRepositoryInterface("");
                 }
                 if (this.CreateService)
                 {
                     var isCustom = false;
                     if (this.IsCustomService)
                         isCustom = true;
-                    this.entityGenerateService.CreateIService(isCustom);
-                    this.entityGenerateService.CreateService(isCustom);
+                    this.entityGenerateService.CreateIService(isCustom, "");
+                    this.entityGenerateService.CreateService(isCustom, "");
                 }
                 if (this.CreateException)
                 {
-                    this.entityGenerateService.CreateException(ExceptionName, ExceptionCode, ExceptionDisplayName);
+                    this.entityGenerateService.CreateException(ExceptionName, "");
                 }
                 if (this.InsertMapper)
                 {
-                    this.entityGenerateService.InsertMapper();
+                    this.entityGenerateService.InsertMapper("");
                 }
                 if (this.InsertEfCoreEntityConfig)
                 {
-                    this.entityGenerateService.InsertEfcoreEntityConfig();
+                    this.entityGenerateService.InsertEfcoreEntityConfig("");
                 }
                 if (this.Format)
                 {

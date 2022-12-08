@@ -1,12 +1,10 @@
-﻿using CodeGeneratorApp.Services.Interfaces;
-
-namespace CodeGeneratorApp.Services
+﻿namespace CodeGeneratorApp.Modules.ReactGenerate.Services
 {
-    public class ReactGenerateService : IReactGenerateService
+    public class ReactGeneratorService : IReactGeneratorService
     {
         private ReactGenerator reactGenerator;
 
-        public ReactGenerateService()
+        public ReactGeneratorService()
         {
 
         }

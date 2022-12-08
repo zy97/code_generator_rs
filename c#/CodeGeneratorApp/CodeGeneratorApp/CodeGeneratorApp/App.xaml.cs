@@ -1,11 +1,9 @@
-﻿using CodeGeneratorApp.Modules.ModuleName;
+﻿using System.Windows;
+using CodeGeneratorApp.Modules.ModuleName;
 using CodeGeneratorApp.Modules.ReactGenerate;
-using CodeGeneratorApp.Services;
-using CodeGeneratorApp.Services.Interfaces;
 using CodeGeneratorApp.Views;
 using Prism.Ioc;
 using Prism.Modularity;
-using System.Windows;
 
 namespace CodeGeneratorApp
 {
@@ -52,8 +50,6 @@ namespace CodeGeneratorApp
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterSingleton<IEntityGenerateService, EntityGenerateService>();
-            containerRegistry.RegisterSingleton<IReactGenerateService, ReactGenerateService>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)

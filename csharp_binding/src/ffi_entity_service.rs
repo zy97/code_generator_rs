@@ -14,6 +14,20 @@ impl EntityGenerator {
             generator: Entity::new(path.as_str()?.to_owned())?,
         })
     }
+    pub fn create_entity(
+        namespace: AsciiPointer,
+        id_type: AsciiPointer,
+        name: AsciiPointer,
+        dir: AsciiPointer,
+    ) -> Result<(), FFIPatternsError> {
+        Entity::create_entity(
+            namespace.as_str()?.to_owned(),
+            id_type.as_str()?.to_owned(),
+            name.as_str()?.to_owned(),
+            dir.as_str()?.to_owned(),
+        )?;
+        Ok(())
+    }
     pub fn create_dto(&self, dir: AsciiPointer) -> Result<(), FFIPatternsError> {
         self.generator.create_dto(dir.as_str()?.to_owned())?;
         Ok(())

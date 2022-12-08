@@ -1,4 +1,5 @@
-﻿using CodeGeneratorApp.Modules.ModuleName.Views;
+﻿using CodeGeneratorApp.Modules.EntityGenerate.Services;
+using CodeGeneratorApp.Modules.ModuleName.Views;
 using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Regions;
@@ -22,6 +23,8 @@ namespace CodeGeneratorApp.Modules.ModuleName
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterForNavigation<ViewA>("ViewA");
+            containerRegistry.RegisterSingleton<IEntityGeneratorService, EntityGeneratorService>();
+
         }
     }
 }

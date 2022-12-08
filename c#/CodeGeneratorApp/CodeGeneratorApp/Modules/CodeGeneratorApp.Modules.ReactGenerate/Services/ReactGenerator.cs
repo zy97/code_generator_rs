@@ -5,7 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 #pragma warning restore 0105
 
-namespace CodeGeneratorApp.Services
+namespace CodeGeneratorApp.Modules.ReactGenerate.Services
 {
     public static partial class Interop
     {
@@ -152,5 +152,22 @@ namespace CodeGeneratorApp.Services
         }
 
         public IntPtr Context => _context;
+    }
+    public class InteropException<T> : Exception
+    {
+        public T Error { get; private set; }
+
+        public InteropException(T error) : base($"Something went wrong: {error}")
+        {
+            Error = error;
+        }
+    }
+    public enum AppFFIError
+    {
+        Ok = 0,
+        NullPassed = 1,
+        Panic = 2,
+        CodeGeneratorError = 3,
+        FFIPaternsError = 4,
     }
 }

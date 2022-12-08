@@ -9,7 +9,7 @@ namespace {{namespace}}
     public class {{entityName}} : FullAuditedAggregateRoot<{{type}}>
     {
         public string Aaa { get; private set; }
-        public string Bbb { get; private set; }
+        public string Bbb { get; private set; } 
         private {{entityName}}()
         {
 

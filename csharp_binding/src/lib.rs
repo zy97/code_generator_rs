@@ -60,7 +60,7 @@ mod tests {
 
         let config = Config {
             dll_name: "C:\\Users\\Administrator\\Desktop\\code_generator_rs\\target\\debug\\csharp_binding.dll".to_string(),
-            namespace_mappings: NamespaceMappings::new("CodeGeneratorApp.Services"),
+            namespace_mappings: NamespaceMappings::new("CodeGeneratorApp.Modules.EntityGenerate.Services"),
             class: "RawEntityGenerator".to_string(),
             rename_symbols:true,
             write_types:WriteTypes::NamespaceAndInteroptopusGlobal,
@@ -73,7 +73,7 @@ mod tests {
             .add_overload_writer(DotNet::new())
             //.add_overload_writer(Unity::new())
             .write_file(
-                r"../c#/CodeGeneratorApp/CodeGeneratorApp/Services/CodeGeneratorApp.Services/EntityGenerator.cs",
+                r"../c#/CodeGeneratorApp/CodeGeneratorApp/Modules/CodeGeneratorApp.Modules.EntityGenerate/Services/EntityGenerator.cs",
             )?;
         Ok(())
     }

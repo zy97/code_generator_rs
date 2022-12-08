@@ -5,7 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 #pragma warning restore 0105
 
-namespace CodeGeneratorApp.Services
+namespace CodeGeneratorApp.Modules.EntityGenerate.Services
 {
     internal static partial class RawEntityGenerator
     {
@@ -46,6 +46,18 @@ namespace CodeGeneratorApp.Services
         public static void EntityServiceNew_checked(ref IntPtr context, string path)
         {
             var rval = EntityServiceNew(ref context, path); ;
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "entity_service_create_entity")]
+        public static extern AppFFIError EntityServiceCreateEntity(string nameSpace, string id_type, string name, string dir);
+
+        public static void EntityServiceCreateEntity_checked(string nameSpace, string id_type, string name, string dir)
+        {
+            var rval = EntityServiceCreateEntity(nameSpace, id_type, name, dir); ;
             if (rval != AppFFIError.Ok)
             {
                 throw new InteropException<AppFFIError>(rval);
@@ -198,6 +210,14 @@ namespace CodeGeneratorApp.Services
 
     }
 
+    public enum AppFFIError
+    {
+        Ok = 0,
+        NullPassed = 1,
+        Panic = 2,
+        CodeGeneratorError = 3,
+        FFIPaternsError = 4,
+    }
 
 
     internal partial class EntityGenerator : IDisposable
@@ -220,6 +240,15 @@ namespace CodeGeneratorApp.Services
         public void Dispose()
         {
             var rval = RawEntityGenerator.EntityServiceDestroy(ref _context);
+            if (rval != AppFFIError.Ok)
+            {
+                throw new InteropException<AppFFIError>(rval);
+            }
+        }
+
+        public static void CreateEntity(string nameSpace, string id_type, string name, string dir)
+        {
+            var rval = RawEntityGenerator.EntityServiceCreateEntity(nameSpace, id_type, name, dir);
             if (rval != AppFFIError.Ok)
             {
                 throw new InteropException<AppFFIError>(rval);
@@ -339,6 +368,14 @@ namespace CodeGeneratorApp.Services
 
 
 
+    public class InteropException<T> : Exception
+    {
+        public T Error { get; private set; }
 
+        public InteropException(T error) : base($"Something went wrong: {error}")
+        {
+            Error = error;
+        }
+    }
 
 }

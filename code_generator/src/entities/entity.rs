@@ -29,7 +29,7 @@ impl Entity {
         id_type: String,
         name: String,
         dir: String,
-    ) -> Result<String, Box<dyn Error>> {
+    ) -> Result<String, CodeGeneratorError> {
         let name = name.to_title_case();
         let kv = dynamicDic![
             ("namespace", &namespace),

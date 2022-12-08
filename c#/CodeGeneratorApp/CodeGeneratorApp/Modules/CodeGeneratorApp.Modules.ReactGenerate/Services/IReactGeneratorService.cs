@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace CodeGeneratorApp.Services.Interfaces
+namespace CodeGeneratorApp.Modules.ReactGenerate.Services
 {
-    public interface IReactGenerateService : IDisposable
+    public interface IReactGeneratorService : IDisposable
     {
         void CreateApi(string prefix);
         void CreatePage();

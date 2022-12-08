@@ -1,18 +1,18 @@
-﻿using CodeGeneratorApp.Core.Mvvm;
-using CodeGeneratorApp.Services.Interfaces;
+﻿using System;
+using System.Reactive;
+using System.Reactive.Linq;
+using CodeGeneratorApp.Core.Mvvm;
+using CodeGeneratorApp.Modules.ReactGenerate.Services;
 using Prism.Regions;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using System;
-using System.Reactive;
-using System.Reactive.Linq;
 
 namespace CodeGeneratorApp.Modules.ReactGenerate.ViewModels
 {
 
     public class ViewAViewModel : RegionViewModelBase
     {
-        private readonly IReactGenerateService reactGenerateService;
+        private readonly IReactGeneratorService reactGenerateService;
 
         [Reactive]
         public string Title { get; set; } = "Abp React生成";
@@ -37,7 +37,7 @@ namespace CodeGeneratorApp.Modules.ReactGenerate.ViewModels
 
         #endregion
 
-        public ViewAViewModel(IRegionManager regionManager, IReactGenerateService reactGenerateService) : base(regionManager)
+        public ViewAViewModel(IRegionManager regionManager, IReactGeneratorService reactGenerateService) : base(regionManager)
         {
             this.reactGenerateService = reactGenerateService;
             SelectEntity = ReactiveCommand.Create(() =>
