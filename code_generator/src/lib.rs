@@ -8,6 +8,13 @@ pub use entities::Entity;
 pub use entities::Permission;
 pub use entities::WebEntity;
 pub use error::CodeGeneratorError;
+mod db_entities;
+use db_entities::{prelude::*, *};
+mod services;
+
+const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";
+const DB_NAME: &str = "bakeries_db";
+
 #[macro_use]
 extern crate lazy_static;
 lazy_static! {
