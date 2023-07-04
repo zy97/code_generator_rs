@@ -30,15 +30,15 @@ import {
   CategoryList,
   CategoryShow,
 } from "./pages/categories";
-
+import { tauriDataProvider } from "./data-provider";
 function App() {
   return (
     <BrowserRouter>
-      <GitHubBanner />
+      {/* <GitHubBanner /> */}
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <Refine
-            dataProvider={dataProvider("https://api.fake-rest.refine.dev")}
+            dataProvider={{default:dataProvider("https://api.fake-rest.refine.dev"), tauri:tauriDataProvider("")}}
             notificationProvider={notificationProvider}
             routerProvider={routerBindings}
             resources={[
@@ -60,6 +60,17 @@ function App() {
                 show: "/categories/show/:id",
                 meta: {
                   canDelete: true,
+                },
+              },
+              {
+                name: "projects",
+                list: "/projects",
+                create: "/projects/create",
+                edit: "/projects/edit/:id",
+                show: "/projects/show/:id",
+                meta: {
+                  canDelete: true,
+                  dataProviderName:"tauri"
                 },
               },
             ]}
@@ -90,6 +101,12 @@ function App() {
                   <Route path="show/:id" element={<BlogPostShow />} />
                 </Route>
                 <Route path="/categories">
+                  <Route index element={<CategoryList />} />
+                  <Route path="create" element={<CategoryCreate />} />
+                  <Route path="edit/:id" element={<CategoryEdit />} />
+                  <Route path="show/:id" element={<CategoryShow />} />
+                </Route>
+                <Route path="/projects">
                   <Route index element={<CategoryList />} />
                   <Route path="create" element={<CategoryCreate />} />
                   <Route path="edit/:id" element={<CategoryEdit />} />
