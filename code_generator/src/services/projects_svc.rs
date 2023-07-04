@@ -36,3 +36,7 @@ async fn Delete() -> Result<(), DbErr> {
     let s = project.delete(&db).await?;
     Ok(())
 }
+async fn GetList() -> Result<Vec<projects::Model>, DbErr> {
+    let db = Database::connect(DATABASE_URL).await?;
+    Ok(Projects::find().all(&db).await?)
+}
