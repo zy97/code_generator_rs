@@ -8,10 +8,19 @@ pub struct Model {
     #[sea_orm(column_name = "Id", primary_key, auto_increment = false)]
     pub id: i32,
     #[sea_orm(column_name = "Name")]
-    pub name: Option<String>,
+    pub name: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::templates::Entity")]
+    Templates,
+}
+
+impl Related<super::templates::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Templates.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
