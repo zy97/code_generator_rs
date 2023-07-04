@@ -1,1 +1,1 @@
-mod projects_svc;
+pub mod projects_svc;

@@ -9,9 +9,9 @@ pub use entities::Permission;
 pub use entities::WebEntity;
 pub use error::CodeGeneratorError;
 mod db_entities;
-use db_entities::{prelude::*, *};
+pub use db_entities::{prelude::*, *};
 mod services;
-
+pub use services::*;
 const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";
 const DB_NAME: &str = "bakeries_db";
 
