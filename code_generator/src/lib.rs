@@ -13,7 +13,7 @@ pub use db_entities::{prelude::*, *};
 mod services;
 pub use services::*;
 const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";
-const DB_NAME: &str = "bakeries_db";
+// const DB_NAME: &str = "bakeries_db";
 
 #[macro_use]
 extern crate lazy_static;

@@ -1,6 +1,4 @@
-use std::{
-    cell::RefCell, collections::HashMap, error::Error, io::Read, os::windows::prelude::FileExt,
-};
+use std::{cell::RefCell, collections::HashMap, io::Read, os::windows::prelude::FileExt};
 extern crate inflector;
 use super::{find, format_code, format_single_file, generate_template, open_file};
 use crate::{

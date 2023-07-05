@@ -32,6 +32,7 @@ import {
 } from "./pages/categories";
 import { tauriDataProvider } from "./data-provider";
 import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/projects";
+import { TemplateCreate, TemplateEdit, TemplateList, TemplateShow } from "./pages/templates";
 function App() {
   return (
     <BrowserRouter>
@@ -39,7 +40,7 @@ function App() {
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <Refine
-            dataProvider={{default:dataProvider("https://api.fake-rest.refine.dev"), tauri:tauriDataProvider("")}}
+            dataProvider={{ default: dataProvider("https://api.fake-rest.refine.dev"), tauri: tauriDataProvider("") }}
             notificationProvider={notificationProvider}
             routerProvider={routerBindings}
             resources={[
@@ -71,7 +72,18 @@ function App() {
                 show: "/projects/show/:id",
                 meta: {
                   canDelete: true,
-                  dataProviderName:"tauri",
+                  dataProviderName: "tauri",
+                }
+              },
+              {
+                name: "templates",
+                list: "/templates",
+                create: "/templates/create",
+                edit: "/templates/edit/:id",
+                show: "/templates/show/:id",
+                meta: {
+                  canDelete: true,
+                  dataProviderName: "tauri",
                 },
               },
             ]}
@@ -103,15 +115,21 @@ function App() {
                 </Route>
                 <Route path="/categories">
                   <Route index element={<CategoryList />} />
-                  <Route path="create" element={<CategoryCreate/>} />
+                  <Route path="create" element={<CategoryCreate />} />
                   <Route path="edit/:id" element={<CategoryEdit />} />
                   <Route path="show/:id" element={<CategoryShow />} />
                 </Route>
                 <Route path="/projects">
-                  <Route index element={<ProjectList/>} />
+                  <Route index element={<ProjectList />} />
                   <Route path="create" element={<ProjectCreate />} />
                   <Route path="edit/:id" element={<ProjectEdit />} />
                   <Route path="show/:id" element={<ProjectShow />} />
+                </Route>
+                <Route path="/templates">
+                  <Route index element={<TemplateList />} />
+                  <Route path="create" element={<TemplateCreate />} />
+                  <Route path="edit/:id" element={<TemplateEdit />} />
+                  <Route path="show/:id" element={<TemplateShow />} />
                 </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>

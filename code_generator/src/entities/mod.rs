@@ -10,7 +10,6 @@ use regex::Regex;
 use serde::Serialize;
 use std::{
     collections::HashMap,
-    error::Error,
     fs::{File, OpenOptions},
     io::Read,
     os::windows::process::ExitStatusExt,

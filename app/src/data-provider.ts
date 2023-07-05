@@ -47,4 +47,13 @@ export const tauriDataProvider = (apiUrl: string): DataProvider => ({
             data,
         };
     },
+    getMany: async ({ resource, ids, meta }) => {
+        const url = `${resource}_get_many`;
+        console.log(url, ids);
+        const data = await invoke(url, { ids })
+        console.log(data)
+        return {
+            data,
+        };
+    }
 });
