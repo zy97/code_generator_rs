@@ -1,42 +1,45 @@
 use crate::{
     db_entities::{prelude::*, *},
+    projects::{ActiveModel, Model},
     DATABASE_URL,
 };
-use sea_orm::{ActiveModelTrait, ActiveValue, Database, DbErr, EntityTrait};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue, Database, DbErr, DeleteResult, EntityTrait, InsertResult,
+};
 
-pub async fn Insert() -> Result<(), DbErr> {
+pub async fn create(name: String) -> Result<Model, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
     let project = projects::ActiveModel {
-        name: ActiveValue::Set("Happy Bakery".to_owned()),
+        name: ActiveValue::Set(name),
         ..Default::default()
     };
-    let res = Projects::insert(project).exec(&db).await?;
-    Ok(())
+    let res = project.insert(&db).await?;
+    Ok(res)
 }
-pub async fn Update() -> Result<(), DbErr> {
+pub async fn update(id: i32, name: String) -> Result<Model, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
     let project = projects::ActiveModel {
-        name: ActiveValue::Set("Happy Bakery".to_owned()),
-        ..Default::default()
+        id: ActiveValue::Set(id),
+        name: ActiveValue::Set(name),
     };
     let res = Projects::update(project).exec(&db).await?;
-    Ok(())
+    Ok(res)
 }
-pub async fn Find() -> Result<(), DbErr> {
+pub async fn find(id: i32) -> Result<Option<projects::Model>, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
-    let project: Option<projects::Model> = Projects::find_by_id(1).one(&db).await?;
-    Ok(())
+    let project: Option<projects::Model> = Projects::find_by_id(id).one(&db).await?;
+    Ok(project)
 }
-pub async fn Delete() -> Result<(), DbErr> {
+pub async fn delete(id: i32) -> Result<DeleteResult, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
     let project = projects::ActiveModel {
-        id: ActiveValue::Set(1), // The primary key must be set
+        id: ActiveValue::Set(id), // The primary key must be set
         ..Default::default()
     };
-    let s = project.delete(&db).await?;
-    Ok(())
+    let result: DeleteResult = project.delete(&db).await?;
+    Ok(result)
 }
-pub async fn GetList() -> Result<Vec<projects::Model>, DbErr> {
+pub async fn get_list() -> Result<Vec<projects::Model>, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
     Ok(Projects::find().all(&db).await?)
 }

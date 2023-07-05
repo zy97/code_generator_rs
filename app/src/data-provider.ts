@@ -2,9 +2,9 @@ import { DataProvider } from "@refinedev/core";
 import { stringify } from "query-string";
 import { invoke } from '@tauri-apps/api'
 export const tauriDataProvider = (apiUrl: string): DataProvider => ({
-    getList: async ({ resource, pagination }) => {
-        const url = `${apiUrl}/${resource}`;
-        console.log(url)
+    getList: async ({ resource, pagination, meta }) => {
+        const url = `${resource}_get_list`;
+        console.log(url, meta)
         const { current = 1, pageSize = 10 } = pagination ?? {};
         const query: {
             _start?: number;
@@ -14,7 +14,9 @@ export const tauriDataProvider = (apiUrl: string): DataProvider => ({
             _end: current * pageSize,
         };
 
-        const data = await invoke(`${url}?${stringify(query)}`, { name: 'World' })
+        // const data = await invoke(`${url}?${stringify(query)}`, { name: 'World' })
+        const data = await invoke(url, { name: 'World' })
+        console.log(data)
         const total = 100;
         return {
             data,
@@ -22,36 +24,33 @@ export const tauriDataProvider = (apiUrl: string): DataProvider => ({
         };
     },
     create: async ({ resource, variables }) => {
-        const url = `${apiUrl}/${resource}`;
-
-        const data = await invoke(url, { name: 'World' })
+        const url = `${resource}_create`;
+        console.log(url, variables);
+        const data = await invoke(url, { ...variables })
 
         return {
             data,
         };
     },
     update: async ({ resource, id, variables }) => {
-        const url = `${apiUrl}/${resource}/${id}`;
-
-        const data = await invoke(url, { name: 'World' })
-
+        const url = `${resource}_update`;
+        console.log(url, variables);
+        const data = await invoke(url, { id, ...variables })
         return {
             data,
         };
     },
     deleteOne: async ({ resource, id, variables }) => {
-        const url = `${apiUrl}/${resource}/${id}`;
-
-        const data = await invoke(url, { name: 'World' })
-
+        const url = `${resource}_delete`;
+        const data = await invoke(url, { id: parseInt(id.toString()) })
         return {
             data,
         };
     },
     getOne: async ({ resource, id }) => {
-        const url = `${apiUrl}/${resource}/${id}`;
-
-        const data = await invoke(url, { name: 'World' })
+        const url = `${resource}_find`;
+        console.log(url, id);
+        const data = await invoke(url, { id: parseInt(id.toString()) })
 
         return {
             data,

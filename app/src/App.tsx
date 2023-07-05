@@ -31,6 +31,7 @@ import {
   CategoryShow,
 } from "./pages/categories";
 import { tauriDataProvider } from "./data-provider";
+import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/projects";
 function App() {
   return (
     <BrowserRouter>
@@ -70,7 +71,7 @@ function App() {
                 show: "/projects/show/:id",
                 meta: {
                   canDelete: true,
-                  dataProviderName:"tauri"
+                  dataProviderName:"tauri",
                 },
               },
             ]}
@@ -102,15 +103,15 @@ function App() {
                 </Route>
                 <Route path="/categories">
                   <Route index element={<CategoryList />} />
-                  <Route path="create" element={<CategoryCreate />} />
+                  <Route path="create" element={<CategoryCreate/>} />
                   <Route path="edit/:id" element={<CategoryEdit />} />
                   <Route path="show/:id" element={<CategoryShow />} />
                 </Route>
                 <Route path="/projects">
-                  <Route index element={<CategoryList />} />
-                  <Route path="create" element={<CategoryCreate />} />
-                  <Route path="edit/:id" element={<CategoryEdit />} />
-                  <Route path="show/:id" element={<CategoryShow />} />
+                  <Route index element={<ProjectList/>} />
+                  <Route path="create" element={<ProjectCreate />} />
+                  <Route path="edit/:id" element={<ProjectEdit />} />
+                  <Route path="show/:id" element={<ProjectShow />} />
                 </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>
