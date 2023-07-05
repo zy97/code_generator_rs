@@ -3,9 +3,18 @@ use code_generator::{
     projects_svc::*,
 };
 #[tauri::command()]
-pub async fn projects_get_list() -> Result<Vec<Model>, String> {
-    let projects = get_list().await.expect("获取项目列表失败");
-    println!("get list: {:?}", projects);
+pub async fn projects_get_list(
+    current: u64,
+    page_size: u64,
+    name: Option<String>,
+) -> Result<(u64, Vec<Model>), String> {
+    let projects = get_list(current, page_size, name)
+        .await
+        .expect("获取项目列表失败");
+    println!(
+        "get list: {:?},current:{},page_size:{}",
+        projects, current, page_size
+    );
     Ok(projects)
 }
 #[tauri::command()]

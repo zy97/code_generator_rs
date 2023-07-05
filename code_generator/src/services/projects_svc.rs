@@ -1,10 +1,11 @@
 use crate::{
     db_entities::{prelude::*, *},
-    projects::{ActiveModel, Model},
+    projects::Model,
     DATABASE_URL,
 };
 use sea_orm::{
-    ActiveModelTrait, ActiveValue, Database, DbErr, DeleteResult, EntityTrait, InsertResult,
+    ActiveModelTrait, ActiveValue, ColumnTrait, Database, DbErr, DeleteResult, EntityTrait,
+    PaginatorTrait, QueryFilter, QueryTrait,
 };
 
 pub async fn create(name: String) -> Result<Model, DbErr> {
@@ -39,7 +40,26 @@ pub async fn delete(id: i32) -> Result<DeleteResult, DbErr> {
     let result: DeleteResult = project.delete(&db).await?;
     Ok(result)
 }
-pub async fn get_list() -> Result<Vec<projects::Model>, DbErr> {
+pub async fn get_list(
+    current: u64,
+    page_size: u64,
+    name: Option<String>,
+) -> Result<(u64, Vec<projects::Model>), DbErr> {
+    println!("123");
     let db = Database::connect(DATABASE_URL).await?;
-    Ok(Projects::find().all(&db).await?)
+    let mut select = Projects::find();
+
+    select = select.apply_if(name, |query, value| {
+        query.filter(projects::Column::Name.contains(&value))
+    });
+    // let sql: String = select.build(sea_orm::DatabaseBackend::Sqlite).sql;
+    // println!("${sql}");
+    let total = select.clone().count(&db).await?;
+    println!("{}", total);
+    let results = select
+        .paginate(&db, page_size)
+        .fetch_page(current - 1)
+        .await?;
+
+    Ok((total, results))
 }
