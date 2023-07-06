@@ -1,19 +1,15 @@
 use code_generator::{templates::Model, templates_svc::*};
 
+use crate::error::TauriError;
+
 use super::project::ProjectModelOnlyId;
 #[tauri::command]
 pub async fn templates_get_list(
     current: u64,
     page_size: u64,
     name: Option<String>,
-) -> Result<(u64, Vec<ListModel>), String> {
-    let templates = get_list(current, page_size, name)
-        .await
-        .expect("获取模板列表失败");
-    println!(
-        "get list: {:?},current:{},page_size:{}",
-        templates, current, page_size
-    );
+) -> Result<(u64, Vec<ListModel>), TauriError> {
+    let templates = get_list(current, page_size, name).await?;
     Ok((
         templates.0,
         templates
@@ -33,11 +29,8 @@ pub async fn templates_create(
     name: String,
     content: String,
     project_id: i32,
-) -> Result<Model, String> {
-    let templates = create(name, content, project_id)
-        .await
-        .expect("创建模板失败");
-    println!("create: {:?}", templates);
+) -> Result<Model, TauriError> {
+    let templates = create(name, content, project_id).await?;
     Ok(templates)
 }
 #[tauri::command]
@@ -46,23 +39,18 @@ pub async fn templates_update(
     name: String,
     content: String,
     project_id: i32,
-) -> Result<Model, String> {
-    let templates = update(id, name, content, project_id)
-        .await
-        .expect("更新模板失败");
-    println!("update: {:?}", templates);
+) -> Result<Model, TauriError> {
+    let templates = update(id, name, content, project_id).await?;
     Ok(templates)
 }
 #[tauri::command]
-pub async fn templates_delete(id: i32) -> Result<bool, String> {
-    let templates = delete(id).await.expect("删除模板失败");
-    println!("delete: {:?}", templates);
+pub async fn templates_delete(id: i32) -> Result<bool, TauriError> {
+    let templates = delete(id).await?;
     Ok(templates.rows_affected > 0)
 }
 #[tauri::command]
-pub async fn templates_find(id: i32) -> Result<Option<Model>, String> {
-    let templates = find(id).await.expect("获取模板失败");
-    println!("get one: {:?}", templates);
+pub async fn templates_find(id: i32) -> Result<Option<Model>, TauriError> {
+    let templates = find(id).await?;
     Ok(templates)
 }
 #[derive(serde::Serialize)]

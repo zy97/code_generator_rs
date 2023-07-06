@@ -11,6 +11,7 @@ pub use error::CodeGeneratorError;
 mod db_entities;
 pub use db_entities::{prelude::*, *};
 mod services;
+pub use sea_orm::DbErr;
 pub use services::*;
 const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";
 // const DB_NAME: &str = "bakeries_db";

@@ -33,7 +33,10 @@ export const tauriDataProvider = (apiUrl: string): DataProvider => ({
     },
     deleteOne: async ({ resource, id, variables }) => {
         const url = `${resource}_delete`;
+        console.log("删除开始")
+
         const data = await invoke(url, { id: parseInt(id.toString()) })
+        console.log("删除结束")
         return {
             data,
         };
