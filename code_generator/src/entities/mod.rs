@@ -9,12 +9,13 @@ pub use permision::Permission;
 use regex::Regex;
 use serde::Serialize;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     fs::{File, OpenOptions},
     io::Read,
     os::windows::process::ExitStatusExt,
     path::Path,
     process::{Command, ExitStatus, Stdio},
+    vec,
 };
 use tera::Context;
 
@@ -168,6 +169,21 @@ fn format_single_file(file: String) -> Result<(), CodeGeneratorError> {
     eprintln!("{} format successful!", file);
     Ok(())
 }
+pub fn get_expressions_in_template(
+    content: impl AsRef<str>,
+) -> Result<Vec<String>, CodeGeneratorError> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"\{\{([a-zA-Z]+)\}\}").unwrap();
+    }
+    let mut res = RE
+        .captures_iter(content.as_ref())
+        .into_iter()
+        .map(|m| m.get(1).unwrap().as_str().to_string())
+        .collect::<Vec<String>>();
+    let set: HashSet<_> = res.drain(..).collect();
+    res.extend(set.into_iter());
+    Ok(res)
+}
 
 fn generate_template<T>(
     kv: HashMap<&str, Box<T>>,
@@ -185,4 +201,24 @@ where
     let file = File::create(file_full_name)?;
     TEMPLATES.render_to(template_name, &context, file)?;
     Ok(file_full_name.to_string())
+}
+#[cfg(test)]
+mod tests {
+    use std::{fs::File, io::Read};
+
+    use encoding_rs::UTF_8;
+
+    use crate::entities::get_expressions_in_template;
+
+    #[test]
+    fn get_expressions_in_template_test() {
+        let mut file = File::open(r"..\templates\Domain\Entity.cs").unwrap();
+        let mut code = vec![];
+        file.read_to_end(&mut code).unwrap();
+        let (code, ..) = UTF_8.decode(&code);
+        let code = code.to_string();
+        // println!("{}", code);
+        let res = get_expressions_in_template(&code).unwrap();
+        println!("{:#?}", res);
+    }
 }

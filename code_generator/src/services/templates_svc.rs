@@ -54,7 +54,6 @@ pub async fn get_list(
     page_size: u64,
     name: Option<String>,
 ) -> Result<(u64, Vec<templates::Model>), DbErr> {
-    println!("123");
     let db = Database::connect(DATABASE_URL).await?;
     let mut select = Templates::find();
 

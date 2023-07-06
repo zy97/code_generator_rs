@@ -17,11 +17,14 @@ fn main() {
             templates_create,
             templates_update,
             templates_delete,
-            templates_find
+            templates_find,
+            get_expressions
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 use sea_orm::DbErr;
+
+use crate::commands::template_processor::get_expressions;
 
 // create the error type that represents all errors possible in our program

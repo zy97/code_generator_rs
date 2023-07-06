@@ -1,8 +1,12 @@
 #[cfg(test)]
 mod tests {
+    use std::fs::File;
+    use std::io::Read;
+
     use code_generator::Entity;
     use code_generator::Permission;
     use code_generator::WebEntity;
+    use encoding_rs::UTF_8;
 
     #[test]
     fn init_web_entity() {
