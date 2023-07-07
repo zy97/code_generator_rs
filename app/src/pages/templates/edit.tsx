@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Col, Form, Input, Row, Select } from "antd";
+import { Card, Col, Form, Input, Row, Select, Space } from "antd";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import TagManager from "../../components/tag-manager";
@@ -24,18 +24,21 @@ export const TemplateEdit: React.FC<IResourceComponentsProps> = () => {
   };
 
   const preFinish = (values) => {
-    onFinish({ ...values, projectId: values.project_id });
+    onFinish({ ...values, projectId: values.project_id, expressions });
   };
   useEffect(() => {
     setCode(queryResult?.data?.data.content);
+    setExpressions(queryResult?.data?.data.expressions);
   }, []);
   useEffect(() => {
-    console.log("code", code);
-    invoke(command, { template: code }).then((expressions) => {
-      setExpressions((expressions as string[]).sort());
+    invoke(command, { template: code }).then((value) => {
+      setExpressions(Array.from(new Set([...value, ...expressions])).sort());
     });
   }, [code]);
-
+  const expressionsChanged = (expressions) => {
+    console.log("接收到expressions", expressions);
+    setExpressions((expressions as string[]).sort());
+  };
   return (
     <Edit saveButtonProps={saveButtonProps}>
       <Row gutter={{ xs: 8, sm: 16, md: 24 }}>
@@ -89,14 +92,21 @@ export const TemplateEdit: React.FC<IResourceComponentsProps> = () => {
           </Form>
         </Col>
         <Col span={12}>
-          <TagManager initialData={expressions} />
-          <SyntaxHighlighter
-            language="csharp"
-            howInlineLineNumbers
-            showLineNumbers
-            style={docco}
-            children={code}
-          />
+          <Space direction="vertical" size="middle" style={{ display: "flex" }}>
+            <Card title="expressions" bordered={true}>
+              <TagManager
+                initialData={expressions}
+                onChanged={expressionsChanged}
+              />
+            </Card>
+            <SyntaxHighlighter
+              language="csharp"
+              howInlineLineNumbers
+              showLineNumbers
+              style={docco}
+              children={code}
+            />
+          </Space>
         </Col>
       </Row>
     </Edit>

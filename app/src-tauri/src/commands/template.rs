@@ -29,8 +29,9 @@ pub async fn templates_create(
     name: String,
     content: String,
     project_id: i32,
+    expressions: Vec<String>,
 ) -> Result<Model, TauriError> {
-    let templates = create(name, content, project_id).await?;
+    let templates = create(name, content, project_id, expressions).await?;
     Ok(templates)
 }
 #[tauri::command]
@@ -39,8 +40,9 @@ pub async fn templates_update(
     name: String,
     content: String,
     project_id: i32,
+    expressions: Vec<String>,
 ) -> Result<Model, TauriError> {
-    let templates = update(id, name, content, project_id).await?;
+    let templates = update(id, name, content, project_id, expressions).await?;
     Ok(templates)
 }
 #[tauri::command]
@@ -49,8 +51,20 @@ pub async fn templates_delete(id: i32) -> Result<bool, TauriError> {
     Ok(templates.rows_affected > 0)
 }
 #[tauri::command]
-pub async fn templates_find(id: i32) -> Result<Option<Model>, TauriError> {
-    let templates = find(id).await?;
+pub async fn templates_find(id: i32) -> Result<Option<DtoModel>, TauriError> {
+    let templates = find(id).await?.map(|t| DtoModel {
+        expressions: t
+            .expressions
+            .unwrap_or("".to_string())
+            .split(",")
+            .map(|s| s.to_string())
+            .collect(),
+        id: t.id,
+        content: t.content,
+        name: t.name,
+        project_id: t.project_id,
+    });
+
     Ok(templates)
 }
 #[derive(serde::Serialize)]
@@ -65,4 +79,12 @@ pub struct InsertModel {
     name: String,
     content: String,
     project: ProjectModelOnlyId,
+}
+#[derive(serde::Serialize)]
+pub struct DtoModel {
+    id: i32,
+    name: String,
+    content: String,
+    project_id: i32,
+    expressions: Vec<String>,
 }

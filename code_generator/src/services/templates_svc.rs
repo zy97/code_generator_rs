@@ -8,12 +8,19 @@ use sea_orm::{
     PaginatorTrait, QueryFilter, QueryTrait,
 };
 
-pub async fn create(name: String, content: String, project_id: i32) -> Result<Model, DbErr> {
+pub async fn create(
+    name: String,
+    content: String,
+    project_id: i32,
+    expressions: Vec<String>,
+) -> Result<Model, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
+    let expressions = expressions.join(",");
     let template = templates::ActiveModel {
         name: ActiveValue::Set(name),
         content: ActiveValue::Set(content),
         project_id: ActiveValue::Set(project_id),
+        expressions: ActiveValue::Set(Some(expressions)),
         ..Default::default()
     };
     let res = template.insert(&db).await?;
@@ -24,12 +31,15 @@ pub async fn update(
     name: String,
     content: String,
     project_id: i32,
+    expressions: Vec<String>,
 ) -> Result<Model, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
+    let expressions = expressions.join(",");
     let template = templates::ActiveModel {
         id: ActiveValue::Set(id),
         name: ActiveValue::Set(name),
         content: ActiveValue::Set(content),
+        expressions: ActiveValue::Set(Some(expressions)),
         project_id: ActiveValue::Set(project_id),
     };
     let res = Templates::update(template).exec(&db).await?;

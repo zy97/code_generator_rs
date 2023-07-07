@@ -14,6 +14,7 @@ pub struct Model {
     pub content: String,
     #[sea_orm(column_name = "ProjectId")]
     pub project_id: i32,
+    pub expressions: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

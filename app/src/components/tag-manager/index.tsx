@@ -5,13 +5,14 @@ import { Space, Input, Tag, Tooltip, theme } from "antd";
 
 type TagManagerProp = {
   initialData: string[];
+  showText?: string;
+  onChanged: (values: string[]) => void;
 };
 
 const TagManager = (props: TagManagerProp) => {
-  const { initialData } = props;
+  const { initialData, showText = "expressions", onChanged } = props;
   const { token } = theme.useToken();
-  console.log("initialData", initialData);
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState(initialData);
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [editInputIndex, setEditInputIndex] = useState(-1);
@@ -35,7 +36,8 @@ const TagManager = (props: TagManagerProp) => {
   const handleClose = (removedTag: string) => {
     const newTags = tags.filter((tag) => tag !== removedTag);
     console.log(newTags);
-    setTags(newTags);
+    // setTags(newTags);
+    onChanged(newTags);
   };
 
   const showInput = () => {
@@ -48,7 +50,8 @@ const TagManager = (props: TagManagerProp) => {
 
   const handleInputConfirm = () => {
     if (inputValue && tags.indexOf(inputValue) === -1) {
-      setTags([...tags, inputValue]);
+      // setTags([...tags, inputValue]);
+      onChanged([...tags, inputValue]);
     }
     setInputVisible(false);
     setInputValue("");
@@ -61,7 +64,8 @@ const TagManager = (props: TagManagerProp) => {
   const handleEditInputConfirm = () => {
     const newTags = [...tags];
     newTags[editInputIndex] = editInputValue;
-    setTags(newTags);
+    // setTags(newTags);
+    onChanged(newTags);
     setEditInputIndex(-1);
     setInputValue("");
   };
@@ -104,11 +108,9 @@ const TagManager = (props: TagManagerProp) => {
             >
               <span
                 onDoubleClick={(e) => {
-                  if (index !== 0) {
-                    setEditInputIndex(index);
-                    setEditInputValue(tag);
-                    e.preventDefault();
-                  }
+                  setEditInputIndex(index);
+                  setEditInputValue(tag);
+                  e.preventDefault();
                 }}
               >
                 {isLongTag ? `${tag.slice(0, 20)}...` : tag}
@@ -137,7 +139,7 @@ const TagManager = (props: TagManagerProp) => {
         />
       ) : (
         <Tag style={tagPlusStyle} onClick={showInput}>
-          <PlusOutlined /> New Tag
+          <PlusOutlined /> New {showText}
         </Tag>
       )}
     </Space>

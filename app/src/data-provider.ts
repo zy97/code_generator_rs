@@ -4,11 +4,10 @@ import { invoke } from '@tauri-apps/api'
 export const tauriDataProvider = (apiUrl: string): DataProvider => ({
     getList: async ({ resource, pagination, meta }) => {
         const url = `${resource}_get_list`;
-        console.log(url, meta, pagination)
+        // console.log(url, meta, pagination)
         const page = pagination ?? { current: 1, pageSize: 10 };
-        // const data = await invoke(`${url}?${stringify(query)}`, { name: 'World' })
         const [total, data] = await invoke(url, { ...page })
-        console.log(data)
+        // console.log("getList", data)
         return {
             data,
             total,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Col, Form, Input, Row, Select } from "antd";
+import { Card, Col, Form, Input, Row, Select, Space } from "antd";
 import { invoke } from "@tauri-apps/api";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
@@ -14,18 +14,16 @@ export const TemplateCreate: React.FC<IResourceComponentsProps> = () => {
     optionLabel: "name",
     resource: "projects",
   });
-  useEffect(() => {
-    console.log("projectSelectProps", projectSelectProps);
-  }, [projectSelectProps]);
 
   const [code, setCode] = useState("");
-  const onSubmit = (e) => {
-    e.preventDefault();
-    console.log("formProps", formProps.form);
-  };
-  const onFinish1 = (values) => {
-    console.log("Received values of form: ", values);
-    onFinish({ ...values, projectId: values.project.id });
+
+  const preFinish = (values) => {
+    console.log("preFinish", values);
+    onFinish({
+      ...values,
+      projectId: values.project.id,
+      expressions,
+    });
   };
   const textAreaChange = async (e) => {
     const code = e.target.value;
@@ -34,11 +32,15 @@ export const TemplateCreate: React.FC<IResourceComponentsProps> = () => {
     setCode(code);
     console.log(expressions);
   };
+  const expressionsChanged = (expressions) => {
+    console.log("接收到expressions", expressions);
+    setExpressions((expressions as string[]).sort());
+  };
   return (
     <Create saveButtonProps={{ ...saveButtonProps }}>
       <Row gutter={{ xs: 8, sm: 16, md: 24 }}>
         <Col span={12}>
-          <Form {...formProps} layout="vertical" onFinish={onFinish1}>
+          <Form {...formProps} layout="vertical" onFinish={preFinish}>
             <Form.Item
               label="Name"
               name={["name"]}
@@ -76,8 +78,19 @@ export const TemplateCreate: React.FC<IResourceComponentsProps> = () => {
         </Col>
 
         <Col span={12}>
-          <TagManager initialData={expressions} />
-          <SyntaxHighlighter language="csharp" style={docco} children={code} />
+          <Space direction="vertical" size="middle" style={{ display: "flex" }}>
+            <Card title="expressions" bordered={true}>
+              <TagManager
+                initialData={expressions}
+                onChanged={expressionsChanged}
+              />
+            </Card>
+            <SyntaxHighlighter
+              language="csharp"
+              style={docco}
+              children={code}
+            />
+          </Space>
         </Col>
       </Row>
     </Create>
