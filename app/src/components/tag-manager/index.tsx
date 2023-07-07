@@ -10,6 +10,7 @@ type TagManagerProp = {
 const TagManager = (props: TagManagerProp) => {
   const { initialData } = props;
   const { token } = theme.useToken();
+  console.log("initialData", initialData);
   const [tags, setTags] = useState<string[]>([]);
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -19,14 +20,8 @@ const TagManager = (props: TagManagerProp) => {
   const editInputRef = useRef<InputRef>(null);
 
   useEffect(() => {
-    initialData.forEach((element) => {
-      if (!tags.find((e) => e === element)) {
-        setTags();
-      }
-    });
-    console.log("tag", tags);
-  }, []);
-
+    setTags(initialData);
+  }, [initialData]);
   useEffect(() => {
     if (inputVisible) {
       inputRef.current?.focus();

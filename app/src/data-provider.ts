@@ -14,10 +14,10 @@ export const tauriDataProvider = (apiUrl: string): DataProvider => ({
             total,
         };
     },
-    create: async ({ resource, variables }) => {
+    create: async ({ resource, variables, meta }) => {
         const url = `${resource}_create`;
         console.log(url, variables);
-        const data = await invoke(url, { ...variables })
+        const data = await invoke(url, { ...variables, ...meta })
 
         return {
             data,

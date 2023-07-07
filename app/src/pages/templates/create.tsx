@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Col, Form, Input, Row, Select } from "antd";
@@ -8,24 +8,37 @@ import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import TagManager from "../../components/tag-manager";
 const command = "get_expressions";
 export const TemplateCreate: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({});
   const [expressions, setExpressions] = useState<string[]>([]);
   const { selectProps: projectSelectProps } = useSelect({
+    optionLabel: "name",
     resource: "projects",
   });
+  useEffect(() => {
+    console.log("projectSelectProps", projectSelectProps);
+  }, [projectSelectProps]);
+
   const [code, setCode] = useState("");
+  const onSubmit = (e) => {
+    e.preventDefault();
+    console.log("formProps", formProps.form);
+  };
+  const onFinish1 = (values) => {
+    console.log("Received values of form: ", values);
+    onFinish({ ...values, projectId: values.project.id });
+  };
   const textAreaChange = async (e) => {
     const code = e.target.value;
     const expressions = await invoke(command, { template: code });
-    setExpressions(expressions as string[]);
+    setExpressions((expressions as string[]).sort());
     setCode(code);
     console.log(expressions);
   };
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create saveButtonProps={{ ...saveButtonProps }}>
       <Row gutter={{ xs: 8, sm: 16, md: 24 }}>
         <Col span={12}>
-          <Form {...formProps} layout="vertical">
+          <Form {...formProps} layout="vertical" onFinish={onFinish1}>
             <Form.Item
               label="Name"
               name={["name"]}
