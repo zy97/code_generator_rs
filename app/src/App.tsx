@@ -31,8 +31,19 @@ import {
   CategoryShow,
 } from "./pages/categories";
 import { tauriDataProvider } from "./data-provider";
-import { ProjectCreate, ProjectEdit, ProjectList, ProjectShow } from "./pages/projects";
-import { TemplateCreate, TemplateEdit, TemplateList, TemplateShow } from "./pages/templates";
+import {
+  ProjectCreate,
+  ProjectEdit,
+  ProjectList,
+  ProjectShow,
+} from "./pages/projects";
+import {
+  TemplateCreate,
+  TemplateEdit,
+  TemplateList,
+  TemplateRender,
+  TemplateShow,
+} from "./pages/templates";
 function App() {
   return (
     <BrowserRouter>
@@ -40,7 +51,10 @@ function App() {
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <Refine
-            dataProvider={{ default: dataProvider("https://api.fake-rest.refine.dev"), tauri: tauriDataProvider("") }}
+            dataProvider={{
+              default: dataProvider("https://api.fake-rest.refine.dev"),
+              tauri: tauriDataProvider(""),
+            }}
             notificationProvider={notificationProvider}
             routerProvider={routerBindings}
             resources={[
@@ -73,7 +87,7 @@ function App() {
                 meta: {
                   canDelete: true,
                   dataProviderName: "tauri",
-                }
+                },
               },
               {
                 name: "templates",
@@ -130,6 +144,7 @@ function App() {
                   <Route path="create" element={<TemplateCreate />} />
                   <Route path="edit/:id" element={<TemplateEdit />} />
                   <Route path="show/:id" element={<TemplateShow />} />
+                  <Route path="render/:id" element={<TemplateRender />} />
                 </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>

@@ -16,8 +16,11 @@ import {
   DeleteButton,
 } from "@refinedev/antd";
 import { Table, Space } from "antd";
+import { SnippetsOutlined } from "@ant-design/icons";
+import { redirect, useNavigate, useNavigation } from "react-router-dom";
 
 export const TemplateList: React.FC<IResourceComponentsProps> = () => {
+  const navigate = useNavigate();
   const { tableProps } = useTable({
     syncWithLocation: true,
   });
@@ -29,7 +32,11 @@ export const TemplateList: React.FC<IResourceComponentsProps> = () => {
       enabled: !!tableProps?.dataSource,
     },
   });
-
+  const render = (id) => {
+    let url = `/templates/render/${id}`;
+    console.log("url", url);
+    navigate(url);
+  };
   return (
     <List>
       <Table {...tableProps} rowKey="id">
@@ -60,6 +67,13 @@ export const TemplateList: React.FC<IResourceComponentsProps> = () => {
               <EditButton hideText size="small" recordItemId={record.id} />
               <ShowButton hideText size="small" recordItemId={record.id} />
               <DeleteButton hideText size="small" recordItemId={record.id} />
+              <EditButton
+                hideText
+                size="small"
+                onClick={() => render(record.id)}
+                recordItemId={record.id}
+                icon={<SnippetsOutlined />}
+              />
             </Space>
           )}
         />
