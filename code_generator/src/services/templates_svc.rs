@@ -73,7 +73,6 @@ pub async fn get_list(
     // let sql: String = select.build(sea_orm::DatabaseBackend::Sqlite).sql;
     // println!("${sql}");
     let total = select.clone().count(&db).await?;
-    println!("{}", total);
     let results = select
         .paginate(&db, page_size)
         .fetch_page(current - 1)

@@ -4,13 +4,13 @@ import type { InputRef } from "antd";
 import { Space, Input, Tag, Tooltip, theme } from "antd";
 
 type TagManagerProp = {
-  initialData: string[];
+  initialData?: string[];
   showText?: string;
   onChanged: (values: string[]) => void;
 };
 
 const TagManager = (props: TagManagerProp) => {
-  const { initialData, showText = "expressions", onChanged } = props;
+  const { initialData = [], showText = "expressions", onChanged } = props;
   const { token } = theme.useToken();
   const [tags, setTags] = useState(initialData);
   const [inputVisible, setInputVisible] = useState(false);
