@@ -57,6 +57,7 @@ pub async fn templates_find(id: i32) -> Result<Option<DtoModel>, TauriError> {
             .expressions
             .unwrap_or("".to_string())
             .split(",")
+            .filter(|s| !s.is_empty())
             .map(|s| s.to_string())
             .collect(),
         id: t.id,
@@ -64,7 +65,6 @@ pub async fn templates_find(id: i32) -> Result<Option<DtoModel>, TauriError> {
         name: t.name,
         project_id: t.project_id,
     });
-
     Ok(templates)
 }
 #[derive(serde::Serialize)]
@@ -80,7 +80,7 @@ pub struct InsertModel {
     content: String,
     project: ProjectModelOnlyId,
 }
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, Debug)]
 pub struct DtoModel {
     id: i32,
     name: String,
