@@ -11,7 +11,7 @@ pub use error::CodeGeneratorError;
 mod db_entities;
 pub use db_entities::{prelude::*, *};
 mod services;
-pub use entities::get_expressions_in_template;
+pub use entities::{get_expressions_in_template, process_template};
 pub use sea_orm::DbErr;
 pub use services::*;
 const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";
@@ -55,6 +55,18 @@ macro_rules! dynamicDic {
 ( $( $x:expr ),* ) => {
     {
         let mut kv: std::collections::HashMap<&str, Box<dyn erased_serde::Serialize>> = std::collections::HashMap::new();
+        $(
+            kv.insert($x.0, Box::new($x.1));
+        )*
+        kv
+    }
+};
+}
+#[macro_export]
+macro_rules! dynamic_dic {
+( $( $x:expr ),* ) => {
+    {
+        let mut kv: std::collections::HashMap<String, Box<dyn erased_serde::Serialize>> = std::collections::HashMap::new();
         $(
             kv.insert($x.0, Box::new($x.1));
         )*

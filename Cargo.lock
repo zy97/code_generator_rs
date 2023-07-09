@@ -120,6 +120,7 @@ name = "app"
 version = "0.0.0"
 dependencies = [
  "code_generator",
+ "erased-serde",
  "sea-orm",
  "serde",
  "serde_json",

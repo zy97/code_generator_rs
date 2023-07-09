@@ -1,22 +1,24 @@
-import React, { useEffect, useRef, useState } from "react";
-import { IResourceComponentsProps, useCustom } from "@refinedev/core";
-import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Col, Form, Input, Row, Select } from "antd";
+import React, { useEffect, useState } from "react";
+import { IResourceComponentsProps, useResource } from "@refinedev/core";
+import { Edit, useForm } from "@refinedev/antd";
+import { Col, Form, Input, Row } from "antd";
+import { invoke } from "@tauri-apps/api";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
-import TagManager from "../../components/tag-manager";
-import { invoke } from "@tauri-apps/api";
 const command = "get_expressions";
 export const TemplateRender: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({
+  const { resources, resource, action, id } = useResource();
+
+  const { formProps, saveButtonProps, queryResult, onFinish, form } = useForm({
     dataProviderName: "tauri",
     action: "edit",
     resource: "templates",
-    id: 2,
+    id,
   });
   //   const sdf = useCustom({ dataProviderName: "ta" });
   const templatesData = queryResult?.data?.data;
   const [code, setCode] = useState("");
+  const [renderedCode, setRenderedCode] = useState("");
   const [expressions, setExpressions] = useState<string[]>([]);
   //   const { selectProps: projectSelectProps } = useSelect({
   //     resource: "projects",
@@ -34,28 +36,49 @@ export const TemplateRender: React.FC<IResourceComponentsProps> = () => {
   };
   useEffect(() => {
     setCode(queryResult?.data?.data.content);
-  }, [queryResult]);
-  useEffect(() => {
-    // console.log("code", code);
-    // invoke(command, { template: code }).then((expressions) => {
-    //   setExpressions((expressions as string[]).sort());
-    // });
-  }, [code]);
+    setExpressions(queryResult?.data?.data.expressions);
+    console.log("useResource", resources, resource, action, id);
+  }, []);
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let expressions: { [key: string]: any } = form.getFieldsValue();
+    //update every expression
+    for (let expression in expressions) {
+      if (!expressions[expression] || expressions[expression].trim() === "") {
+        expressions[expression] = `{{${expression}}}`;
+      }
+    }
 
+    let res = await invoke("process", {
+      id: queryResult?.data?.data.id,
+      expressions,
+    });
+    setRenderedCode(res);
+  };
   return (
     <Edit saveButtonProps={saveButtonProps}>
       <Row gutter={{ xs: 8, sm: 16, md: 24 }}>
         <Col span={12}>
-          <Form {...formProps} layout="vertical" onFinish={preFinish}>
-            <Form.Item
-              label="Content"
-              name={["content"]}
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
-            ></Form.Item>
+          <Form
+            {...formProps}
+            size="small"
+            onFinish={preFinish}
+            onChange={handleInputChange}
+          >
+            {expressions?.map((expression) => {
+              return (
+                <Form.Item
+                  label={expression}
+                  name={expression}
+                  rules={[
+                    {
+                      required: true,
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              );
+            })}
           </Form>
           <SyntaxHighlighter
             language="csharp"
@@ -71,7 +94,7 @@ export const TemplateRender: React.FC<IResourceComponentsProps> = () => {
             howInlineLineNumbers
             showLineNumbers
             style={docco}
-            children={code}
+            children={renderedCode}
           />
         </Col>
       </Row>

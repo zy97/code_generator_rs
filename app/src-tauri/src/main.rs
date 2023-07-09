@@ -18,7 +18,8 @@ fn main() {
             templates_update,
             templates_delete,
             templates_find,
-            get_expressions
+            get_expressions,
+            process
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -26,5 +27,6 @@ fn main() {
 use sea_orm::DbErr;
 
 use crate::commands::template_processor::get_expressions;
+use crate::commands::template_processor::process;
 
 // create the error type that represents all errors possible in our program

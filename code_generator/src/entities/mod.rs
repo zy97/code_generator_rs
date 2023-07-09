@@ -17,12 +17,13 @@ use std::{
     process::{Command, ExitStatus, Stdio},
     vec,
 };
-use tera::Context;
+use tera::{Context, Tera};
 
 use walkdir::DirEntry;
 pub use web_entity::WebEntity;
 
 use crate::{
+    dynamic_dic,
     error::{CodeGeneratorError, RegexNoMatchError},
     TEMPLATES,
 };
@@ -183,6 +184,27 @@ pub fn get_expressions_in_template(
     let set: HashSet<_> = res.drain(..).collect();
     res.extend(set.into_iter());
     Ok(res)
+}
+pub async fn process_template<T>(id: i32, expressions: T) -> Result<String, CodeGeneratorError>
+where
+    T: Serialize,
+{
+    let template = crate::services::templates_svc::find(id).await?;
+    match template {
+        Some(template) => {
+            let template = template.content;
+            // let mut context = Context::new();
+            // for entity in expressions {
+            //     context.insert(entity.0, &entity.1);
+            // }
+            // let result = Tera::one_off(&template, &context, true)?;
+            let result = Tera::one_off(&template, &Context::from_serialize(&expressions)?, true)?;
+
+            // TEMPLATES.render_to(template_name, &context, file)?;
+            Ok(result)
+        }
+        None => return Err(CodeGeneratorError::NotFindEntity("未找到实体".to_owned())),
+    }
 }
 
 fn generate_template<T>(

@@ -15,6 +15,10 @@ pub enum CodeGeneratorError {
     RegexNoMatchError(#[from] RegexNoMatchError),
     #[error("{0}")]
     DprintError(String),
+    #[error(transparent)]
+    SeaDbErrpr(#[from] sea_orm::DbErr),
+    #[error("{0}")]
+    NotFindEntity(String),
 }
 #[derive(Debug)]
 pub struct RegexNoMatchError;
