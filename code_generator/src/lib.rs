@@ -1,17 +1,16 @@
 use inflector::Inflector;
 use log::info;
+
 use std::collections::HashMap;
 use tera::{to_value, try_get_value, Tera, Value};
-mod entities;
+// mod entities;
 mod error;
-pub use entities::Entity;
-pub use entities::Permission;
-pub use entities::WebEntity;
+// pub use entities::Entity;
+// pub use entities::Permission;
+// pub use entities::WebEntity;
 pub use error::CodeGeneratorError;
-mod db_entities;
-pub use db_entities::{prelude::*, *};
 mod services;
-pub use entities::{get_expressions_in_template, process_template, process_template_to_file};
+// pub use entities::{get_expressions_in_template, process_template, process_template_to_file};
 pub use sea_orm::DbErr;
 pub use services::*;
 const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";

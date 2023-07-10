@@ -1,8 +1,8 @@
 mod entity;
 mod permision;
 mod web_entity;
+pub use crate::entities::entity::Entity;
 use encoding_rs::UTF_8;
-pub use entity::Entity;
 use lazy_static::lazy_static;
 
 pub use permision::Permission;

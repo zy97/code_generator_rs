@@ -1,8 +1,9 @@
-use crate::{
-    db_entities::{prelude::*, *},
-    projects::Model,
-    DATABASE_URL,
+use crate::DATABASE_URL;
+use entity::{
+    prelude::Projects,
+    projects::{self, Model},
 };
+
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, Database, DbErr, DeleteResult, EntityTrait,
     PaginatorTrait, QueryFilter, QueryTrait,
@@ -10,6 +11,7 @@ use sea_orm::{
 
 pub async fn create(name: String) -> Result<Model, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
+
     let project = projects::ActiveModel {
         name: ActiveValue::Set(name),
         ..Default::default()
