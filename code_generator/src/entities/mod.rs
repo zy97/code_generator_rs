@@ -11,9 +11,9 @@ use serde::Serialize;
 use std::{
     collections::{HashMap, HashSet},
     fs::{File, OpenOptions},
-    io::Read,
+    io::{Read, Write},
     os::windows::process::ExitStatusExt,
-    path::Path,
+    path::{self, Path, PathBuf},
     process::{Command, ExitStatus, Stdio},
     vec,
 };
@@ -192,21 +192,36 @@ where
     let template = crate::services::templates_svc::find(id).await?;
     match template {
         Some(template) => {
-            let template = template.content;
-            // let mut context = Context::new();
-            // for entity in expressions {
-            //     context.insert(entity.0, &entity.1);
-            // }
-            // let result = Tera::one_off(&template, &context, true)?;
-            let result = Tera::one_off(&template, &Context::from_serialize(&expressions)?, true)?;
-
-            // TEMPLATES.render_to(template_name, &context, file)?;
+            let template_name = format!("{}/{}", template.project_id, template.id);
+            let result =
+                TEMPLATES.render(&template_name, &Context::from_serialize(&expressions)?)?;
             Ok(result)
         }
         None => return Err(CodeGeneratorError::NotFindEntity("未找到实体".to_owned())),
     }
 }
-
+pub async fn process_template_to_file<T>(
+    id: i32,
+    expressions: T,
+    file: PathBuf,
+) -> Result<(), CodeGeneratorError>
+where
+    T: Serialize,
+{
+    let template = crate::services::templates_svc::find(id).await?;
+    match template {
+        Some(template) => {
+            let template_name = format!("{}/{}", template.project_id, template.id);
+            let file = File::create(file)?;
+            Ok(TEMPLATES.render_to(
+                &template_name,
+                &Context::from_serialize(&expressions)?,
+                file,
+            )?)
+        }
+        None => return Err(CodeGeneratorError::NotFindEntity("未找到实体".to_owned())),
+    }
+}
 fn generate_template<T>(
     kv: HashMap<&str, Box<T>>,
     template_name: &str,

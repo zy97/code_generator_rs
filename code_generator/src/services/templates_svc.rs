@@ -80,3 +80,7 @@ pub async fn get_list(
 
     Ok((total, results))
 }
+pub async fn get_all() -> Result<Vec<templates::Model>, DbErr> {
+    let db = Database::connect(DATABASE_URL).await?;
+    Ok(templates::Entity::find().all(&db).await?)
+}
