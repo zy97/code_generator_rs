@@ -1,5 +1,5 @@
 use crate::DATABASE_URL;
-use entity::{
+use models::{
     prelude::Projects,
     projects::{self, Model},
 };

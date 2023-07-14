@@ -728,11 +728,11 @@ dependencies = [
  "async-std",
  "criterion",
  "encoding_rs",
- "entity",
  "erased-serde",
  "futures",
  "lazy_static",
  "log",
+ "models",
  "regex",
  "sea-orm",
  "serde",
@@ -1132,14 +1132,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071a31f4ee85403370b58aca746f01041ede6f0da2730960ad001edc2b71b394"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "entity"
-version = "0.1.0"
-dependencies = [
- "sea-orm",
- "serde",
 ]
 
 [[package]]
@@ -2229,6 +2221,14 @@ checksum = "e7810e0be55b428ada41041c41f32c9f1a42817901b4ccf45fa3d4b6561e74c7"
 dependencies = [
  "adler",
  "simd-adler32",
+]
+
+[[package]]
+name = "models"
+version = "0.1.0"
+dependencies = [
+ "sea-orm",
+ "serde",
 ]
 
 [[package]]

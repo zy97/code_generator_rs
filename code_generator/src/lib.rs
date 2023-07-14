@@ -4,10 +4,11 @@ use log::info;
 use std::collections::HashMap;
 use tera::{to_value, try_get_value, Tera, Value};
 // mod entities;
+mod entities;
 mod error;
-// pub use entities::Entity;
-// pub use entities::Permission;
-// pub use entities::WebEntity;
+pub use entities::Entity;
+pub use entities::Permission;
+pub use entities::WebEntity;
 pub use error::CodeGeneratorError;
 mod services;
 // pub use entities::{get_expressions_in_template, process_template, process_template_to_file};
@@ -21,7 +22,8 @@ extern crate lazy_static;
 lazy_static! {
     static ref TEMPLATES: Tera = {
         //如果是相对路径，那么会在可执行文件目录中查找模板，因此，最终需要把模板复制过去
-        let mut tera = match Tera::new("templates/**/*") {
+        //"templates/**/*"
+        let mut tera = match Tera::new("C:/Users/Administrator/Desktop/code_generator_rs/templates/**/*") {
             Ok(t) => t,
             Err(e) => {
                 eprintln!("Parsing error(s): {}", e);
@@ -31,16 +33,16 @@ lazy_static! {
         // TODO: 从数据库中获取模板
 
 
-        let templates = async_std::task::block_on(async {
-            crate::services::templates_svc::get_all().await.unwrap()
-        });
-        // println!("templates: {:#?}", templates);
-        for template in templates {
-            let template_name = format!("{}/{}", template.project_id, template.id);
-            tera.add_raw_template(&template_name, &template.content)
-                .unwrap();
-            // println!("template add success! template_name: {}", template_name)
-        }
+        // let templates = async_std::task::block_on(async {
+        //     crate::services::templates_svc::get_all().await.unwrap()
+        // });
+        // // println!("templates: {:#?}", templates);
+        // for template in templates {
+        //     let template_name = format!("{}/{}", template.project_id, template.id);
+        //     tera.add_raw_template(&template_name, &template.content)
+        //         .unwrap();
+        //     // println!("template add success! template_name: {}", template_name)
+        // }
         tera.register_filter("snake", snake);
         tera.register_filter("plural", plural);
         tera.register_filter("camel", camel);

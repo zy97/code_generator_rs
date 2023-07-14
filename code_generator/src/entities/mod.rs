@@ -1,10 +1,10 @@
 mod entity;
 mod permision;
 mod web_entity;
+mod wes;
 pub use crate::entities::entity::Entity;
 use encoding_rs::UTF_8;
 use lazy_static::lazy_static;
-
 pub use permision::Permission;
 use regex::Regex;
 use serde::Serialize;
@@ -39,6 +39,14 @@ fn open_file(file: &str) -> Result<File, CodeGeneratorError> {
     let file = options.write(true).read(true).open(&file)?;
     Ok(file)
 }
+// 创建文件夹
+pub fn create_dir(dir: &str) -> Result<(), CodeGeneratorError> {
+    if !Path::new(dir).exists() {
+        std::fs::create_dir_all(dir)?;
+    }
+    Ok(())
+}
+
 fn find(src_dir: &str, contain_name: &str, is_file: bool) -> Option<DirEntry> {
     walkdir::WalkDir::new(src_dir)
         .into_iter()
@@ -189,16 +197,17 @@ pub async fn process_template<T>(id: i32, expressions: T) -> Result<String, Code
 where
     T: Serialize,
 {
-    let template = crate::services::templates_svc::find(id).await?;
-    match template {
-        Some(template) => {
-            let template_name = format!("{}/{}", template.project_id, template.id);
-            let result =
-                TEMPLATES.render(&template_name, &Context::from_serialize(&expressions)?)?;
-            Ok(result)
-        }
-        None => return Err(CodeGeneratorError::NotFindEntity("未找到实体".to_owned())),
-    }
+    // let template = crate::services::templates_svc::find(id).await?;
+    // match template {
+    //     Some(template) => {
+    //         let template_name = format!("{}/{}", template.project_id, template.id);
+    //         let result =
+    //             TEMPLATES.render(&template_name, &Context::from_serialize(&expressions)?)?;
+    //         Ok(result)
+    //     }
+    //     None => return Err(CodeGeneratorError::NotFindEntity("未找到实体".to_owned())),
+    // }
+    todo!()
 }
 pub async fn process_template_to_file<T>(
     id: i32,
@@ -208,19 +217,20 @@ pub async fn process_template_to_file<T>(
 where
     T: Serialize,
 {
-    let template = crate::services::templates_svc::find(id).await?;
-    match template {
-        Some(template) => {
-            let template_name = format!("{}/{}", template.project_id, template.id);
-            let file = File::create(file)?;
-            Ok(TEMPLATES.render_to(
-                &template_name,
-                &Context::from_serialize(&expressions)?,
-                file,
-            )?)
-        }
-        None => return Err(CodeGeneratorError::NotFindEntity("未找到实体".to_owned())),
-    }
+    // let template = crate::services::templates_svc::find(id).await?;
+    // match template {
+    //     Some(template) => {
+    //         let template_name = format!("{}/{}", template.project_id, template.id);
+    //         let file = File::create(file)?;
+    //         Ok(TEMPLATES.render_to(
+    //             &template_name,
+    //             &Context::from_serialize(&expressions)?,
+    //             file,
+    //         )?)
+    //     }
+    //     None => return Err(CodeGeneratorError::NotFindEntity("未找到实体".to_owned())),
+    // }
+    todo!()
 }
 fn generate_template<T>(
     kv: HashMap<&str, Box<T>>,
