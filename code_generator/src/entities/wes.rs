@@ -189,29 +189,29 @@ mod tests {
         let entity = Entity::new(entity_dir.to_owned()).unwrap();
         println!("{:?}", entity);
 
-        // entity
-        //     .create_dto(String::from(r"D:\code\WES\WES.Entity\Dto"))
-        //     .unwrap();
+        entity
+            .create_dto(String::from(r"D:\code\WES\WES.Entity\Dto"))
+            .unwrap();
 
-        // entity
-        //     .create_exception(String::from(r"D:\code\WES\WES.Entity\Exceptions"))
-        //     .unwrap();
+        entity
+            .create_exception(String::from(r"D:\code\WES\WES.Entity\Exceptions"))
+            .unwrap();
 
-        // entity
-        //     .create_repository_interface(String::from(r"D:\code\WES\WES.Repository\IRepository"))
-        //     .unwrap();
+        entity
+            .create_repository_interface(String::from(r"D:\code\WES\WES.Repository\IRepository"))
+            .unwrap();
 
-        // entity
-        //     .create_repository(String::from(r"D:\code\WES\WES.Repository\Repository"))
-        //     .unwrap();
+        entity
+            .create_repository(String::from(r"D:\code\WES\WES.Repository\Repository"))
+            .unwrap();
 
         entity
             .create_iservice(String::from(r"D:\code\WES\WES.Services\IServices"))
             .unwrap();
 
-        // entity
-        //     .create_service(String::from(r"D:\code\WES\WES.Services\Services"))
-        //     .unwrap();
+        entity
+            .create_service(String::from(r"D:\code\WES\WES.Services\Services"))
+            .unwrap();
 
         entity
             .create_controller(String::from(r"D:\code\WES\WES.API\Controllers"))

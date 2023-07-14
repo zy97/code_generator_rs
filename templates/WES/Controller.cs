@@ -36,7 +36,7 @@ namespace WES.API.Controllers
         /// </summary>
         /// <param name="{{entity|snake}}"></param>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> Update{{entity}}Async(Update{{entity}}Dto {{entity|snake}})
         {
             var res = await {{entity|snake}}Service.Update{{entity}}Async({{entity|snake}}.Id, {{entity|snake}});
@@ -44,7 +44,7 @@ namespace WES.API.Controllers
         }
 
         //删除
-        [HttpDelete]
+        [HttpPost]
         public async Task<IActionResult> Delete{{entity}}Async(DeleteDto deleteDto)
         {
             var res = await {{entity|snake}}Service.Delete{{entity}}Async(deleteDto.Id);
