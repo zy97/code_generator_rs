@@ -185,7 +185,7 @@ mod tests {
 
     #[test]
     fn generate() {
-        let entity_dir = r"D:\code\WES\WES.Entity\Entity\Test.cs";
+        let entity_dir = r"D:\code\WES\WES.Entity\Entity\Warehouse.cs";
         let entity = Entity::new(entity_dir.to_owned()).unwrap();
         println!("{:?}", entity);
 

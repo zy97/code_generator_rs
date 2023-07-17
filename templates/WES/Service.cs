@@ -21,7 +21,7 @@ namespace WES.Services.Services
         // 添加
         public async Task<bool> Add{{entity}}Async(Create{{entity}}Dto {{entity|snake}})
         {
-            var existing{{entity}} = await Get{{entity}}ByNameAsync({{entity|snake}}.CustomerName);
+            var existing{{entity}} = await Get{{entity}}ByNameAsync({{entity|snake}}.{{entity}}Name);
             if (existing{{entity}} != null)
             {
                 throw new {{entity}}AlreadyExistsException("已存在");
@@ -48,13 +48,13 @@ namespace WES.Services.Services
             }
             else
             {
-                var custm = await Get{{entity}}ByNameAsync({{entity}}Name.{{entity}}Name);
-                if (custm != null)
+                var res = await Get{{entity}}ByNameAsync({{entity|snake}}.{{entity}}Name);
+                if (res != null && res.Id != {{entity|snake}}.Id)
                 {
                     throw new {{entity}}AlreadyExistsException("客户已存在");
                 }
-                mapper.Map({{entity}}Name, existing{{entity}});
-                return await this.{{entity}}NameRepository.UpdateAsync(existing{{entity}});
+                mapper.Map({{entity}}, existing{{entity}});
+                return await this.{{entity|snake}}Repository.UpdateAsync(existing{{entity}});
             }
         }
         // 获取
