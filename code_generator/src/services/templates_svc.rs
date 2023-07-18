@@ -1,8 +1,8 @@
-use crate::{
-    db_entities::{prelude::*, *},
-    templates::Model,
-    DATABASE_URL,
-};
+use crate::DATABASE_URL;
+
+use models::templates::{self, Model};
+// use entities::templates::Model;
+// use entities::{prelude::Templates, templates};
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, Database, DbErr, DeleteResult, EntityTrait,
     PaginatorTrait, QueryFilter, QueryTrait,
@@ -79,4 +79,8 @@ pub async fn get_list(
         .await?;
 
     Ok((total, results))
+}
+pub async fn get_all() -> Result<Vec<templates::Model>, DbErr> {
+    let db = Database::connect(DATABASE_URL).await?;
+    Ok(templates::Entity::find().all(&db).await?)
 }

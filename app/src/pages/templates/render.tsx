@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { IResourceComponentsProps, useResource } from "@refinedev/core";
+import {
+  IResourceComponentsProps,
+  useNotification,
+  useResource,
+} from "@refinedev/core";
 import { Edit, useForm } from "@refinedev/antd";
 import { Col, Form, Input, Row } from "antd";
 import { invoke } from "@tauri-apps/api";
+import { save } from "@tauri-apps/api/dialog";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 const command = "get_expressions";
 export const TemplateRender: React.FC<IResourceComponentsProps> = () => {
   const { resources, resource, action, id } = useResource();
-
+  const { open, close } = useNotification();
   const { formProps, saveButtonProps, queryResult, onFinish, form } = useForm({
     dataProviderName: "tauri",
     action: "edit",
@@ -31,8 +36,29 @@ export const TemplateRender: React.FC<IResourceComponentsProps> = () => {
     setCode(text);
   };
 
-  const preFinish = (values) => {
-    onFinish({ ...values, projectId: values.project_id });
+  const preFinish = async (values) => {
+    const filePath = await save({
+      filters: [
+        {
+          name: "all files",
+          extensions: ["*"],
+        },
+      ],
+    });
+    if (filePath) {
+      console.log("filePath", filePath);
+      await invoke("process_to_file", {
+        id: queryResult?.data?.data.id,
+        expressions: form.getFieldsValue(),
+        file: filePath,
+      });
+      open?.({
+        type: "success",
+        message: "file saved successfully",
+      });
+
+      // onFinish({ ...values, projectId: values.project_id });
+    }
   };
   useEffect(() => {
     setCode(queryResult?.data?.data.content);
@@ -56,7 +82,7 @@ export const TemplateRender: React.FC<IResourceComponentsProps> = () => {
     setRenderedCode(res);
   };
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} title="Render">
       <Row gutter={{ xs: 8, sm: 16, md: 24 }}>
         <Col span={12}>
           <Form
