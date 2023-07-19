@@ -1,8 +1,9 @@
 use crate::DATABASE_URL;
 
-use models::templates::{self, Model};
-// use entities::templates::Model;
-// use entities::{prelude::Templates, templates};
+use entity::{
+    prelude::Templates,
+    templates::{self, Model},
+};
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, Database, DbErr, DeleteResult, EntityTrait,
     PaginatorTrait, QueryFilter, QueryTrait,

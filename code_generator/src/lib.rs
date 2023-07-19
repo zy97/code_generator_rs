@@ -11,7 +11,7 @@ pub use entities::Permission;
 pub use entities::WebEntity;
 pub use error::CodeGeneratorError;
 mod services;
-// pub use entities::{get_expressions_in_template, process_template, process_template_to_file};
+pub use entities::{get_expressions_in_template, process_template, process_template_to_file};
 pub use sea_orm::DbErr;
 pub use services::*;
 const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";

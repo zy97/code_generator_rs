@@ -80,8 +80,8 @@ impl Entity {
         let update_dto_path = format!("{}\\Update{}Dto.cs", dto_dir, self.name);
         let query_dto_path = format!("{}\\Query{}Dto.cs", dto_dir, self.name);
         generate_template(kv, "WES/Dto/Dto.cs", &dto_path)?;
-        generate_template(kv1, "WES/Dto/Dto.cs", &create_dto_path)?;
-        generate_template(kv2, "WES/Dto/Dto.cs", &update_dto_path)?;
+        generate_template(kv1, "WES/Dto/CreateDto.cs", &create_dto_path)?;
+        generate_template(kv2, "WES/Dto/UpdateDto.cs", &update_dto_path)?;
         generate_template(kv3, "WES/Dto/QueryDto.cs", &query_dto_path)?;
         Ok(())
     }
@@ -104,7 +104,8 @@ impl Entity {
         let kv = dynamicDic![
             ("namespace", "WES.Repository.Repository"),
             ("entities", &self.plural_name),
-            ("entity", &self.name)
+            ("entity", &self.name),
+            ("properties", &self.properties)
         ];
         let irepository_dir = format!("{}\\{}Repository.cs", dir.trim_end_matches('\\'), self.name);
         let path = generate_template(kv, "WES/Repository.cs", &irepository_dir)?;
@@ -185,17 +186,17 @@ mod tests {
 
     #[test]
     fn generate() {
-        let entity_dir = r"D:\code\WES\WES.Entity\Entity\Warehouse.cs";
+        let entity_dir = r"D:\code\WES\WES.Entity\Entity\LogInbound.cs";
         let entity = Entity::new(entity_dir.to_owned()).unwrap();
         println!("{:?}", entity);
 
         entity
-            .create_dto(String::from(r"D:\code\WES\WES.Entity\Dto"))
+            .create_dto(String::from(r"D:\code\WES\WES.Entity\Model"))
             .unwrap();
 
-        entity
-            .create_exception(String::from(r"D:\code\WES\WES.Entity\Exceptions"))
-            .unwrap();
+        // entity
+        //     .create_exception(String::from(r"D:\code\WES\WES.Entity\Exceptions"))
+        //     .unwrap();
 
         entity
             .create_repository_interface(String::from(r"D:\code\WES\WES.Repository\IRepository"))

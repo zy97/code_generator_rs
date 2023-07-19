@@ -1,6 +1,6 @@
-use code_generator::{templates::Model, templates_svc::*};
-
 use crate::error::TauriError;
+use code_generator::templates_svc::*;
+use entity::templates::Model;
 
 use super::project::ProjectModelOnlyId;
 #[tauri::command]

@@ -9,27 +9,25 @@ namespace {{namespace}}
 {
     public class {{entity}}Repository : Repository<{{entity}}>, I{{entity}}Repository
     {
-        private readonly IMapper mapper;
-
-        public {{entity}}Repository(ISqlSugarClient db, IMapper mapper) : base(db)
+        private readonly ISqlSugarClient db;
+        public {{entity}}Repository(ISqlSugarClient db) : base(db)
         {
-            this.mapper = mapper;
+            this.db = db;
         }
 
-        public async Task<PagingResultDto<{{entity}}Dto>> Get{{entity}}Async(Query{{entity}}Dto query{{entity}}Dto)
+        public async Task<(int total, List<{{entity}}> {{entities|camel}})> Get{{entities}}Async(Query{{entity}}Dto {{entity|camel}})
         {
             RefAsync<int> total = 0;
-            var {{entities | snake}} = await this.Context.Queryable<{{entity}}>()
-            //.WhereIF(!string.IsNullOrEmpty(customerQueryDto.CustomerName), u => u.CustomerName.Contains(customerQueryDto.CustomerName))
-            //.WhereIF(!string.IsNullOrEmpty(customerQueryDto.Remark), u => u.Remark.Contains(customerQueryDto.Remark))
-                .ToPageListAsync(query{{entity}}Dto.PageIndex, query{{entity}}Dto.PageSize, total);
-            var {{entities | snake}}Dto = mapper.Map<List<{{entity}}Dto>>({{entities | snake}});
-            var pageResult = new PagingResultDto<{{entity}}Dto>()
-            {
-                TotalCount = total,
-                Items ={{entities | snake}}Dto,
-            };
-            return pageResult;
+            var {{entities|camel}} = await this.Context.Queryable<{{entity}}>()
+            //.WhereIF(!string.IsNullOrEmpty({{entity|camel}}.CustomerName), u => u.CustomerName.Contains({{entity|camel}}.CustomerName))
+            //.WhereIF(!string.IsNullOrEmpty({{entity|camel}}.Remark), u => u.Remark.Contains({{entity|camel}}.Remark))
+            {%- for name,type in properties %}
+                {%- if type == "string" %}
+              .WhereIF(!string.IsNullOrEmpty({{entity|camel}}.{{name}}), i => i.{{name}}.Contains({{entity|camel}}.{{name}}))
+                {%- endif %}
+            {%- endfor %}
+                .ToPageListAsync({{entity|camel}}.PageIndex, {{entity|camel}}.PageSize, total);
+            return (total, {{entities|camel}});
         }
     }
 }

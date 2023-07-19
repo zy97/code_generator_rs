@@ -6,6 +6,6 @@ namespace {{namespace}}
 {
     public interface I{{entity}}Repository : IBaseRepository<{{entity}}>
     {
-        Task<PagingResultDto<{{entity}}Dto>> Get{{entity}}Async(Query{{entity}}Dto query{{entity}}Dto);
+        Task<(int total,List<{{entity}}> {{entities|camel}})> Get{{entities}}Async(Query{{entity}}Dto queryDto);
     }
 }

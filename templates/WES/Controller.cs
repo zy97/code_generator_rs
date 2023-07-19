@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WES.API.IServices;
-using WES.Entity.Dto;
+using WES.Entity.Model;
 using WES.Entity.Dto.{{entities}};
 using WES.Services.IServices;
 
@@ -39,7 +39,7 @@ namespace WES.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Update{{entity}}Async(Update{{entity}}Dto {{entity|snake}})
         {
-            var res = await {{entity|snake}}Service.Update{{entity}}Async({{entity|snake}}.Id, {{entity|snake}});
+            var res = await {{entity|snake}}Service.Update{{entity}}Async({{entity|snake}});
             return Ok(res);
         }
 
@@ -55,14 +55,14 @@ namespace WES.API.Controllers
         [HttpGet]
         public async Task<IActionResult> Get{{entity}}Async([FromQuery] Query{{entity}}Dto query{{entity}}Dto)
         {
-            var res = await {{entity|snake}}Service.Get{{entity}}Async(query{{entity}}Dto);
+            var res = await {{entity|snake}}Service.Get{{entities}}Async(query{{entity}}Dto);
             return Ok(res);
         }
         //导出
         [HttpGet("export")]
         public async Task<IActionResult> Export{{entity}}Async([FromQuery] Query{{entity}}Dto query{{entity}}Dto)
         {
-            var roles = await {{entity|snake}}Service.Get{{entity}}Async(query{{entity}}Dto);
+            var roles = await {{entity|snake}}Service.Get{{entities}}Async(query{{entity}}Dto);
             var dataBytes = excelOperatore.Save(roles.Items, "客户数据表");
             //application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
             return File(dataBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "{{entity|snake}}.xlsx");

@@ -191,6 +191,7 @@ pub fn get_expressions_in_template(
         .collect::<Vec<String>>();
     let set: HashSet<_> = res.drain(..).collect();
     res.extend(set.into_iter());
+    println!("{:?}", res);
     Ok(res)
 }
 pub async fn process_template<T>(id: i32, expressions: T) -> Result<String, CodeGeneratorError>

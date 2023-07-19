@@ -1,6 +1,6 @@
 [workspace]
-members = ["code_generator", "app/src-tauri","models"]
-default-members = ["code_generator"]
+members = ["code_generator", "app/src-tauri","entity"]
+default-members = ["app/src-tauri"]
 
 # "csharp_binding"
 [profile.release]

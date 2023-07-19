@@ -1,7 +1,7 @@
-use code_generator::{projects::Model, projects_svc::*};
-use serde::Serialize;
-
 use crate::error::TauriError;
+use code_generator::projects_svc::*;
+use entity::projects::Model;
+use serde::Serialize;
 
 #[tauri::command]
 pub async fn projects_get_list(
