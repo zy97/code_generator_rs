@@ -62,6 +62,7 @@ export const TemplateRender: React.FC<IResourceComponentsProps> = () => {
   };
   useEffect(() => {
     setCode(queryResult?.data?.data.content);
+    setRenderedCode(queryResult?.data?.data.content);
     setExpressions(queryResult?.data?.data.expressions);
     console.log("useResource", resources, resource, action, id);
   }, []);
