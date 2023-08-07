@@ -53,13 +53,13 @@ namespace WES.API.Controllers
 
         //查询
         [HttpGet]
-        public async Task<IActionResult> Get{{entity}}Async([FromQuery] Query{{entity}}Dto query{{entity}}Dto)
+        public async Task<PagingResultDto<{{entity}}Dto>> Get{{entity}}Async([FromQuery] Query{{entity}}Dto query{{entity}}Dto)
         {
             var res = await {{entity|snake}}Service.Get{{entities}}Async(query{{entity}}Dto);
-            return Ok(res);
+            return res;
         }
         //导出
-        [HttpGet("export")]
+        [HttpGet()]
         public async Task<IActionResult> Export{{entity}}Async([FromQuery] Query{{entity}}Dto query{{entity}}Dto)
         {
             var roles = await {{entity|snake}}Service.Get{{entities}}Async(query{{entity}}Dto);

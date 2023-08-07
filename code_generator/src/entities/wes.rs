@@ -186,17 +186,17 @@ mod tests {
 
     #[test]
     fn generate() {
-        let entity_dir = r"D:\code\WES\WES.Entity\Entity\LogInbound.cs";
+        let entity_dir = r"D:\code\WES\WES.Entity\Entity\OutboundLock.cs";
         let entity = Entity::new(entity_dir.to_owned()).unwrap();
         println!("{:?}", entity);
 
-        entity
-            .create_dto(String::from(r"D:\code\WES\WES.Entity\Model"))
-            .unwrap();
-
         // entity
-        //     .create_exception(String::from(r"D:\code\WES\WES.Entity\Exceptions"))
+        //     .create_dto(String::from(r"D:\code\WES\WES.Entity\Model"))
         //     .unwrap();
+
+        // // entity
+        // //     .create_exception(String::from(r"D:\code\WES\WES.Entity\Exceptions"))
+        // //     .unwrap();
 
         entity
             .create_repository_interface(String::from(r"D:\code\WES\WES.Repository\IRepository"))
@@ -214,8 +214,8 @@ mod tests {
             .create_service(String::from(r"D:\code\WES\WES.Services\Services"))
             .unwrap();
 
-        entity
-            .create_controller(String::from(r"D:\code\WES\WES.API\Controllers"))
-            .unwrap();
+        // entity
+        //     .create_controller(String::from(r"D:\code\WES\WES.API\Controllers"))
+        //     .unwrap();
     }
 }
