@@ -3,6 +3,9 @@ import { IResourceComponentsProps } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Card, Col, Form, Input, Row, Select, Space } from "antd";
 import { invoke } from "@tauri-apps/api";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { csharp } from "@replit/codemirror-lang-csharp";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import TagManager from "../../components/tag-manager";
@@ -36,61 +39,40 @@ export const TemplateCreate: React.FC<IResourceComponentsProps> = () => {
     console.log("接收到expressions", expressions);
     setExpressions((expressions as string[]).sort());
   };
+  const onChange = () => {};
   return (
     <Create saveButtonProps={{ ...saveButtonProps }}>
       <Row gutter={{ xs: 8, sm: 16, md: 24 }}>
-        <Col span={12}>
+        <Col span={24}>
           <Form {...formProps} layout="vertical" onFinish={preFinish}>
             <Form.Item
               label="Name"
               name={["name"]}
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
+              rules={[{ required: true }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               label="Project"
               name={["project", "id"]}
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
+              rules={[{ required: true }]}
             >
               <Select {...projectSelectProps} />
             </Form.Item>
             <Form.Item
               label="Content"
               name={["content"]}
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
+              rules={[{ required: true }]}
             >
-              <Input.TextArea autoSize={true} onChange={textAreaChange} />
+              {/* <Input.TextArea autoSize={true} onChange={textAreaChange} /> */}
+              <CodeMirror
+                value="console.log('hello world!');"
+                height="490px"
+                extensions={[csharp()]}
+                onChange={onChange}
+              />
             </Form.Item>
           </Form>
-        </Col>
-
-        <Col span={12}>
-          <Space direction="vertical" size="middle" style={{ display: "flex" }}>
-            <Card title="expressions" bordered={true}>
-              <TagManager
-                initialData={expressions}
-                onChanged={expressionsChanged}
-              />
-            </Card>
-            <SyntaxHighlighter
-              language="csharp"
-              style={docco}
-              children={code}
-            />
-          </Space>
         </Col>
       </Row>
     </Create>
