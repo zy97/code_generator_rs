@@ -1,7 +1,8 @@
 mod args;
-#[no_mangle]
+
 fn main() {
     let result = 1;
+    println!("Hello, world! {}", result);
 }
 // fn main_result() -> Result<(), CodeGeneratorError> {
 //     let Arguments {

@@ -12,7 +12,7 @@ fn command() -> clap::Command {
                 .long("model")
                 .short('m')
                 .num_args(1)
-                .required(true),
+                .required(false),
         )
 }
 
