@@ -11,12 +11,12 @@ use inflector::Inflector;
 use log::info;
 
 #[derive(Template)] // this will generate the code...
-#[template(path = "WES/Dto/Dto.html")] // using the template in this path, relative
-                                       // to the `templates` dir in the crate root
+#[template(path = "WES/Dto/Dto.html")] // using the template in this path, relative // to the `templates` dir in the crate root
 struct DtoTemplate<'a> {
-    // the name of the struct can be anything
-    name: &'a str, // the field name should match the variable name
-                   // in your template
+    namespace: &'a str,
+    folder: &'a str,
+    entity: &'a str,
+    properties: &'a HashMap<String, String>,
 }
 
 #[derive(Debug)]
