@@ -1,3 +1,4 @@
+use askama::Template;
 use std::{cell::RefCell, collections::HashMap, io::Read, os::windows::prelude::FileExt};
 extern crate inflector;
 use super::{create_dir, find, generate_template, open_file};
@@ -8,6 +9,15 @@ use crate::{
 };
 use inflector::Inflector;
 use log::info;
+
+#[derive(Template)] // this will generate the code...
+#[template(path = "WES/Dto/Dto.html")] // using the template in this path, relative
+                                       // to the `templates` dir in the crate root
+struct DtoTemplate<'a> {
+    // the name of the struct can be anything
+    name: &'a str, // the field name should match the variable name
+                   // in your template
+}
 
 #[derive(Debug)]
 pub struct Entity {
