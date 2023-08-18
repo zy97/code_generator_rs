@@ -16,13 +16,6 @@ regex = { version = "1.6.0", default-features = false, features = ["std"] }
 thiserror = "1.0.31"
 log = "0.4.17"
 encoding_rs = "0.8.31"
-sea-orm = { version = "0.11.3", features = [
-    "sqlx-sqlite",
-    "runtime-async-std-native-tls",
-    "macros",
-] }
-entity = {path = "../entity"}
-
 futures = "0.3.28"
 async-std = "1.12.0"
 [dev-dependencies]

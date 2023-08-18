@@ -210,6 +210,17 @@ where
     // }
     todo!()
 }
+pub fn process_template_string<T>(
+    template_string: String,
+    expressions: T,
+) -> Result<String, CodeGeneratorError>
+where
+    T: Serialize,
+{
+    let mut tera = Tera::default();
+    let res = tera.render_str(&template_string, &Context::from_serialize(&expressions)?)?;
+    Ok(res)
+}
 pub async fn process_template_to_file<T>(
     id: i32,
     expressions: T,

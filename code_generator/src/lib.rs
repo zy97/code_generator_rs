@@ -9,13 +9,11 @@ mod error;
 pub use entities::Entity;
 pub use entities::Permission;
 pub use entities::WebEntity;
+pub use entities::{
+    get_expressions_in_template, process_template, process_template_string,
+    process_template_to_file,
+};
 pub use error::CodeGeneratorError;
-mod services;
-pub use entities::{get_expressions_in_template, process_template, process_template_to_file};
-pub use sea_orm::DbErr;
-pub use services::*;
-const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";
-// const DB_NAME: &str = "bakeries_db";
 
 #[macro_use]
 extern crate lazy_static;
@@ -30,19 +28,6 @@ lazy_static! {
                 ::std::process::exit(1);
             }
         };
-        // TODO: 从数据库中获取模板
-
-
-        // let templates = async_std::task::block_on(async {
-        //     crate::services::templates_svc::get_all().await.unwrap()
-        // });
-        // // println!("templates: {:#?}", templates);
-        // for template in templates {
-        //     let template_name = format!("{}/{}", template.project_id, template.id);
-        //     tera.add_raw_template(&template_name, &template.content)
-        //         .unwrap();
-        //     // println!("template add success! template_name: {}", template_name)
-        // }
         tera.register_filter("snake", snake);
         tera.register_filter("plural", plural);
         tera.register_filter("camel", camel);

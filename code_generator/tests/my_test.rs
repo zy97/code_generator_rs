@@ -111,15 +111,4 @@ mod tests {
             .unwrap();
         entity.format_all().unwrap();
     }
-
-    #[test]
-    fn sqlite_test() {
-        use futures::executor::block_on;
-        use sea_orm::{Database, DbErr};
-        const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";
-        const DB_NAME: &str = "bakeries_db";
-        block_on(async {
-            let db = Database::connect(DATABASE_URL).await.unwrap();
-        });
-    }
 }
