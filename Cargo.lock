@@ -291,6 +291,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "base64"
+version = "0.21.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "604178f6c5c21f02dc555784810edfb88d34ac2c73b2eae109655649ee73ce3d"
+
+[[package]]
 name = "basic-toml"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -421,6 +427,7 @@ dependencies = [
  "Inflector",
  "askama",
  "async-std",
+ "base64",
  "clap 4.3.22",
  "criterion",
  "encoding_rs",
@@ -430,6 +437,7 @@ dependencies = [
  "log",
  "regex",
  "serde",
+ "serde_json",
  "tera",
  "thiserror",
  "tokio-test",

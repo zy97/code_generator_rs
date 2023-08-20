@@ -15,6 +15,8 @@ pub enum CodeGeneratorError {
     RegexNoMatchError(#[from] RegexNoMatchError),
     #[error("{0}")]
     DprintError(String),
+    #[error("{0}")]
+    RenderError(#[from] askama::Error),
 }
 #[derive(Debug)]
 pub struct RegexNoMatchError;

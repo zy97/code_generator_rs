@@ -4,17 +4,19 @@ use log::info;
 use std::collections::HashMap;
 use tera::{to_value, try_get_value, Tera, Value};
 // mod entities;
+mod args;
 mod entities;
 mod error;
-pub use entities::Entity;
-pub use entities::Permission;
-pub use entities::WebEntity;
+pub use args::ClassInfo;
+// pub use entities::Entity;
+// pub use entities::Permission;
+// pub use entities::WebEntity;
 pub use entities::{
     get_expressions_in_template, process_template, process_template_string,
     process_template_to_file,
 };
 pub use error::CodeGeneratorError;
-
+pub use error::RegexNoMatchError;
 #[macro_use]
 extern crate lazy_static;
 lazy_static! {
