@@ -7,7 +7,7 @@ using WES.Entity.Model;
 using WES.Entity.Model.{{class_names}};
 using WES.Services.IServices;
 
-namespace WES.API.Controllers
+namespace {{namespace}}
 {
     [Route("[controller]/[action]")]
     [ApiController]

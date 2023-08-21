@@ -8,7 +8,7 @@ using WES.Repository.IRepository;
 using WES.Services.IServices;
 using Mapster;
 
-namespace WES.Services.Services
+namespace {{namespace}}
 {
     public class {{class_name}}Service : I{{class_name}}Service
     {
