@@ -260,7 +260,16 @@ where
 //     Ok(file_full_name.to_string())
 // }
 pub fn render_wes_template(args: Arguments) {
-    create_dto(args.class_info, args.namespace, args.output);
+    let res = match args.mode {
+        crate::args::Mode::Dto => create_dto(args.class_info, args.namespace, args.output),
+        crate::args::Mode::CreateDto => todo!(),
+        crate::args::Mode::UpdateDto => todo!(),
+        crate::args::Mode::IService => todo!(),
+        crate::args::Mode::Service => todo!(),
+        crate::args::Mode::IRepository => todo!(),
+        crate::args::Mode::Repository => todo!(),
+        crate::args::Mode::Controller => todo!(),
+    };
 }
 #[cfg(test)]
 mod tests {

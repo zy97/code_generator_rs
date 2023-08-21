@@ -20,6 +20,14 @@ struct DtoTemplate {
     class_name: String,
     properties: Vec<PropertyInfo>,
 }
+#[derive(Template)] // this will generate the code...
+#[template(path = "WES/Dto/Dto.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+struct CreateDtoTemplate {
+    namespace: String,
+    class_name: String,
+    properties: Vec<PropertyInfo>,
+}
+
 pub fn create_dto(
     class: ClassInfo,
     namespace: String,

@@ -4,7 +4,11 @@ use base64::{
     engine::{self, general_purpose},
     Engine as _,
 };
-use clap::{crate_authors, crate_description, crate_name, crate_version, value_parser, Subcommand};
+use clap::builder::PossibleValue;
+use clap::{
+    arg, crate_authors, crate_description, crate_name, crate_version, value_parser, ArgAction,
+    Subcommand, ValueEnum,
+};
 use clap::{Arg, Command};
 use serde::Deserialize;
 
@@ -35,6 +39,11 @@ fn command() -> clap::Command {
                 .short('o')
                 .required(false),
         )
+        .arg(
+            arg!(<MODE>)
+                .help("What mode to run the program in")
+                .value_parser(value_parser!(Mode)),
+        )
 }
 pub fn get_args() -> Result<Arguments, CodeGeneratorError> {
     let command = command();
@@ -57,16 +66,23 @@ pub fn get_args() -> Result<Arguments, CodeGeneratorError> {
 
     let output = matches.get_one::<String>("output").map(|f| f.to_string());
 
+    let mode = matches
+        .get_one::<Mode>("MODE")
+        .copied()
+        .expect("'MODE' is required and parsing will fail if its missing");
+
     Ok(Arguments {
         class_info,
         namespace,
         output,
+        mode,
     })
 }
 pub struct Arguments {
     pub class_info: ClassInfo,
     pub namespace: String,
     pub output: Option<String>,
+    pub mode: Mode,
 }
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
@@ -82,4 +98,64 @@ pub struct PropertyInfo {
     pub property_type: String,
     pub property_name: String,
     pub comment: String,
+}
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Mode {
+    Dto,
+    CreateDto,
+    UpdateDto,
+    IService,
+    Service,
+    IRepository,
+    Repository,
+    Controller,
+}
+impl ValueEnum for Mode {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[
+            Self::Dto,
+            Self::CreateDto,
+            Self::UpdateDto,
+            Self::IService,
+            Self::Service,
+            Self::IRepository,
+            Self::Repository,
+            Self::Controller,
+        ]
+    }
+
+    fn to_possible_value<'a>(&self) -> Option<PossibleValue> {
+        Some(match self {
+            Mode::Dto => PossibleValue::new("dto"),
+            Mode::CreateDto => PossibleValue::new("create_dto"),
+            Mode::UpdateDto => PossibleValue::new("update_dto"),
+            Mode::IService => PossibleValue::new("iservice"),
+            Mode::Service => PossibleValue::new("service"),
+            Mode::IRepository => PossibleValue::new("irepository"),
+            Mode::Repository => PossibleValue::new("repository"),
+            Mode::Controller => PossibleValue::new("controller"),
+        })
+    }
+}
+
+impl std::fmt::Display for Mode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.to_possible_value()
+            .expect("no values are skipped")
+            .get_name()
+            .fmt(f)
+    }
+}
+
+impl std::str::FromStr for Mode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        for variant in Self::value_variants() {
+            if variant.to_possible_value().unwrap().matches(s, false) {
+                return Ok(*variant);
+            }
+        }
+        Err(format!("invalid variant: {s}"))
+    }
 }
