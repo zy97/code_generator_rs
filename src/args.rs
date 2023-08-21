@@ -56,7 +56,6 @@ pub fn get_args() -> Result<Arguments, CodeGeneratorError> {
 
     let bytes = general_purpose::STANDARD.decode(model_string).unwrap();
     let decoded_str = String::from_utf8(bytes).expect("Invalid UTF-8 sequence");
-    println!("{}", decoded_str);
     let class_info: ClassInfo = serde_json::from_str(&decoded_str).expect("Failed to parse JSON");
 
     let namespace = matches
@@ -104,6 +103,7 @@ pub enum Mode {
     Dto,
     CreateDto,
     UpdateDto,
+    QueryDto,
     IService,
     Service,
     IRepository,
@@ -116,6 +116,7 @@ impl ValueEnum for Mode {
             Self::Dto,
             Self::CreateDto,
             Self::UpdateDto,
+            Self::QueryDto,
             Self::IService,
             Self::Service,
             Self::IRepository,
@@ -129,6 +130,7 @@ impl ValueEnum for Mode {
             Mode::Dto => PossibleValue::new("dto"),
             Mode::CreateDto => PossibleValue::new("create_dto"),
             Mode::UpdateDto => PossibleValue::new("update_dto"),
+            Mode::QueryDto => PossibleValue::new("query_dto"),
             Mode::IService => PossibleValue::new("iservice"),
             Mode::Service => PossibleValue::new("service"),
             Mode::IRepository => PossibleValue::new("irepository"),

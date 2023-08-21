@@ -1,33 +1,33 @@
-using WES.Entity.Dto;
-using WES.Entity.Dto.{{entities}};
+{% let class_names = class_name|pluralize %}
+{%- let class_name_camel = class_name|camel %}
+{%- let class_names_camel = class_names|camel -%}
+using WES.Entity.Model.{{class_names}};
 using WES.Entity.Entity;
 using WES.Repository.IRepository;
-using AutoMapper;
 using SqlSugar;
-
+using WES.Repository.SqlSugar.Internal;
+using WES.Repository.SqlSugar.Extensions;
 namespace {{namespace}}
 {
-    public class {{entity}}Repository : Repository<{{entity}}>, I{{entity}}Repository
+    public class {{class_name}}Repository : Repository<{{class_name}}>, I{{class_name}}Repository
     {
         private readonly ISqlSugarClient db;
-        public {{entity}}Repository(ISqlSugarClient db) : base(db)
+        public {{class_name}}Repository(ISqlSugarClient db) : base(db)
         {
             this.db = db;
         }
 
-        public async Task<(int total, List<{{entity}}> {{entities|camel}})> Get{{entities}}Async(Query{{entity}}Dto {{entity|camel}})
+        public Task<SqlSugarPagedList<{{class_name}}>> Get{{class_names}}Async(Query{{class_name}}Dto {{class_name_camel}})
         {
-            RefAsync<int> total = 0;
-            var {{entities|camel}} = await this.Context.Queryable<{{entity}}>()
-            //.WhereIF(!string.IsNullOrEmpty({{entity|camel}}.CustomerName), u => u.CustomerName.Contains({{entity|camel}}.CustomerName))
-            //.WhereIF(!string.IsNullOrEmpty({{entity|camel}}.Remark), u => u.Remark.Contains({{entity|camel}}.Remark))
-            {%- for name,type in properties %}
-                {%- if type == "string" %}
-              .WhereIF(!string.IsNullOrEmpty({{entity|camel}}.{{name}}), i => i.{{name}}.Contains({{entity|camel}}.{{name}}))
+           return this.Context.Queryable<{{class_name}}>()
+            {%- for property in properties %}
+                {%- if property.property_type == "string" %}
+              .WhereIF(!string.IsNullOrEmpty({{class_name_camel}}.{{property.property_name}}), i => i.{{property.property_name}}.Contains({{class_name_camel}}.{{property.property_name}}))
+                {%- else if property.property_type.contains("DateTime")%}
+              .WhereIF({{class_name_camel}}.{{property.property_name}} != null, i => SqlFunc.Between(i.{{property.property_name}}, {{class_name_camel}}.{{property.property_name}}, {{class_name_camel}}.{{property.property_name}}.Value.GetLastDateTime()))
                 {%- endif %}
             {%- endfor %}
-                .ToPageListAsync({{entity|camel}}.PageIndex, {{entity|camel}}.PageSize, total);
-            return (total, {{entities|camel}});
+                .ToPagedListAsync({{class_name_camel}}.PageIndex, {{class_name_camel}}.PageSize);
         }
     }
 }

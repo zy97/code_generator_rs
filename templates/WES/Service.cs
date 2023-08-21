@@ -1,79 +1,81 @@
-using AutoMapper;
+{% let class_names = class_name|pluralize %}
+{%- let class_name_camel = class_name|camel %}
+{%- let class_names_camel = class_names|camel -%}
 using WES.Entity.Entity;
-using WES.Entity.Dto.{{entities}};
+using WES.Entity.Model.{{class_names}};
 using WES.Entity.Model;
 using WES.Repository.IRepository;
 using WES.Services.IServices;
+using Mapster;
 
 namespace WES.Services.Services
 {
-    public class {{entity}}Service : I{{entity}}Service
+    public class {{class_name}}Service : I{{class_name}}Service
     {
-        private readonly I{{entity}}Repository {{entity|camel}}Repository;
-        private readonly IMapper mapper;
+        private readonly I{{class_name}}Repository {{class_name_camel}}Repository;
 
-        public {{entity}}Service(I{{entity}}Repository {{entity|camel}}Repository, IMapper mapper)
+        public {{class_name}}Service(I{{class_name}}Repository {{class_name_camel}}Repository)
         {
-            this.{{entity|camel}}Repository = {{entity|camel}}Repository;
-            this.mapper = mapper;
+            this.{{class_name_camel}}Repository = {{class_name_camel}}Repository;
         }
         // 添加
-        public async Task<bool> Add{{entity}}Async(Create{{entity}}Dto {{entity|camel}})
+        public async Task<bool> Add{{class_name}}Async(Create{{class_name}}Dto {{class_name_camel}})
         {
-            var existing{{entity}} = await Get{{entity}}ByNameAsync({{entity|camel}}.{{entity}}Name);
-            if (existing{{entity}} != null)
+            var existing{{class_name}} = await Get{{class_name}}ByXXXAsync();
+            if (existing{{class_name}} != null)
             {
                 throw new Exception("已存在");
             }
             else
             {
-                var res = mapper.Map<{{entity}}>({{entity|camel}});
-                return await this.{{entity|camel}}Repository.InsertAsync(res);
+                var res = {{class_name_camel}}.Adapt<{{class_name}}>();
+                return await this.{{class_name_camel}}Repository.InsertAsync(res);
             }
         }
-        //以名字获取角色
-        public async Task<{{entity}}> Get{{entity}}ByNameAsync(string {{entity|camel}}Name)
+       
+        public async Task<{{class_name}}> Get{{class_name}}ByXXXAsync()
         {
-            var {{entity|camel}} = await this.{{entity|camel}}Repository.GetFirstAsync(role => role.{{entity}}Name == {{entity|camel}}Name);
-            return {{entity|camel}};
+            var {{class_name_camel}} = await this.{{class_name_camel}}Repository.GetListAsync();
+            return {{class_name_camel}}[0];
         }
         // 更新
-        public async Task<bool> Update{{entity}}Async( Update{{entity}}Dto {{entity|camel}})
+        public async Task<bool> Update{{class_name}}Async( Update{{class_name}}Dto {{class_name_camel}})
         {
-            var existing{{entity}} = await Get{{entity}}ById({{entity|camel}}.Id);
-            if (existing{{entity}} == null)
+            var existing{{class_name}} = await Get{{class_name}}ById({{class_name_camel}}.Id);
+            if (existing{{class_name}} == null)
             {
                 throw new Exception("客户不存在");
             }
             else
             {
-                var res = await Get{{entity}}ByNameAsync({{entity|camel}}.{{entity}}Name);
-                if (res != null && res.Id != {{entity|camel}}.Id)
+                var res = await Get{{class_name}}ByXXXAsync();
+                if (res != null && res.Id != {{class_name_camel}}.Id)
                 {
                     throw new Exception("客户已存在");
                 }
-                mapper.Map({{entity|camel}}, existing{{entity}});
-                return await this.{{entity|camel}}Repository.UpdateAsync(existing{{entity}});
+                {{class_name_camel}}.Adapt(existing{{class_name}});
+                return await this.{{class_name_camel}}Repository.UpdateAsync(existing{{class_name}});
             }
         }
         // 获取
-        public async Task<{{entity}}> Get{{entity}}ById(int id)
+        public async Task<{{class_name}}> Get{{class_name}}ById(int id)
         {
-            var {{entities|camel}} = await this.{{entity|camel}}Repository.GetByIdAsync(id);
-            return {{entities|camel}};
+            var {{class_names_camel}} = await this.{{class_name_camel}}Repository.GetByIdAsync(id);
+            return {{class_names_camel}};
         }
 
         //删除
-        public async Task<bool> Delete{{entity}}Async(int id)
+        public async Task<bool> Delete{{class_name}}Async(int id)
         {
-            return await this.{{entity|camel}}Repository.DeleteByIdAsync(id);
+            return await this.{{class_name_camel}}Repository.DeleteByIdAsync(id);
         }
 
         //获取
-        public async Task<PagingResultDto<{{entity}}Dto>> Get{{entities}}Async(Query{{entity}}Dto query{{entity}}Dto)
+        public async Task<PagingResultDto<{{class_name}}Dto>> Get{{class_names}}Async(Query{{class_name}}Dto query{{class_name}}Dto)
         {
-            var (total, {{entities|camel}}) = await this.{{entity|camel}}Repository.Get{{entities}}Async(query{{entity}}Dto);
-            return new PagingResultDto<{{entity}}Dto> { TotalCount = total, Items = mapper.Map<List<{{entity}}Dto>>({{entities|camel}}) };
+            var res = await this.{{class_name_camel}}Repository.Get{{class_names}}Async(query{{class_name}}Dto);
+            var items = new PagingResultDto<{{class_name}}Dto> { TotalCount = res.pagination.Total, Items = res.list.Adapt<List<{{class_name}}Dto>>() };
+            return items;
         }
     }
 }

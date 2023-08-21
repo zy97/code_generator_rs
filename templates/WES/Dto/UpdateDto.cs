@@ -1,13 +1,15 @@
-using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
+using WES.Entity.Model;
 
-namespace {{namespace}}.{{folder }}
+namespace {{namespace}}
 {
-    public class {{entity}}Dto 
+    public class Update{{class_name}}Dto : BaseDto
     {
-       [Required]
-        public int Id { get; set; }
-      {%- for name,type in properties %}
-      public {{type}} {{name}} { get; set; }
+      {%- for property in properties %}
+          {%- if property.comment.len() != 0 %}
+          {{property.comment-}}
+          {% endif -%}
+          public {{property.property_type}} {{property.property_name}} { get; set; }
       {%- endfor %}
     }
 }

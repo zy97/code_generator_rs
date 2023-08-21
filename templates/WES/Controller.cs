@@ -1,71 +1,73 @@
+{% let class_names = class_name|pluralize %}
+{%- let class_name_camel = class_name|camel %}
+{%- let class_names_camel = class_names|camel -%}
 using Microsoft.AspNetCore.Mvc;
 using WES.API.IServices;
 using WES.Entity.Model;
-using WES.Entity.Dto.{{entities}};
+using WES.Entity.Model.{{class_names}};
 using WES.Services.IServices;
 
 namespace WES.API.Controllers
 {
     [Route("[controller]/[action]")]
     [ApiController]
-    public class {{entity}}Controller : ControllerBase
+    public class {{class_name}}Controller : ControllerBase
     {
-        private readonly I{{entity}}Service {{entity|snake}}Service;
+        private readonly I{{class_name}}Service {{class_name_camel}}Service;
         private readonly IExcelOperatore excelOperatore;
 
-        public {{entity}}Controller(I{{entity}}Service {{entity|snake}}Service, IExcelOperatore excelOperatore)
+        public {{class_name}}Controller(I{{class_name}}Service {{class_name_camel}}Service, IExcelOperatore excelOperatore)
         {
-            this.{{entity|snake}}Service = {{entity|snake}}Service;
+            this.{{class_name_camel}}Service = {{class_name_camel}}Service;
             this.excelOperatore = excelOperatore;
         }
 
         /// <summary>
         /// 添加
         /// </summary>
-        /// <param name="{{entity|snake}}"></param>
+        /// <param name="{{class_name_camel}}"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> Add{{entity}}Async(Create{{entity}}Dto {{entity|snake}})
+        public async Task<IActionResult> Add{{class_name}}Async(Create{{class_name}}Dto {{class_name_camel}})
         {
-            var res = await {{entity|snake}}Service.Add{{entity}}Async({{entity|snake}});
+            var res = await {{class_name_camel}}Service.Add{{class_name}}Async({{class_name_camel}});
             return Ok(res);
         }
 
         /// <summary>
         ///  修改
         /// </summary>
-        /// <param name="{{entity|snake}}"></param>
+        /// <param name="{{class_name_camel}}"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> Update{{entity}}Async(Update{{entity}}Dto {{entity|snake}})
+        public async Task<IActionResult> Update{{class_name}}Async(Update{{class_name}}Dto {{class_name_camel}})
         {
-            var res = await {{entity|snake}}Service.Update{{entity}}Async({{entity|snake}});
+            var res = await {{class_name_camel}}Service.Update{{class_name}}Async({{class_name_camel}});
             return Ok(res);
         }
 
         //删除
         [HttpPost]
-        public async Task<IActionResult> Delete{{entity}}Async(DeleteDto deleteDto)
+        public async Task<IActionResult> Delete{{class_name}}Async(OnlyIdDto deleteDto)
         {
-            var res = await {{entity|snake}}Service.Delete{{entity}}Async(deleteDto.Id);
+            var res = await {{class_name_camel}}Service.Delete{{class_name}}Async(deleteDto.Id);
             return Ok(res);
         }
 
         //查询
         [HttpGet]
-        public async Task<PagingResultDto<{{entity}}Dto>> Get{{entity}}Async([FromQuery] Query{{entity}}Dto query{{entity}}Dto)
+        public async Task<PagingResultDto<{{class_name}}Dto>> Get{{class_names}}Async([FromQuery] Query{{class_name}}Dto query{{class_name}}Dto)
         {
-            var res = await {{entity|snake}}Service.Get{{entities}}Async(query{{entity}}Dto);
+            var res = await {{class_name_camel}}Service.Get{{class_names}}Async(query{{class_name}}Dto);
             return res;
         }
         //导出
         [HttpGet()]
-        public async Task<IActionResult> Export{{entity}}Async([FromQuery] Query{{entity}}Dto query{{entity}}Dto)
+        public async Task<IActionResult> Export{{class_names}}Async([FromQuery] Query{{class_name}}Dto query{{class_name}}Dto)
         {
-            var roles = await {{entity|snake}}Service.Get{{entities}}Async(query{{entity}}Dto);
-            var dataBytes = excelOperatore.Save(roles.Items, "客户数据表");
-            //application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-            return File(dataBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "{{entity|snake}}.xlsx");
+            var items = await {{class_name_camel}}Service.Get{{class_names}}Async(query{{class_name}}Dto);
+            var stream = excelOperatore.Save(items.Items, "数据表");
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "{{class_name_camel}}.xlsx");
         }
     }
 }

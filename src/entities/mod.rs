@@ -23,7 +23,10 @@ use tera::{Context, Tera};
 use crate::{args::Arguments, ClassInfo, CodeGeneratorError};
 use walkdir::DirEntry;
 
-use self::wes::create_dto;
+use self::wes::{
+    create_controller, create_create_dto, create_dto, create_irepository, create_iservice,
+    create_query_dto, create_repository, create_service, create_update_dto,
+};
 // pub use web_entity::WebEntity;
 fn read_file(file: &str) -> Result<String, CodeGeneratorError> {
     let mut file = File::open(file)?;
@@ -34,7 +37,12 @@ fn read_file(file: &str) -> Result<String, CodeGeneratorError> {
 }
 fn open_file(file: &str) -> Result<File, CodeGeneratorError> {
     let mut options = OpenOptions::new();
-    let file = options.write(true).read(true).create(true).open(&file)?;
+    let file = options
+        .write(true)
+        .read(true)
+        .create(true)
+        .truncate(true)
+        .open(&file)?;
     Ok(file)
 }
 // 创建文件夹
@@ -262,13 +270,28 @@ where
 pub fn render_wes_template(args: Arguments) {
     let res = match args.mode {
         crate::args::Mode::Dto => create_dto(args.class_info, args.namespace, args.output),
-        crate::args::Mode::CreateDto => todo!(),
-        crate::args::Mode::UpdateDto => todo!(),
-        crate::args::Mode::IService => todo!(),
-        crate::args::Mode::Service => todo!(),
-        crate::args::Mode::IRepository => todo!(),
-        crate::args::Mode::Repository => todo!(),
-        crate::args::Mode::Controller => todo!(),
+        crate::args::Mode::CreateDto => {
+            create_create_dto(args.class_info, args.namespace, args.output)
+        }
+        crate::args::Mode::UpdateDto => {
+            create_update_dto(args.class_info, args.namespace, args.output)
+        }
+        crate::args::Mode::QueryDto => {
+            create_query_dto(args.class_info, args.namespace, args.output)
+        }
+        crate::args::Mode::IService => {
+            create_iservice(args.class_info, args.namespace, args.output)
+        }
+        crate::args::Mode::Service => create_service(args.class_info, args.namespace, args.output),
+        crate::args::Mode::IRepository => {
+            create_irepository(args.class_info, args.namespace, args.output)
+        }
+        crate::args::Mode::Repository => {
+            create_repository(args.class_info, args.namespace, args.output)
+        }
+        crate::args::Mode::Controller => {
+            create_controller(args.class_info, args.namespace, args.output)
+        }
     };
 }
 #[cfg(test)]
