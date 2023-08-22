@@ -1,8 +1,8 @@
 use askama::Template;
-use std::{cell::RefCell, collections::HashMap, fs::create_dir_all, path::Path};
+use std::{fs::create_dir_all, path::Path};
 extern crate inflector;
 use super::open_file;
-use crate::{args::PropertyInfo, entities::read_file, ClassInfo, CodeGeneratorError};
+use crate::{args::PropertyInfo, ClassInfo, CodeGeneratorError};
 
 mod filters {
     use inflector::Inflector;
@@ -203,20 +203,4 @@ pub fn create_controller(
         class_name: class.class_name,
     };
     render(controller, output)
-}
-
-#[cfg(test)]
-mod tests {
-    use askama::Template;
-
-    use crate::entities::wes::IServiceTemplate;
-
-    #[test]
-    fn generate() {
-        let iservice = IServiceTemplate {
-            namespace: "xyz".to_owned(),
-            class_name: "aaaa".to_owned(),
-        };
-        println!("{}", iservice.render().unwrap());
-    }
 }

@@ -7,8 +7,6 @@ use thiserror::Error;
 pub enum CodeGeneratorError {
     #[error(transparent)]
     FileError(#[from] std::io::Error),
-    #[error(transparent)]
-    RegexError(#[from] regex::Error),
     #[error("regex no match")]
     RegexNoMatchError(#[from] RegexNoMatchError),
     #[error("{0}")]

@@ -1,26 +1,13 @@
-mod entity;
-mod permision;
-mod web_entity;
 mod wes;
-use encoding_rs::UTF_8;
 use std::{
     fs::{File, OpenOptions},
-    io::Read,
-    os::windows::process::ExitStatusExt,
     path::Path,
-    process::{Command, ExitStatus, Stdio},
 };
 
 use crate::{args::Arguments, CodeGeneratorError};
 
 use self::wes::*;
-fn read_file(file: &str) -> Result<String, CodeGeneratorError> {
-    let mut file = File::open(file)?;
-    let mut code = vec![];
-    file.read_to_end(&mut code)?;
-    let (code, ..) = UTF_8.decode(&code);
-    Ok(code.to_string())
-}
+
 fn open_file(file: &str) -> Result<File, CodeGeneratorError> {
     let mut options = OpenOptions::new();
     let file = options
@@ -39,40 +26,40 @@ pub fn create_dir(dir: &str) -> Result<(), CodeGeneratorError> {
     Ok(())
 }
 
-fn format_code(work_dir: String, files: Vec<String>) -> Result<(), CodeGeneratorError> {
-    if files.len() == 0 {
-        return Ok(());
-    }
-    let output = Command::new("cmd")
-        .arg("/c")
-        .current_dir(work_dir)
-        .arg(format!(r"dprint fmt {}", files.join(" ")))
-        .stdout(Stdio::piped())
-        .output()
-        .expect("cmd exec error!");
-    if &output.status == &ExitStatus::from_raw(1) {
-        let (output, ..) = UTF_8.decode(&output.stderr);
-        return Err(CodeGeneratorError::DprintError(output.to_string()));
-    }
-    println!("{:#?} format successful!", files);
-    Ok(())
-}
-fn format_single_file(file: String) -> Result<(), CodeGeneratorError> {
-    let work_dir = Path::new(&file).parent().unwrap().display().to_string();
-    let output = Command::new("cmd")
-        .arg("/c")
-        .current_dir(work_dir)
-        .arg(format!(r"dprint fmt {}", file))
-        .stdout(Stdio::piped())
-        .output()
-        .expect("cmd exec error!");
-    if &output.status == &ExitStatus::from_raw(1) {
-        let (output, ..) = UTF_8.decode(&output.stderr);
-        return Err(CodeGeneratorError::DprintError(output.to_string()));
-    }
-    eprintln!("{} format successful!", file);
-    Ok(())
-}
+// fn format_code(work_dir: String, files: Vec<String>) -> Result<(), CodeGeneratorError> {
+//     if files.len() == 0 {
+//         return Ok(());
+//     }
+//     let output = Command::new("cmd")
+//         .arg("/c")
+//         .current_dir(work_dir)
+//         .arg(format!(r"dprint fmt {}", files.join(" ")))
+//         .stdout(Stdio::piped())
+//         .output()
+//         .expect("cmd exec error!");
+//     if &output.status == &ExitStatus::from_raw(1) {
+//         let (output, ..) = UTF_8.decode(&output.stderr);
+//         return Err(CodeGeneratorError::DprintError(output.to_string()));
+//     }
+//     println!("{:#?} format successful!", files);
+//     Ok(())
+// }
+// fn format_single_file(file: String) -> Result<(), CodeGeneratorError> {
+//     let work_dir = Path::new(&file).parent().unwrap().display().to_string();
+//     let output = Command::new("cmd")
+//         .arg("/c")
+//         .current_dir(work_dir)
+//         .arg(format!(r"dprint fmt {}", file))
+//         .stdout(Stdio::piped())
+//         .output()
+//         .expect("cmd exec error!");
+//     if &output.status == &ExitStatus::from_raw(1) {
+//         let (output, ..) = UTF_8.decode(&output.stderr);
+//         return Err(CodeGeneratorError::DprintError(output.to_string()));
+//     }
+//     eprintln!("{} format successful!", file);
+//     Ok(())
+// }
 
 pub fn render_wes_template(args: Arguments) {
     let res = match args.mode {
@@ -100,10 +87,4 @@ pub fn render_wes_template(args: Arguments) {
             create_controller(args.class_info, args.namespace, args.output)
         }
     };
-}
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn get_expressions_in_template_test() {}
 }

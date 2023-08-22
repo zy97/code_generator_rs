@@ -1,8 +1,9 @@
 use crate::args::{get_args, Arguments};
 use args::ClassInfo;
-use code_generator::CodeGeneratorError;
 mod entities;
+mod error;
 use entities::render_wes_template;
+use error::CodeGeneratorError;
 mod args;
 
 fn main() {
