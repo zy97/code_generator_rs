@@ -7,7 +7,6 @@ use crate::{args::PropertyInfo, entities::read_file, ClassInfo, CodeGeneratorErr
 mod filters {
     use inflector::Inflector;
 
-    // This filter does not have extra arguments
     pub fn pluralize<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
         let s = s.to_string();
         Ok(s.to_plural())
@@ -17,61 +16,61 @@ mod filters {
         Ok(s.to_camel_case())
     }
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/Dto/Dto.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/Dto/Dto.cs", escape = "none")]
 struct DtoTemplate {
     namespace: String,
     class_name: String,
     properties: Vec<PropertyInfo>,
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/Dto/CreateDto.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/Dto/CreateDto.cs", escape = "none")]
 struct CreateDtoTemplate {
     namespace: String,
     class_name: String,
     properties: Vec<PropertyInfo>,
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/Dto/UpdateDto.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/Dto/UpdateDto.cs", escape = "none")]
 struct UpdateDtoTemplate {
     namespace: String,
     class_name: String,
     properties: Vec<PropertyInfo>,
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/Dto/QueryDto.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/Dto/QueryDto.cs", escape = "none")]
 struct QueryDtoTemplate {
     namespace: String,
     class_name: String,
     properties: Vec<PropertyInfo>,
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/IService.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/IService.cs", escape = "none")]
 struct IServiceTemplate {
     namespace: String,
     class_name: String,
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/Service.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/Service.cs", escape = "none")]
 struct ServiceTemplate {
     namespace: String,
     class_name: String,
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/IRepository.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/IRepository.cs", escape = "none")]
 struct IRepositoryTemplate {
     namespace: String,
     class_name: String,
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/Repository.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/Repository.cs", escape = "none")]
 struct RepositoryTemplate {
     namespace: String,
     class_name: String,
     properties: Vec<PropertyInfo>,
 }
-#[derive(Template)] // this will generate the code...
-#[template(path = "WES/Controller.cs", escape = "none")] // using the template in this path, relative // to the `templates` dir in the crate root
+#[derive(Template)]
+#[template(path = "WES/Controller.cs", escape = "none")]
 struct ControllerTemplate {
     namespace: String,
     class_name: String,
@@ -214,33 +213,10 @@ mod tests {
 
     #[test]
     fn generate() {
-        // entity
-        //     .create_dto(String::from(r"D:\code\WES\WES.Entity\Model"))
-        //     .unwrap();
-
-        // // entity
-        // //     .create_exception(String::from(r"D:\code\WES\WES.Entity\Exceptions"))
-        // //     .unwrap();
-
         let iservice = IServiceTemplate {
             namespace: "xyz".to_owned(),
             class_name: "aaaa".to_owned(),
         };
         println!("{}", iservice.render().unwrap());
-        // entity
-        //     .create_repository(String::from(r"D:\code\WES\WES.Repository\Repository"))
-        //     .unwrap();
-
-        // entity
-        //     .create_iservice(String::from(r"D:\code\WES\WES.Services\IServices"))
-        //     .unwrap();
-
-        // entity
-        //     .create_service(String::from(r"D:\code\WES\WES.Services\Services"))
-        //     .unwrap();
-
-        // entity
-        //     .create_controller(String::from(r"D:\code\WES\WES.API\Controllers"))
-        //     .unwrap();
     }
 }

@@ -1,13 +1,10 @@
+use std::ffi::OsString;
+
+use base64::engine::general_purpose;
 use base64::Engine;
-use base64::{
-    alphabet,
-    engine::{self, general_purpose},
-    Engine as _,
-};
 use clap::builder::PossibleValue;
 use clap::{
-    arg, crate_authors, crate_description, crate_name, crate_version, value_parser, ArgAction,
-    Subcommand, ValueEnum,
+    arg, crate_authors, crate_description, crate_name, crate_version, value_parser, ValueEnum,
 };
 use clap::{Arg, Command};
 use serde::Deserialize;
@@ -77,6 +74,43 @@ pub fn get_args() -> Result<Arguments, CodeGeneratorError> {
         mode,
     })
 }
+pub fn get_args_from<I, T>(itr: I) -> Result<Arguments, CodeGeneratorError>
+where
+    I: IntoIterator<Item = T>,
+    T: Into<OsString> + Clone,
+{
+    let command = command();
+    let matches = command.get_matches_from(itr);
+
+    let model_string = matches
+        .get_one::<String>("model")
+        .expect("获取model参数失败")
+        .to_string();
+
+    let bytes = general_purpose::STANDARD.decode(model_string).unwrap();
+    let decoded_str = String::from_utf8(bytes).expect("Invalid UTF-8 sequence");
+    let class_info: ClassInfo = serde_json::from_str(&decoded_str).expect("Failed to parse JSON");
+
+    let namespace = matches
+        .get_one::<String>("namespace")
+        .expect("获取命名空间失败")
+        .to_string();
+
+    let output = matches.get_one::<String>("output").map(|f| f.to_string());
+
+    let mode = matches
+        .get_one::<Mode>("MODE")
+        .copied()
+        .expect("'MODE' is required and parsing will fail if its missing");
+
+    Ok(Arguments {
+        class_info,
+        namespace,
+        output,
+        mode,
+    })
+}
+#[derive(Debug)]
 pub struct Arguments {
     pub class_info: ClassInfo,
     pub namespace: String,
@@ -98,7 +132,7 @@ pub struct PropertyInfo {
     pub property_name: String,
     pub comment: String,
 }
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Mode {
     Dto,
     CreateDto,
